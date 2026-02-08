@@ -1,0 +1,64 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Base title="Fortunato | Carrito" description="Revisá tu selección y continuá al checkout.">
+  <Header />
+
+  <main class="cart-page">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Carrito</p>
+        <h2>Tu selección Fortunato</h2>
+        <p class="muted">Revisá los productos antes de continuar.</p>
+      </div>
+
+      <div class="cart-list" data-cart-list></div>
+
+      <div class="cart-summary" data-cart-summary>
+        <p><strong>Subtotal</strong>: <span data-cart-subtotal>—</span></p>
+        <p class="muted">Envío e impuestos se calculan en el checkout.</p>
+        <a href="/checkout" class="btn">Continuar al checkout</a>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+
+  <script>
+    const CART_KEY = "fortunato_cart";
+    const list = document.querySelector("[data-cart-list]");
+    const subtotalEl = document.querySelector("[data-cart-subtotal]");
+
+    const format = (amount, currency) => amount ? `${currency} ${amount.toFixed(0)}` : "Precio a confirmar";
+
+    const render = () => {
+      let cart = [];
+      try { cart = JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch {}
+      if (!cart.length) {
+        list.innerHTML = "<p class='muted'>Tu carrito está vacío.</p>";
+        subtotalEl.textContent = "—";
+        return;
+      }
+      let subtotal = 0;
+      list.innerHTML = cart.map((item) => {
+        subtotal += (item.price || 0) * item.qty;
+        return `
+          <div class='cart-item'>
+            <img src='${item.image || "/placeholder.svg"}' alt='${item.name}' />
+            <div>
+              <strong>${item.name}</strong>
+              <p class='muted'>Cantidad: ${item.qty}</p>
+            </div>
+            <div><strong>${format(item.price, item.currency)}</strong></div>
+          </div>
+        `;
+      }).join("");
+      subtotalEl.textContent = format(subtotal, cart[0]?.currency || "ARS");
+    };
+
+    render();
+  </script>
+</Base>

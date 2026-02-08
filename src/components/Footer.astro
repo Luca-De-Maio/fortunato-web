@@ -1,0 +1,23 @@
+---
+import { Image } from "astro:assets";
+import logo from "../assets/logo.png";
+---
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>
+      <Image src={logo} alt="Fortunato" width={140} class="footer-logo" />
+      <p class="muted">Elegancia moderna. Herencia italo-argentina.</p>
+    </div>
+    <div>
+      <p class="footer-title">Contacto</p>
+      <a href="mailto:hola@fortunato.com" class="footer-link">hola@fortunato.com</a>
+      <a href="https://wa.me/5491132585919" class="footer-link">WhatsApp +54 9 11 3258-5919</a>
+    </div>
+    <div>
+      <p class="footer-title">Redes</p>
+      <a href="#" class="footer-link">Instagram</a>
+      <a href="#" class="footer-link">TikTok</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">© 2026 Fortunato. Todos los derechos reservados.</div>
+</footer>

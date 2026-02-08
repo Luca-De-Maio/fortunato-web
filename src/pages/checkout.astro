@@ -1,0 +1,38 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Base title="Fortunato | Checkout" description="Elegí tu forma de compra y finalizá tu pedido.">
+  <Header />
+
+  <main class="checkout-page">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Checkout</p>
+        <h2>Finalizá tu compra</h2>
+        <p class="muted">Elegí el canal que prefieras para completar tu pedido.</p>
+      </div>
+
+      <div class="notice">
+        <strong>Checkout en definición.</strong> Mientras tanto podés finalizar por Tienda Nube o WhatsApp.
+      </div>
+
+      <div class="benefits-grid" style="margin-top: 2rem;">
+        <div class="benefit-card">
+          <h3>Tienda Nube</h3>
+          <p>Pagá con tarjeta o transferencia en el checkout oficial.</p>
+          <a class="btn" href="#">Ir a Tienda Nube</a>
+        </div>
+        <div class="benefit-card">
+          <h3>WhatsApp</h3>
+          <p>Atención personalizada para talles, stock y envío.</p>
+          <a class="btn btn-ghost" href="https://wa.me/5491132585919">Comprar por WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>

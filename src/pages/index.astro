@@ -1,0 +1,75 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import ProductCard from "../components/ProductCard.astro";
+import Benefits from "../components/Benefits.astro";
+import FAQ from "../components/FAQ.astro";
+import products from "../../data/products.json";
+
+const heroTitle = "Elegancia moderna para el hombre que honra su destino.";
+const heroCopy = "Fortunato es la herencia del old money guiada por el pulso de lo eterno. Una cápsula limitada, sobria y auténtica, con materiales nobles y cortes precisos.";
+---
+
+<Base title="Fortunato | Moda masculina premium" description="Cápsula limitada de prendas premium inspiradas en la herencia italo-argentina.">
+  <Header />
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <p class="eyebrow">Cápsula verano 2026</p>
+          <h1>{heroTitle}</h1>
+          <p>{heroCopy}</p>
+          <div class="hero-actions">
+            <a href="#capsula" class="btn">Ver cápsula</a>
+            <a href="/checkout" class="btn btn-ghost">Comprar ahora</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <h2>Edición limitada</h2>
+          <p class="muted">Solo 50–70 unidades. Pensado para quienes eligen calidad antes que cantidad.</p>
+          <div class="pill-list" style="margin-top: 1.2rem;">
+            <span class="pill">Algodón premium</span>
+            <span class="pill">Lino refinado</span>
+            <span class="pill">Hecho en Argentina</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="capsula" class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Cápsula</p>
+          <h2>7 piezas esenciales para un verano sofisticado</h2>
+          <p class="muted">Una selección precisa de prendas con cortes limpios, tejidos nobles y una paleta serena.</p>
+        </div>
+        <div class="capsule-grid">
+          {products.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <Benefits />
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Nuestra historia</p>
+          <h2>Herencia italiana, identidad argentina</h2>
+          <p class="muted">Fortunato nace para redefinir la elegancia masculina en Argentina. Diseños atemporales con materiales premium y una experiencia de compra cuidada en cada detalle.</p>
+        </div>
+        <div class="notice">
+          <strong>Compra personalizada:</strong> Atención directa por WhatsApp para asesoramiento, talles y disponibilidad.
+        </div>
+      </div>
+    </section>
+
+    <FAQ />
+  </main>
+
+  <Footer />
+</Base>

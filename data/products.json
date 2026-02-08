@@ -1,0 +1,135 @@
+[
+  {
+    "id": "polo-terra-di-siena",
+    "slug": "polo-terra-di-siena",
+    "name": "Polo Terra di Siena",
+    "category": "chomba",
+    "price": null,
+    "currency": "ARS",
+    "description": "Polo de punto fino pensado para días cálidos. Corte entallado, cuello clásico con solapas suaves y un único botón para un look relajado y elegante.",
+    "materials": ["Algodón premium"],
+    "fit": "Entallado",
+    "colors": ["Marrón"],
+    "sizes": ["S", "M", "L"],
+    "images": ["/placeholder.svg"],
+    "highlights": [
+      "Cuello polo con solapas suaves",
+      "Tejido de punto respirable",
+      "Botón único para ajuste ligero"
+    ]
+  },
+  {
+    "id": "polo-luna-bianca",
+    "slug": "polo-luna-bianca",
+    "name": "Polo Luna Bianca",
+    "category": "chomba",
+    "price": null,
+    "currency": "ARS",
+    "description": "Polo sin botón en el cuello, de caída más suelta para un estilo nocturno sofisticado. Pensado para combinar comodidad y elegancia.",
+    "materials": ["98% algodón", "2% poliéster (a revisar)", "Viscosa natural (sugerida)"],
+    "fit": "Relajado",
+    "colors": ["Blanco"],
+    "sizes": ["S", "M", "L"],
+    "images": ["/placeholder.svg"],
+    "highlights": [
+      "Sin botón, cuello abierto",
+      "Caída fluida",
+      "Tejido cómodo para noche"
+    ]
+  },
+  {
+    "id": "camisa-brezza-estiva",
+    "slug": "camisa-brezza-estiva",
+    "name": "Camisa Brezza Estiva",
+    "category": "shirt",
+    "price": null,
+    "currency": "ARS",
+    "description": "Camisa de lino con cuello abierto tipo Johnny. Liviana y fresca, ideal para verano y encuentros al atardecer.",
+    "materials": ["Lino"],
+    "fit": "Relajado",
+    "colors": ["Blanco", "Natural"],
+    "sizes": ["S", "M", "L"],
+    "images": ["/placeholder.svg"],
+    "highlights": [
+      "Cuello Johnny",
+      "Lino respirable",
+      "Silueta relajada"
+    ]
+  },
+  {
+    "id": "bermuda-sabbia",
+    "slug": "bermuda-sabbia",
+    "name": "Bermuda Sabbia",
+    "category": "bermuda",
+    "price": null,
+    "currency": "ARS",
+    "description": "Bermuda de gabardina de algodón con pinzas dobles. Un clásico limpio que eleva el look diario.",
+    "materials": ["Gabardina de algodón"],
+    "fit": "Regular",
+    "colors": ["Beige"],
+    "sizes": ["S", "M", "L"],
+    "images": ["/placeholder.svg"],
+    "highlights": [
+      "Pinzas dobles",
+      "Dobladillo prolijo de 3 cm",
+      "Bolsillos laterales"
+    ]
+  },
+  {
+    "id": "bermuda-verde-selvaggio",
+    "slug": "bermuda-verde-selvaggio",
+    "name": "Bermuda Verde Selvaggio",
+    "category": "bermuda",
+    "price": null,
+    "currency": "ARS",
+    "description": "Bermuda con terminaciones de sastrería y cierre oculto. Elegancia discreta para un verano sofisticado.",
+    "materials": ["Algodón premium"],
+    "fit": "Regular",
+    "colors": ["Verde oliva"],
+    "sizes": ["S", "M", "L"],
+    "images": ["/placeholder.svg"],
+    "highlights": [
+      "Ojales de sastre",
+      "Cierre oculto",
+      "Tirantes laterales (si aplica)"
+    ]
+  },
+  {
+    "id": "pantalon-chino",
+    "slug": "pantalon-chino",
+    "name": "Pantalón Chino Fortunato",
+    "category": "pantalon",
+    "price": null,
+    "currency": "ARS",
+    "description": "Pantalón chino de algodón con corte moderno. Un básico premium para día y noche.",
+    "materials": ["Algodón premium"],
+    "fit": "Regular",
+    "colors": ["Beige", "Azul marino (placeholder)"],
+    "sizes": ["S", "M", "L"],
+    "images": ["/placeholder.svg"],
+    "highlights": [
+      "Corte limpio",
+      "Versátil día/noche",
+      "Tejido confortable"
+    ]
+  },
+  {
+    "id": "sandalias-fortunato",
+    "slug": "sandalias-fortunato",
+    "name": "Sandalias Fortunato",
+    "category": "sandals",
+    "price": null,
+    "currency": "ARS",
+    "description": "Sandalias minimalistas con estética premium para verano. Diseñadas para acompañar la cápsula.",
+    "materials": ["Cuero (placeholder)"],
+    "fit": "Regular",
+    "colors": ["Marrón (placeholder)"],
+    "sizes": ["40", "41", "42", "43"],
+    "images": ["/placeholder.svg"],
+    "highlights": [
+      "Diseño minimalista",
+      "Materiales nobles",
+      "Comodidad para verano"
+    ]
+  }
+]

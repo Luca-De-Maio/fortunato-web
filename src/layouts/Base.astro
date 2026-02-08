@@ -1,0 +1,68 @@
+---
+import "../styles/global.css";
+const { title = "Fortunato", description = "Moda masculina premium" } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/placeholder.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="grain"></div>
+    <slot />
+    <script>
+      const CART_KEY = "fortunato_cart";
+      const getCart = () => {
+        try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
+      };
+      const setCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
+
+      const updateBadge = () => {
+        const badge = document.querySelector("[data-cart-count]");
+        if (!badge) return;
+        const count = getCart().reduce((sum, item) => sum + item.qty, 0);
+        badge.textContent = count ? String(count) : "";
+        badge.classList.toggle("is-visible", count > 0);
+      };
+
+      const addToCart = (payload) => {
+        const cart = getCart();
+        const existing = cart.find((i) => i.id === payload.id);
+        if (existing) existing.qty += 1;
+        else cart.push({ ...payload, qty: 1 });
+        setCart(cart);
+        updateBadge();
+      };
+
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-add-to-cart]");
+        if (!button) return;
+        const payload = {
+          id: button.dataset.id,
+          name: button.dataset.name,
+          price: Number(button.dataset.price || 0),
+          currency: button.dataset.currency || "ARS",
+          image: button.dataset.image || "/placeholder.svg"
+        };
+        addToCart(payload);
+        button.textContent = "Agregado";
+        setTimeout(() => (button.textContent = "Agregar al carrito"), 1200);
+      });
+
+      updateBadge();
+    </script>
+  </body>
+</html>

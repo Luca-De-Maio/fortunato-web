@@ -1,0 +1,30 @@
+---
+const { product } = Astro.props;
+const priceLabel = product.price ? `${product.currency} ${product.price}` : "Precio a confirmar";
+---
+<article class="product-card">
+  <a href={`/product/${product.slug}`} class="product-media">
+    <img src={product.images[0]} alt={product.name} loading="lazy" />
+  </a>
+  <div class="product-body">
+    <div>
+      <p class="product-category">{product.category}</p>
+      <h3>{product.name}</h3>
+      <p class="product-price">{priceLabel}</p>
+    </div>
+    <div class="product-actions">
+      <a href={`/product/${product.slug}`} class="btn btn-ghost">Ver detalle</a>
+      <button
+        class="btn"
+        data-add-to-cart
+        data-id={product.id}
+        data-name={product.name}
+        data-price={product.price ?? 0}
+        data-currency={product.currency}
+        data-image={product.images[0]}
+      >
+        Agregar al carrito
+      </button>
+    </div>
+  </div>
+</article>
