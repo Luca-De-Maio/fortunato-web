@@ -6,5 +6,7 @@ dist/
 *.log
 .env
 .env.*
+!.env.example
 .vscode/
 docs/
+data/fortunato.db

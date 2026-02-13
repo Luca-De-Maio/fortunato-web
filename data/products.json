@@ -1,135 +1,193 @@
 [
   {
-    "id": "polo-terra-di-siena",
-    "slug": "polo-terra-di-siena",
-    "name": "Polo Terra di Siena",
-    "category": "chomba",
-    "price": null,
+    "id": "remera-doppio-collo",
+    "slug": "remera-doppio-collo",
+    "name": "Remera Doppio Collo",
+    "category": "top",
+    "price": 44480,
+    "compareAt": 65000,
     "currency": "ARS",
-    "description": "Polo de punto fino pensado para días cálidos. Corte entallado, cuello clásico con solapas suaves y un único botón para un look relajado y elegante.",
-    "materials": ["Algodón premium"],
-    "fit": "Entallado",
-    "colors": ["Marrón"],
-    "sizes": ["S", "M", "L"],
-    "images": ["/placeholder.svg"],
+    "description": "Descubrí la Remera Doppio Collo, una prenda esencial para quienes valoran confort y estilo en su día a día. Confeccionada en 100% algodón de tela jersey 16.1, esta remera ofrece una suavidad y transpirabilidad inigualables, ideal para el clima argentino. Su innovador diseño double neck aporta un toque moderno y versátil, permitiendo distintas combinaciones para tus outfits casuales o semi-formales. La calidad de la tela jersey garantiza durabilidad y un ajuste cómodo que se adapta perfectamente a tu cuerpo. Perfecta para usar sola o como base bajo una campera o blazer, esta remera es una pieza clave que no puede faltar en tu guardarropa. Además, su tejido natural asegura frescura durante todo el día, cuidando tu piel y brindándote libertad de movimiento. Características destacadas: Tela jersey 16.1, suave y resistente 100% algodón para máxima comodidad y transpirabilidad Diseño double neck, moderno y funcional Ideal para combinar con jeans, pantalones o bermudas Prenda versátil para todas las estaciones REMERA DOPPIO COLLO &ndash; Guía de Talles Las medidas fueron tomadas con la prenda apoyada y estirada sobre una superficie. Para identificar tu talle, multiplicá por dos cada medida y comparala con el contorno de tu busto y contorno de tu cintura (según corresponda), tal como se muestra en la última imagen. Talle S/M Sisa a sisa: 56 cm Contorno de cintura: 55 cm Talle L/XL Sisa a sisa: 61 cm Contorno de cintura: 59 cm",
+    "materials": [],
+    "fit": "",
+    "colors": [
+      "Negro",
+      "Blanco"
+    ],
+    "sizes": [
+      "L/XL",
+      "S/M"
+    ],
+    "images": [
+      "/images/products/remera-doppio-collo/IMG_9932.webp",
+      "/images/products/remera-doppio-collo/mesa-de-trabajo-205-copia-11.webp",
+      "/images/products/remera-doppio-collo/mesa-de-trabajo-205-copia-12.webp"
+    ],
     "highlights": [
-      "Cuello polo con solapas suaves",
-      "Tejido de punto respirable",
-      "Botón único para ajuste ligero"
-    ]
+      "Descubrí la Remera Doppio Collo, una prenda esencial para quienes valoran confort y estilo en su día a día",
+      "Confeccionada en 100% algodón de tela jersey 16.1, esta remera ofrece una suavidad y transpirabilidad inigualables, ideal para el clima argentino",
+      "Su innovador diseño double neck aporta un toque moderno y versátil, permitiendo distintas combinaciones para tus outfits casuales o semi-formales"
+    ],
+    "badge": "Nuevo",
+    "microcopy": "Cuello doble · Jersey 16.1"
   },
   {
-    "id": "polo-luna-bianca",
-    "slug": "polo-luna-bianca",
-    "name": "Polo Luna Bianca",
-    "category": "chomba",
-    "price": null,
+    "id": "sandalias-crudem",
+    "slug": "sandalias-crudem",
+    "name": "Sandalias Crudem",
+    "category": "calzado",
+    "price": 68400,
+    "compareAt": 85500,
     "currency": "ARS",
-    "description": "Polo sin botón en el cuello, de caída más suelta para un estilo nocturno sofisticado. Pensado para combinar comodidad y elegancia.",
-    "materials": ["98% algodón", "2% poliéster (a revisar)", "Viscosa natural (sugerida)"],
-    "fit": "Relajado",
-    "colors": ["Blanco"],
-    "sizes": ["S", "M", "L"],
-    "images": ["/placeholder.svg"],
+    "description": "Descubrí nuestras sandalias, diseñadas para quienes valoran el estilo y la comodidad en cada paso. Estas sandalias cuentan con una base de corcho natural que ofrece una amortiguación excepcional y un soporte ergonómico para tus pies, ideal para el uso diario. Las cintas de cuero auténtico aportan un toque sofisticado y duradero, combinando elegancia con resistencia. Su diseño minimalista y contemporáneo las convierte en el calzado perfecto para complementar tanto looks casuales como más formales. Perfectas para disfrutar del verano en la ciudad o en la costa, nuestras sandalias son una apuesta segura para quienes buscan calidad y diseño en un solo producto. Elegí confort y estilo con estas sandalias que marcan tendencia en Argentina. Características principales: Base de corcho natural para máxima comodidad Cintas de cuero genuino, suaves y resistentes Diseño europeo moderno y versátil Ideal para combinar con cualquier outfit estival SANDALIAS &ndash; Guía de Talles Para elegir tu talle, apoyá el talón contra la pared, marcá el dedo más largo y medí esa distancia. Hacelo con ambos pies. Largo del pie Talle 40 &mdash; 26 cm Talle 41 &mdash; 26,5 cm Talle 42 &mdash; 27,4 cm Talle 43 &mdash; 28 cm Talle 44 &mdash; 28,5 cm",
+    "materials": [],
+    "fit": "",
+    "colors": [
+      "Oliva",
+      "Terracota",
+      "Negro"
+    ],
+    "sizes": [
+      "40",
+      "41",
+      "42",
+      "43",
+      "44"
+    ],
+    "images": [
+      "/images/products/sandalias-crudem/IMG_9942.webp"
+    ],
     "highlights": [
-      "Sin botón, cuello abierto",
-      "Caída fluida",
-      "Tejido cómodo para noche"
-    ]
+      "Descubrí nuestras sandalias, diseñadas para quienes valoran el estilo y la comodidad en cada paso",
+      "Estas sandalias cuentan con una base de corcho natural que ofrece una amortiguación excepcional y un soporte ergonómico para tus pies, ideal para el uso diario",
+      "Las cintas de cuero auténtico aportan un toque sofisticado y duradero, combinando elegancia con resistencia"
+    ],
+    "badge": "Nuevo",
+    "microcopy": "Corcho · Cuero"
   },
   {
-    "id": "camisa-brezza-estiva",
-    "slug": "camisa-brezza-estiva",
-    "name": "Camisa Brezza Estiva",
-    "category": "shirt",
-    "price": null,
+    "id": "chomba-sprezzata",
+    "slug": "chomba-sprezzata",
+    "name": "Chomba Sprezzata",
+    "category": "top",
+    "price": 78800,
+    "compareAt": 98500,
     "currency": "ARS",
-    "description": "Camisa de lino con cuello abierto tipo Johnny. Liviana y fresca, ideal para verano y encuentros al atardecer.",
-    "materials": ["Lino"],
-    "fit": "Relajado",
-    "colors": ["Blanco", "Natural"],
-    "sizes": ["S", "M", "L"],
-    "images": ["/placeholder.svg"],
+    "description": "Descubrí la Chomba Sprezzata, una prenda imprescindible para quienes valoran la combinación perfecta entre estilo clásico y calidad superior. Confeccionada en tela ottoman, esta chomba presenta una mezcla cuidadosamente diseñada de 62% algodón, 33% poliéster y 5% elastano, lo que garantiza una textura suave, resistente y que no pierde forma ni desarrolla bolitas, incluso después de múltiples lavados en lavarropas. Su diseño elegante y atemporal la convierte en una pieza versátil, ideal para cualquier ocasión. Ya sea para un evento formal o un entorno más relajado, la Chomba Sprezzata se adapta perfectamente, realzando tu estilo sin perder comodidad. Además, su corte clásico facilita la combinación con distintas prendas, convirtiéndola en una opción fundamental en un guardarropa que busca calidad y durabilidad. Características destacadas: Tela ottoman de alta calidad con mezcla premium No genera bolitas ni cambia su textura ni tamaño tras los lavados Diseño clásico, elegante y atemporal Versatilidad para ambientes formales y casuales Ajuste cómodo que se adapta a la silueta Si buscás ropa clásica, cómoda y duradera, la Chomba Sprezzata es la elección perfecta para sumar sofisticación y funcionalidad a tu look diario. CHOMBA SPREZZATA &ndash; Guía de talles Las medidas fueron tomadas con la prenda apoyada y estirada sobre una superficie. Para identificar tu talle, multiplicá por dos cada medida y comparala con el contorno de tu busto y contorno de tu cintura (según corresponda), tal como se muestra en la última imagen. Talle S/M Sisa a sisa: 56,5 cm Contorno de cintura: 56 cm Talle L/XL Sisa a sisa: 62 cm Contorno de cintura: 60 cm",
+    "materials": [],
+    "fit": "",
+    "colors": [
+      "Mostaza",
+      "Blanco"
+    ],
+    "sizes": [
+      "L/XL",
+      "S/M"
+    ],
+    "images": [
+      "/images/products/chomba-sprezzata/IMG_9939.webp"
+    ],
     "highlights": [
-      "Cuello Johnny",
-      "Lino respirable",
-      "Silueta relajada"
-    ]
+      "Descubrí la Chomba Sprezzata, una prenda imprescindible para quienes valoran la combinación perfecta entre estilo clásico y calidad superior",
+      "Confeccionada en tela ottoman, esta chomba presenta una mezcla cuidadosamente diseñada de 62% algodón, 33% poliéster y 5% elastano, lo que garantiza una textura suave, resistente y que no pierde forma ni desarrolla bolitas, incluso después de múltiples lavados en lavarropas",
+      "Su diseño elegante y atemporal la convierte en una pieza versátil, ideal para cualquier ocasión"
+    ],
+    "badge": "Nuevo",
+    "microcopy": "Ottoman · Algodón"
   },
   {
-    "id": "bermuda-sabbia",
-    "slug": "bermuda-sabbia",
-    "name": "Bermuda Sabbia",
-    "category": "bermuda",
-    "price": null,
+    "id": "bermuda-rilassata",
+    "slug": "bermuda-rilassata",
+    "name": "Bermuda Rilassata",
+    "category": "bottom",
+    "price": 87600,
+    "compareAt": 109500,
     "currency": "ARS",
-    "description": "Bermuda de gabardina de algodón con pinzas dobles. Un clásico limpio que eleva el look diario.",
-    "materials": ["Gabardina de algodón"],
-    "fit": "Regular",
-    "colors": ["Beige"],
-    "sizes": ["S", "M", "L"],
-    "images": ["/placeholder.svg"],
+    "description": "Descubrí nuestra Bermuda Rilassata, la prenda ideal para quienes buscan combinación de estilo y comodidad en climas cálidos. Confeccionadas en 100% lino natural, estas bermudas ofrecen una frescura y transpirabilidad excepcionales, perfectas para el verano argentino. Su diseño clásico y versátil permite combinarlas fácilmente con camisetas, camisas o remeras, adaptándose a ocasiones casuales o salidas informales con amigos. La textura ligera del lino aporta un toque elegante sin perder la comodidad necesaria para el día a día. Además, su confección de alta calidad garantiza durabilidad y un ajuste confortable que se adapta al cuerpo, cuidando tu libertad de movimiento. Perfectas para mantenerte fresco y con estilo en cualquier momento. Características destacadas: 100% lino natural, fresco y transpirable Diseño clásico y versátil para múltiples combinaciones Corte cómodo que se adapta a tu cuerpo Ideal para el clima cálido y actividades diarias Prenda duradera y de alta calidad BERMUDA RILASSATA &ndash; Guía de Talles Las medidas fueron tomadas con la prenda apoyada y estirada sobre una superficie. Para identificar tu talle, multiplicá por dos cada medida y comparala con el contorno de tu cintura y contorno de tu cintura (según corresponda), tal como se muestra en la última imagen. Talle S/M: Contorno de cintura: 38 cm (se estira hasta +10 cm gracias al elástico) Contorno de cadera: 55 cm Talle L/XL Contorno de cintura: 39 cm (se estira hasta +10 cm gracias al elástico) Contorno de cadera: 57 cm",
+    "materials": [],
+    "fit": "",
+    "colors": [
+      "Camel",
+      "Negro"
+    ],
+    "sizes": [
+      "S/M",
+      "L/XL"
+    ],
+    "images": [
+      "/images/products/bermuda-rilassata/IMG_9935.webp",
+      "/images/products/bermuda-rilassata/IMG_9936.webp"
+    ],
     "highlights": [
-      "Pinzas dobles",
-      "Dobladillo prolijo de 3 cm",
-      "Bolsillos laterales"
-    ]
+      "Descubrí nuestra Bermuda Rilassata, la prenda ideal para quienes buscan combinación de estilo y comodidad en climas cálidos",
+      "Confeccionadas en 100% lino natural, estas bermudas ofrecen una frescura y transpirabilidad excepcionales, perfectas para el verano argentino",
+      "Su diseño clásico y versátil permite combinarlas fácilmente con camisetas, camisas o remeras, adaptándose a ocasiones casuales o salidas informales con amigos"
+    ],
+    "badge": "Nuevo",
+    "microcopy": "Lino · Relaxed fit"
   },
   {
-    "id": "bermuda-verde-selvaggio",
-    "slug": "bermuda-verde-selvaggio",
-    "name": "Bermuda Verde Selvaggio",
-    "category": "bermuda",
-    "price": null,
+    "id": "bermuda-sastrera",
+    "slug": "bermuda-sastrera",
+    "name": "Bermuda Sastrera",
+    "category": "bottom",
+    "price": 100000,
+    "compareAt": 125000,
     "currency": "ARS",
-    "description": "Bermuda con terminaciones de sastrería y cierre oculto. Elegancia discreta para un verano sofisticado.",
-    "materials": ["Algodón premium"],
-    "fit": "Regular",
-    "colors": ["Verde oliva"],
-    "sizes": ["S", "M", "L"],
-    "images": ["/placeholder.svg"],
+    "description": "Descubrí la Bermuda Sastrera, la prenda perfecta para quienes buscan un estilo sofisticado y cómodo en sus días de verano. Esta bermuda se destaca por su diseño clásico y elegante, ideal para combinar con distintas prendas y lograr un look cheto y moderno en cualquier ocasión. Confeccionada con materiales de alta calidad, la Bermuda Beige ofrece un ajuste cómodo que se adapta a tu silueta sin perder estilo. Su color beige neutro es sumamente versátil, facilitando la combinación con camisas, remeras o blazers para un outfit casual o semiformal. Perfecta para el clima cálido argentino, esta bermuda es una opción imprescindible para quienes valoran la elegancia sin renunciar a la practicidad y frescura. Características destacadas: Diseño clásico y sofisticado, ideal para múltiples ocasiones Color beige neutro, fácil de combinar y siempre vigente Materiales de alta calidad para mayor durabilidad y confort Corte cómodo que realza la figura sin limitar el movimiento Perfecta para un look cheto y actual en verano",
+    "materials": [],
+    "fit": "",
+    "colors": [
+      "Negro",
+      "Beige"
+    ],
+    "sizes": [
+      "M",
+      "S",
+      "L",
+      "XL"
+    ],
+    "images": [
+      "/images/products/bermuda-sastrera/_DRG2385.webp"
+    ],
     "highlights": [
-      "Ojales de sastre",
-      "Cierre oculto",
-      "Tirantes laterales (si aplica)"
-    ]
+      "Descubrí la Bermuda Sastrera, la prenda perfecta para quienes buscan un estilo sofisticado y cómodo en sus días de verano",
+      "Esta bermuda se destaca por su diseño clásico y elegante, ideal para combinar con distintas prendas y lograr un look cheto y moderno en cualquier ocasión",
+      "Confeccionada con materiales de alta calidad, la Bermuda Beige ofrece un ajuste cómodo que se adapta a tu silueta sin perder estilo"
+    ],
+    "badge": "Nuevo",
+    "microcopy": "Pinzas · Gabardina"
   },
   {
-    "id": "pantalon-chino",
-    "slug": "pantalon-chino",
-    "name": "Pantalón Chino Fortunato",
-    "category": "pantalon",
-    "price": null,
+    "id": "pantalon-sastrero",
+    "slug": "pantalon-sastrero",
+    "name": "Pantalon Sastrero",
+    "category": "bottom",
+    "price": 110000,
+    "compareAt": 137500,
     "currency": "ARS",
-    "description": "Pantalón chino de algodón con corte moderno. Un básico premium para día y noche.",
-    "materials": ["Algodón premium"],
-    "fit": "Regular",
-    "colors": ["Beige", "Azul marino (placeholder)"],
-    "sizes": ["S", "M", "L"],
-    "images": ["/placeholder.svg"],
+    "description": "Descubrí el Pantalon Sastrero, una prenda que combina elegancia y comodidad para quienes buscan un look sofisticado y actual en Argentina. Este pantalón se destaca por su diseño clásico y atemporal, ideal para diversas ocasiones, desde salidas formales hasta encuentros casuales con un toque distinguido. Confeccionado con materiales de alta calidad, el pantalón ofrece un ajuste cómodo y elegante que se adapta perfectamente a tu silueta. Su color beige neutro facilita la combinación con múltiples prendas y accesorios, permitiendo armar outfits versátiles y modernos. Perfecto para quienes valoran un estilo cuidado sin renunciar a la practicidad, este pantalón es una pieza imprescindible en tu guardarropa. Características destacadas: Diseño clásico y elegante, ideal para múltiples ocasiones Color beige neutro, fácil de combinar Confección de alta calidad para mayor durabilidad Ajuste cómodo que realza la figura Perfecto para un look sofisticado",
+    "materials": [],
+    "fit": "",
+    "colors": [
+      "Negro",
+      "Beige"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "images": [
+      "/images/products/pantalon-sastrero/IMG_9329.webp"
+    ],
     "highlights": [
-      "Corte limpio",
-      "Versátil día/noche",
-      "Tejido confortable"
-    ]
-  },
-  {
-    "id": "sandalias-fortunato",
-    "slug": "sandalias-fortunato",
-    "name": "Sandalias Fortunato",
-    "category": "sandals",
-    "price": null,
-    "currency": "ARS",
-    "description": "Sandalias minimalistas con estética premium para verano. Diseñadas para acompañar la cápsula.",
-    "materials": ["Cuero (placeholder)"],
-    "fit": "Regular",
-    "colors": ["Marrón (placeholder)"],
-    "sizes": ["40", "41", "42", "43"],
-    "images": ["/placeholder.svg"],
-    "highlights": [
-      "Diseño minimalista",
-      "Materiales nobles",
-      "Comodidad para verano"
-    ]
+      "Descubrí el Pantalon Sastrero, una prenda que combina elegancia y comodidad para quienes buscan un look sofisticado y actual en Argentina",
+      "Este pantalón se destaca por su diseño clásico y atemporal, ideal para diversas ocasiones, desde salidas formales hasta encuentros casuales con un toque distinguido",
+      "Confeccionado con materiales de alta calidad, el pantalón ofrece un ajuste cómodo y elegante que se adapta perfectamente a tu silueta"
+    ],
+    "badge": "Nuevo",
+    "microcopy": "Sastrería · Tiro medio"
   }
 ]

@@ -6,9 +6,16 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "start": "node ./dist/server/entry.mjs",
+    "hash:password": "node scripts/hash-password.mjs",
+    "optimize:images": "node scripts/optimize-images.mjs",
+    "gallery:images": "node scripts/build-gallery.mjs"
   },
   "dependencies": {
-    "astro": "^5.1.1"
+    "@astrojs/node": "^9.1.0",
+    "astro": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "sql.js": "^1.10.3"
   }
 }

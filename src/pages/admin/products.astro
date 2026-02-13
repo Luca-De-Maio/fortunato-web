@@ -1,0 +1,313 @@
+---
+import Base from "../../layouts/Base.astro";
+import { requireAdmin } from "../../lib/auth";
+import { getAllProducts } from "../../lib/products";
+
+export const prerender = false;
+
+if (!requireAdmin(Astro.cookies)) {
+  return Astro.redirect("/admin");
+}
+
+const products = await getAllProducts();
+---
+
+<Base title="Fortunato | Admin Productos" description="Gestión de productos">
+  <main class="admin-page">
+    <div class="container admin-layout">
+      <div class="admin-card">
+        <div class="admin-head">
+          <div>
+            <h1>Productos</h1>
+            <p class="muted">Cargá talles, colores, imágenes y combinaciones.</p>
+          </div>
+          <button class="btn btn-ghost" id="logout-btn" type="button">Salir</button>
+        </div>
+
+        <form class="admin-form" id="product-form">
+          <input type="hidden" name="id" />
+          <div class="admin-grid">
+            <label>
+              Nombre
+              <input type="text" name="name" required />
+            </label>
+            <label>
+              Slug
+              <input type="text" name="slug" placeholder="auto" />
+            </label>
+            <label>
+              Badge (ej: Nuevo)
+              <input type="text" name="badge" placeholder="Nuevo" />
+            </label>
+            <label>
+              Categoría
+              <select name="category">
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+                <option value="calzado">Calzado</option>
+              </select>
+            </label>
+            <label>
+              Precio
+              <input type="number" name="price" min="0" step="1" />
+            </label>
+            <label>
+              Precio promocional (tachado)
+              <input type="number" name="compareAt" min="0" step="1" />
+            </label>
+            <label>
+              Moneda
+              <input type="text" name="currency" value="ARS" />
+            </label>
+            <label>
+              Ajuste (fit)
+              <input type="text" name="fit" placeholder="Regular / Entallado" />
+            </label>
+          </div>
+
+          <label>
+            Descripción
+            <textarea name="description" rows="5"></textarea>
+          </label>
+
+          <div class="admin-grid">
+            <label>
+              Materiales (separados por coma)
+              <input type="text" name="materials" />
+            </label>
+            <label>
+              Colores (separados por coma)
+              <input type="text" name="colors" />
+            </label>
+            <label>
+              Talles (separados por coma)
+              <input type="text" name="sizes" />
+            </label>
+          </div>
+
+          <label>
+            Microcopy (1 línea)
+            <input type="text" name="microcopy" placeholder="Pinzas · Gabardina" />
+          </label>
+
+          <label>
+            Imágenes (URLs separadas por coma)
+            <input type="text" name="images" />
+          </label>
+          <div class="admin-upload">
+            <div>
+              <p class="muted">Subí imágenes a Cloudinary y se agregan a la lista.</p>
+              <input type="file" id="image-upload" accept="image/*" />
+              <button class="btn btn-ghost" type="button" id="upload-btn">Subir imagen</button>
+              <p class="muted" id="upload-status"></p>
+            </div>
+          </div>
+
+          <label>
+            Highlights (separados por coma)
+            <input type="text" name="highlights" />
+          </label>
+
+          <label>
+            Combinaciones (JSON)
+            <textarea name="combinations" rows="4" placeholder='[{"title":"Set Riviera","items":["Top","Bottom","Calzado"],"image":"/img.jpg"}]'></textarea>
+          </label>
+
+          <div class="admin-actions">
+            <button class="btn" type="submit">Guardar</button>
+            <button class="btn btn-ghost" type="button" id="reset-btn">Limpiar</button>
+            <span class="admin-status" id="save-status"></span>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h2>Listado</h2>
+        <div class="admin-list" id="product-list">
+          {products.map((product) => (
+            <article class="admin-item" data-product={JSON.stringify(product)}>
+              <div>
+                <strong>{product.name}</strong>
+                <p class="muted">{product.category} · {product.currency} {product.price}{product.compareAt ? ` · ${product.compareAt}` : ""}</p>
+              </div>
+              <div class="admin-item-actions">
+                <button class="btn btn-ghost edit-btn" type="button">Editar</button>
+                <button class="btn delete-btn" type="button">Eliminar</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script>
+  const list = document.querySelector("#product-list");
+  const form = document.querySelector("#product-form");
+  const resetBtn = document.querySelector("#reset-btn");
+  const logoutBtn = document.querySelector("#logout-btn");
+  const uploadBtn = document.querySelector("#upload-btn");
+  const uploadInput = document.querySelector("#image-upload");
+  const uploadStatus = document.querySelector("#upload-status");
+  const saveStatus = document.querySelector("#save-status");
+
+  const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME || "";
+  const uploadPreset = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET || "";
+
+  const slugify = (text) =>
+    text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\\u0300-\\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+
+  const parseList = (value) =>
+    value
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+
+  const formToPayload = () => {
+    const data = new FormData(form);
+    const name = String(data.get("name") || "").trim();
+    const slug = String(data.get("slug") || "").trim() || slugify(name);
+    return {
+      id: String(data.get("id") || slug),
+      slug,
+      name,
+      badge: String(data.get("badge") || ""),
+      category: String(data.get("category") || "top"),
+      price: Number(data.get("price") || 0),
+      compareAt: Number(data.get("compareAt") || 0) || null,
+      currency: String(data.get("currency") || "ARS"),
+      fit: String(data.get("fit") || ""),
+      description: String(data.get("description") || ""),
+      materials: parseList(String(data.get("materials") || "")),
+      colors: parseList(String(data.get("colors") || "")),
+      sizes: parseList(String(data.get("sizes") || "")),
+      microcopy: String(data.get("microcopy") || ""),
+      images: parseList(String(data.get("images") || "")),
+      highlights: parseList(String(data.get("highlights") || "")),
+      combinations: (() => {
+        const raw = String(data.get("combinations") || "").trim();
+        if (!raw) return [];
+        try { return JSON.parse(raw); } catch { return []; }
+      })()
+    };
+  };
+
+  const fillForm = (product) => {
+    form.querySelector("[name=id]").value = product.id || "";
+    form.querySelector("[name=name]").value = product.name || "";
+    form.querySelector("[name=slug]").value = product.slug || "";
+    form.querySelector("[name=category]").value = product.category || "top";
+    form.querySelector("[name=badge]").value = product.badge || "";
+    form.querySelector("[name=price]").value = product.price || 0;
+    form.querySelector("[name=compareAt]").value = product.compareAt || "";
+    form.querySelector("[name=currency]").value = product.currency || "ARS";
+    form.querySelector("[name=fit]").value = product.fit || "";
+    form.querySelector("[name=description]").value = product.description || "";
+    form.querySelector("[name=materials]").value = (product.materials || []).join(", ");
+    form.querySelector("[name=colors]").value = (product.colors || []).join(", ");
+    form.querySelector("[name=sizes]").value = (product.sizes || []).join(", ");
+    form.querySelector("[name=microcopy]").value = product.microcopy || "";
+    form.querySelector("[name=images]").value = (product.images || []).join(", ");
+    form.querySelector("[name=highlights]").value = (product.highlights || []).join(", ");
+    form.querySelector("[name=combinations]").value = JSON.stringify(product.combinations || []);
+  };
+
+  list?.addEventListener("click", async (event) => {
+    const edit = event.target.closest(".edit-btn");
+    const del = event.target.closest(".delete-btn");
+    const item = event.target.closest(".admin-item");
+    if (!item) return;
+    const data = JSON.parse(item.dataset.product || "{}");
+
+    if (edit) {
+      fillForm(data);
+    }
+
+    if (del) {
+      if (!confirm(`Eliminar ${data.name}?`)) return;
+      const res = await fetch(`/api/admin/products/${data.id}`, { method: "DELETE" });
+      if (res.ok) window.location.reload();
+    }
+  });
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    saveStatus.textContent = "Guardando...";
+    saveStatus.className = "admin-status is-pending";
+    const payload = formToPayload();
+    const method = form.querySelector("[name=id]").value ? "PUT" : "POST";
+    const url = method === "POST" ? "/api/admin/products" : `/api/admin/products/${payload.id}`;
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      saveStatus.textContent = "Guardado.";
+      saveStatus.className = "admin-status is-success";
+      setTimeout(() => window.location.reload(), 600);
+    } else {
+      saveStatus.textContent = "Error al guardar.";
+      saveStatus.className = "admin-status is-error";
+    }
+  });
+
+  resetBtn?.addEventListener("click", () => form.reset());
+
+  logoutBtn?.addEventListener("click", async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    window.location.href = "/admin";
+  });
+
+  uploadBtn?.addEventListener("click", async () => {
+    if (!cloudName || !uploadPreset) {
+      uploadStatus.textContent = "Falta configurar Cloudinary (cloud name o upload preset).";
+      uploadStatus.className = "admin-status is-error";
+      return;
+    }
+    const file = uploadInput?.files?.[0];
+    if (!file) {
+      uploadStatus.textContent = "Seleccioná una imagen primero.";
+      uploadStatus.className = "admin-status is-error";
+      return;
+    }
+    uploadBtn.disabled = true;
+    uploadStatus.textContent = "Subiendo...";
+    uploadStatus.className = "admin-status is-pending";
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+      method: "POST",
+      body: formData
+    });
+    if (!res.ok) {
+      let message = "Error al subir la imagen.";
+      try {
+        const err = await res.json();
+        if (err?.error?.message) message = `Error: ${err.error.message}`;
+      } catch {}
+      uploadStatus.textContent = message;
+      uploadStatus.className = "admin-status is-error";
+      uploadBtn.disabled = false;
+      return;
+    }
+    const data = await res.json();
+    const url = data.secure_url;
+    const optimized = url.replace("/upload/", "/upload/f_auto,q_auto,w_1200/");
+    const imagesInput = form.querySelector("[name=images]");
+    const current = (imagesInput.value || "").trim();
+    imagesInput.value = current ? `${current}, ${optimized}` : optimized;
+    uploadStatus.textContent = "Imagen subida correctamente.";
+    uploadStatus.className = "admin-status is-success";
+    uploadInput.value = "";
+    uploadBtn.disabled = false;
+  });
+</script>

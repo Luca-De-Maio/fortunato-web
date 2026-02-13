@@ -2,14 +2,20 @@
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
-import products from "../../../data/products.json";
+import { getProductBySlug } from "../../lib/products";
 
-export function getStaticPaths() {
-  return products.map((product) => ({ params: { slug: product.slug }, props: { product } }));
+export const prerender = false;
+
+const { slug } = Astro.params;
+const product = await getProductBySlug(slug);
+if (!product) {
+  throw new Response(null, { status: 404, statusText: "Not found" });
 }
-
-const { product } = Astro.props;
-const priceLabel = product.price ? `${product.currency} ${product.price}` : "Precio a confirmar";
+const formatPrice = (value) =>
+  value ? `${product.currency} ${value.toLocaleString("es-AR")}` : "Precio a confirmar";
+const priceLabel = formatPrice(product.price);
+const compareAt = product.compareAt || null;
+const discount = compareAt && product.price ? Math.round(100 - (product.price / compareAt) * 100) : null;
 ---
 
 <Base title={`Fortunato | ${product.name}`} description={product.description}>
@@ -18,12 +24,27 @@ const priceLabel = product.price ? `${product.currency} ${product.price}` : "Pre
   <main class="product-page">
     <div class="container product-grid">
       <div>
-        <img src={product.images[0]} alt={product.name} loading="lazy" />
+        <img
+          src={product.images?.[0] ?? "/placeholder.svg"}
+          alt={product.name}
+          loading="lazy"
+          width="900"
+          height="900"
+          decoding="async"
+        />
       </div>
       <div class="product-info">
         <p class="product-category">{product.category}</p>
         <h1>{product.name}</h1>
-        <p class="product-price">{priceLabel}</p>
+        <div class="price-stack">
+          <p class="product-price">{priceLabel}</p>
+          {compareAt ? (
+            <p class="product-compare">
+              <span class="compare-price">{formatPrice(compareAt)}</span>
+              {discount ? <span class="discount-pill">{discount}% OFF</span> : null}
+            </p>
+          ) : null}
+        </div>
         <p class="muted">{product.description}</p>
 
         <div class="product-meta">

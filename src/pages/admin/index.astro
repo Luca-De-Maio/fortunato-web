@@ -1,0 +1,52 @@
+---
+import Base from "../../layouts/Base.astro";
+import { requireAdmin } from "../../lib/auth";
+
+export const prerender = false;
+
+if (requireAdmin(Astro.cookies)) {
+  return Astro.redirect("/admin/products");
+}
+---
+
+<Base title="Fortunato | Admin" description="Acceso al backoffice">
+  <main class="admin-page">
+    <div class="container admin-card">
+      <h1>Backoffice</h1>
+      <p class="muted">Ingresá para gestionar productos, talles y combinaciones.</p>
+      <form class="admin-form" id="admin-login">
+        <label>
+          Usuario
+          <input type="text" name="username" autocomplete="username" required />
+        </label>
+        <label>
+          Contraseña
+          <input type="password" name="password" autocomplete="current-password" required />
+        </label>
+        <button class="btn" type="submit">Ingresar</button>
+        <p class="muted" id="login-error" style="display:none;">Credenciales incorrectas.</p>
+      </form>
+    </div>
+  </main>
+</Base>
+
+<script>
+  const form = document.querySelector("#admin-login");
+  const error = document.querySelector("#login-error");
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    error.style.display = "none";
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      window.location.href = "/admin/products";
+    } else {
+      error.style.display = "block";
+    }
+  });
+</script>

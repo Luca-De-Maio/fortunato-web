@@ -5,10 +5,26 @@ import Footer from "../components/Footer.astro";
 import ProductCard from "../components/ProductCard.astro";
 import Benefits from "../components/Benefits.astro";
 import FAQ from "../components/FAQ.astro";
-import products from "../../data/products.json";
+import { getAllProducts } from "../lib/products";
 
 const heroTitle = "Elegancia moderna para el hombre que honra su destino.";
 const heroCopy = "Fortunato es la herencia del old money guiada por el pulso de lo eterno. Una cápsula limitada, sobria y auténtica, con materiales nobles y cortes precisos.";
+const heroCombos = [
+  {
+    title: "Set Riviera",
+    items: ["Remera Doppio Collo", "Bermuda Rilassata", "Sandalias Crudem"],
+    image: "/placeholder.svg"
+  },
+  {
+    title: "Set Sereno",
+    items: ["Chomba Sprezzata", "Pantalon Sastrero", "Sandalias Crudem"],
+    image: "/placeholder.svg"
+  }
+];
+
+export const prerender = false;
+
+const products = await getAllProducts();
 ---
 
 <Base title="Fortunato | Moda masculina premium" description="Cápsula limitada de prendas premium inspiradas en la herencia italo-argentina.">
@@ -16,23 +32,35 @@ const heroCopy = "Fortunato es la herencia del old money guiada por el pulso de 
 
   <main>
     <section class="hero">
+      <div class="hero-video is-autoplay">
+        <iframe
+          src="https://www.youtube.com/embed/akSPGeVQixU?autoplay=1&playsinline=1&rel=0&loop=1&playlist=akSPGeVQixU&mute=1&controls=0&modestbranding=1&iv_load_policy=3"
+          title="Video de presentación Fortunato"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+      </div>
       <div class="container hero-grid">
         <div>
           <p class="eyebrow">Cápsula verano 2026</p>
           <h1>{heroTitle}</h1>
           <p>{heroCopy}</p>
+          <div class="combo-carousel" aria-label="Combinaciones destacadas">
+            <div class="combo-track">
+              {heroCombos.map((combo) => (
+                <article class="combo-card">
+                  <img src={combo.image} alt={combo.title} loading="lazy" />
+                  <div class="combo-body">
+                    <p class="combo-title">{combo.title}</p>
+                    <p class="muted combo-items">{combo.items.join(" + ")}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
           <div class="hero-actions">
             <a href="#capsula" class="btn">Ver cápsula</a>
             <a href="/checkout" class="btn btn-ghost">Comprar ahora</a>
-          </div>
-        </div>
-        <div class="hero-card">
-          <h2>Edición limitada</h2>
-          <p class="muted">Solo 50–70 unidades. Pensado para quienes eligen calidad antes que cantidad.</p>
-          <div class="pill-list" style="margin-top: 1.2rem;">
-            <span class="pill">Algodón premium</span>
-            <span class="pill">Lino refinado</span>
-            <span class="pill">Hecho en Argentina</span>
           </div>
         </div>
       </div>
@@ -43,7 +71,7 @@ const heroCopy = "Fortunato es la herencia del old money guiada por el pulso de 
         <div class="section-head">
           <p class="eyebrow">Cápsula</p>
           <h2>7 piezas esenciales para un verano sofisticado</h2>
-          <p class="muted">Una selección precisa de prendas con cortes limpios, tejidos nobles y una paleta serena.</p>
+          <p class="muted">Una selección limitada de 140 prendas con cortes limpios, tejidos nobles y una paleta serena. Pensado para quienes eligen calidad.</p>
         </div>
         <div class="capsule-grid">
           {products.map((product) => (

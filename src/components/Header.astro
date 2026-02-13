@@ -5,13 +5,23 @@ const { current = "" } = Astro.props;
   <div class="container header-inner">
     <a href="/" class="brand">
       <span class="brand-logo-box">
-        <img src="/logo.png" alt="Fortunato" class="brand-logo" />
+        <picture>
+          <source srcset="/logo-320.webp" type="image/webp" />
+          <img
+            src="/logo-320.png"
+            alt="Fortunato"
+            class="brand-logo"
+            width="320"
+            height="202"
+            decoding="async"
+          />
+        </picture>
       </span>
       <span class="brand-text">Fortunato</span>
     </a>
     <nav class="nav">
       <a href="/#capsula" class={current === "capsula" ? "is-active" : ""}>Cápsula</a>
-      <a href="/#beneficios" class={current === "beneficios" ? "is-active" : ""}>Beneficios</a>
+      <a href="/#categorias" class={current === "categorias" ? "is-active" : ""}>Categorías</a>
       <a href="/#faq" class={current === "faq" ? "is-active" : ""}>FAQ</a>
       <a href="/cart" class="cart-link">
         Carrito

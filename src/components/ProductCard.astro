@@ -1,30 +1,67 @@
 ---
 const { product } = Astro.props;
-const priceLabel = product.price ? `${product.currency} ${product.price}` : "Precio a confirmar";
+const formatPrice = (value) =>
+  value ? `$ ${value.toLocaleString("es-AR")}` : "Precio a confirmar";
+const priceLabel = formatPrice(product.price);
+const compareAt = product.compareAt || null;
+const discount = compareAt && product.price ? Math.round(100 - (product.price / compareAt) * 100) : null;
+const nameLower = product.name?.toLowerCase?.() ?? "";
+const categoryLower = (product.category ?? "").toString().toLowerCase();
+const typeLabel =
+  nameLower.includes("bermuda") ? "Bermuda" :
+  nameLower.includes("pantalon") ? "Pantalón" :
+  nameLower.includes("chomba") ? "Chomba" :
+  nameLower.includes("remera") ? "Remera" :
+  nameLower.includes("sandalia") ? "Sandalia" :
+  categoryLower === "top" ? "Top" :
+  categoryLower === "bottom" ? "Bottom" :
+  categoryLower === "calzado" ? "Calzado" :
+  (product.category ?? "").toString();
+const attributeLine = product.microcopy?.trim()
+  ? product.microcopy.trim()
+  : product.materials?.length
+  ? product.materials.slice(0, 2).join(" · ")
+  : product.colors?.length
+  ? product.colors.slice(0, 2).join(" · ")
+  : "";
 ---
 <article class="product-card">
   <a href={`/product/${product.slug}`} class="product-media">
-    <img src={product.images[0]} alt={product.name} loading="lazy" />
+    <img
+      src={product.images?.[0] ?? "/placeholder.svg"}
+      alt={product.name}
+      loading="lazy"
+      width="800"
+      height="1000"
+      decoding="async"
+    />
+    {product.badge ? <span class="product-badge">{product.badge}</span> : null}
   </a>
   <div class="product-body">
-    <div>
-      <p class="product-category">{product.category}</p>
+    <a href={`/product/${product.slug}`} class="product-card-info" aria-label={`Ver ${product.name}`}>
+      <p class="product-category">{typeLabel}</p>
       <h3>{product.name}</h3>
-      <p class="product-price">{priceLabel}</p>
-    </div>
-    <div class="product-actions">
-      <a href={`/product/${product.slug}`} class="btn btn-ghost">Ver detalle</a>
-      <button
-        class="btn"
-        data-add-to-cart
-        data-id={product.id}
-        data-name={product.name}
-        data-price={product.price ?? 0}
-        data-currency={product.currency}
-        data-image={product.images[0]}
-      >
-        Agregar al carrito
-      </button>
-    </div>
+      {attributeLine ? <p class="product-attr">{attributeLine}</p> : null}
+      <div class="price-stack">
+        <p class="product-price">{priceLabel}</p>
+        {compareAt ? (
+          <p class="product-compare">
+            <span class="compare-price">{formatPrice(compareAt)}</span>
+            {discount ? <span class="discount-pill">{discount}% OFF</span> : null}
+          </p>
+        ) : null}
+      </div>
+    </a>
+    <button
+      class="btn btn-full"
+      data-add-to-cart
+      data-id={product.id}
+      data-name={product.name}
+      data-price={product.price ?? 0}
+      data-currency={product.currency}
+      data-image={product.images[0]}
+    >
+      Agregar al carrito
+    </button>
   </div>
 </article>
