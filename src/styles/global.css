@@ -419,6 +419,7 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   font-weight: 600;
   color: var(--green);
 }
+.pdp-variant-hint:empty { display: none; }
 
 .pdp-compare {
   display: flex;
