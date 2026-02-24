@@ -311,6 +311,194 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 .footer-link { display: block; margin-bottom: 0.4rem; }
 .footer-bottom { margin-top: 2rem; font-size: 0.85rem; opacity: 0.7; }
 
+.pdp {
+  padding: 4.5rem 0;
+}
+
+.pdp-hero {
+  position: relative;
+  width: min(100% - 2.5rem, var(--max));
+  margin: 0 auto;
+  height: 520px;
+  max-height: 520px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--shadow);
+}
+
+.pdp-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pdp-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(245, 232, 215, 0.95);
+  border: 1px solid rgba(24, 74, 69, 0.12);
+}
+
+.pdp-summary,
+.pdp-buy,
+.pdp-details {
+  width: min(100% - 2.5rem, var(--max));
+  margin: 0 auto;
+}
+
+.pdp-summary {
+  padding: 1.4rem 0 0.6rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.pdp-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.75rem;
+  color: var(--warm);
+}
+
+.pdp-title {
+  font-family: "Cinzel", "Cormorant Garamond", serif;
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  line-height: 1.05;
+  color: var(--green);
+}
+
+.pdp-highlights {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.pdp-highlights li {
+  display: flex;
+  gap: 0.6rem;
+  color: rgba(75, 79, 78, 0.82);
+}
+
+.pdp-highlights li::before {
+  content: "•";
+  color: rgba(24, 74, 69, 0.55);
+}
+
+.pdp-buy {
+  margin-top: 0.8rem;
+}
+
+.pdp-buy-card {
+  background: rgba(245, 232, 215, 0.6);
+  border: 1px solid rgba(24, 74, 69, 0.1);
+  border-radius: 20px;
+  padding: 1.2rem;
+  box-shadow: 0 18px 45px rgba(24, 74, 69, 0.08);
+  display: grid;
+  gap: 0.9rem;
+}
+
+.pdp-price {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.pdp-compare {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+}
+
+.pdp-installments {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(75, 79, 78, 0.76);
+}
+
+.pdp-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pdp-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(75, 79, 78, 0.85);
+}
+
+.pdp-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pdp-size-pill {
+  border: 1px solid rgba(24, 74, 69, 0.18);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.pdp-size-pill.is-selected {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--beige);
+}
+
+.pdp-buy-now {
+  width: 100%;
+  text-align: center;
+}
+
+.pdp-details {
+  padding: 2.2rem 0 0;
+}
+
+.pdp-details h2 {
+  margin: 1.4rem 0 0.6rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(75, 79, 78, 0.85);
+}
+
+.pdp-details h2:first-child {
+  margin-top: 0;
+}
+
+.pdp-details-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+  color: rgba(75, 79, 78, 0.82);
+}
+
+.pdp-details-list li {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.pdp-details-list li::before {
+  content: "•";
+  color: rgba(24, 74, 69, 0.55);
+}
+
 .product-page {
   padding: 4.5rem 0;
 }
@@ -527,4 +715,31 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   .btn-full { font-size: 0.82rem; padding: 0.5rem 0.6rem; }
   .cart-item { grid-template-columns: 1fr; }
   .whatsapp-fab { right: 0.9rem; bottom: 0.9rem; padding: 0.6rem 0.9rem; }
+}
+
+@media (max-width: 768px) {
+  .pdp { padding: 0 0 3.5rem; }
+  .pdp-hero {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    height: min(68vh, 520px);
+    max-height: 520px;
+    border-radius: 0 0 22px 22px;
+    box-shadow: none;
+  }
+  .pdp-summary,
+  .pdp-buy,
+  .pdp-details {
+    width: 100%;
+    margin: 0;
+    padding: 0 16px;
+  }
+  .pdp-summary {
+    padding-top: 16px;
+    padding-bottom: 18px;
+    gap: 10px;
+  }
+  .pdp-buy-card { padding: 16px; }
+  .pdp-details { padding-top: 1.8rem; }
 }

@@ -59,7 +59,7 @@ const { title = "Fortunato", description = "Moda masculina premium" } = Astro.pr
 
       const addToCart = (payload) => {
         const cart = getCart();
-        const existing = cart.find((i) => i.id === payload.id);
+        const existing = cart.find((i) => i.id === payload.id && (i.size || "") === (payload.size || ""));
         if (existing) existing.qty += 1;
         else cart.push({ ...payload, qty: 1 });
         setCart(cart);
@@ -93,7 +93,8 @@ const { title = "Fortunato", description = "Moda masculina premium" } = Astro.pr
           name: button.dataset.name,
           price: Number(button.dataset.price || 0),
           currency: button.dataset.currency || "ARS",
-          image: button.dataset.image || "/placeholder.svg"
+          image: button.dataset.image || "/placeholder.svg",
+          size: button.dataset.size || ""
         };
         addToCart(payload);
         button.textContent = "Agregado";
