@@ -156,6 +156,40 @@ const selectedSize = product.sizes?.[0] ?? "";
   </main>
 
   <Footer />
+
+  <script>
+    const root = document.querySelector(".pdp");
+    if (root) {
+      const sizeInput = root.querySelector("[data-size-value]");
+      const hint = root.querySelector("[data-size-hint]");
+      const sizeButtons = Array.from(root.querySelectorAll("[data-size-option]"));
+      const cta = root.querySelector("[data-add-to-cart]");
+
+      const setSelected = (value) => {
+        if (!sizeInput) return;
+        sizeInput.value = value;
+        sizeButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.sizeOption === value));
+        if (hint) hint.textContent = value ? `Talle seleccionado: ${value}` : "Seleccioná tu talle para agregar al carrito.";
+        if (cta) cta.dataset.size = value || "";
+      };
+
+      sizeButtons.forEach((btn) => {
+        btn.addEventListener("click", () => setSelected(btn.dataset.sizeOption || ""));
+      });
+
+      if (cta) {
+        cta.addEventListener("click", (event) => {
+          if (cta.dataset.requiresSize === "1" && !cta.dataset.size) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (hint) hint.textContent = "Elegí un talle antes de agregar al carrito.";
+            const first = sizeButtons[0];
+            if (first) first.focus();
+          }
+        });
+      }
+    }
+  </script>
 </Base>
 
 <script is:inline>

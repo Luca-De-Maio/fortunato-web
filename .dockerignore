@@ -1,0 +1,12 @@
+node_modules
+.astro
+dist
+.git
+.github
+.idea
+.DS_Store
+docs
+data/fortunato.db
+.env
+.env.*
+

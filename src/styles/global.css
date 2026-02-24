@@ -700,12 +700,26 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   .site-header.is-scrolled .nav a { white-space: nowrap; }
   .section { padding: 3.5rem 0; }
   .capsule-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
-  .hero { padding: 2.8rem 0 1.6rem; }
+  .hero { padding: 1.8rem 0 1.2rem; }
   .hero-video {
-    width: 100%;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
     border-radius: 0;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: auto;
+    height: min(68vh, 520px);
     background: #000;
+  }
+  .hero-video iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 177.78%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+  }
+  .pdp-hero {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
   }
   .product-card { position: relative; }
   .product-media { aspect-ratio: 4 / 5; }
