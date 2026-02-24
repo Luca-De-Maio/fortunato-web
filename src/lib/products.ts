@@ -42,6 +42,8 @@ const ensureSeeded = async () => {
   if (count > 0) {
     const seed = JSON.parse(readFileSync(jsonPath, "utf-8"));
     const stmt = db.prepare("UPDATE products SET badge = ?, microcopy = ? WHERE id = ? AND ((badge IS NULL OR badge = '') OR (microcopy IS NULL OR microcopy = ''));");
+    const sizesFixStmt = db.prepare("UPDATE products SET sizes = ? WHERE id = ? AND sizes = ?;");
+    const groupedSizes = serialize(["S/M", "L/XL"]);
     db.run("BEGIN;");
     try {
       for (const product of seed) {
@@ -53,6 +55,11 @@ const ensureSeeded = async () => {
           ]);
         }
       }
+
+      // One-time data fix: these products are sold in grouped sizes (S/M, L/XL)
+      sizesFixStmt.run([groupedSizes, "bermuda-sastrera", serialize(["M", "S", "L", "XL"])]);
+      sizesFixStmt.run([groupedSizes, "bermuda-sastrera", serialize(["S", "M", "L", "XL"])]);
+
       db.run("COMMIT;");
     } catch (err) {
       db.run("ROLLBACK;");
