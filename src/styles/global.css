@@ -203,6 +203,13 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 
 .btn:hover { transform: translateY(-2px); }
 
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--green);

@@ -45,12 +45,14 @@ import Footer from "../components/Footer.astro";
       let subtotal = 0;
       list.innerHTML = cart.map((item) => {
         subtotal += (item.price || 0) * item.qty;
+        const colorLine = item.color ? `<p class='muted'>Color: ${item.color}</p>` : "";
         const sizeLine = item.size ? `<p class='muted'>Talle: ${item.size}</p>` : "";
         return `
           <div class='cart-item'>
             <img src='${item.image || "/placeholder.svg"}' alt='${item.name}' />
             <div>
               <strong>${item.name}</strong>
+              ${colorLine}
               ${sizeLine}
               <p class='muted'>Cantidad: ${item.qty}</p>
             </div>

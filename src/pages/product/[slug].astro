@@ -131,17 +131,6 @@ const selectedSize = product.sizes?.[0] ?? "";
         </>
       ) : null}
 
-      {product.colors?.length ? (
-        <>
-          <h2>Colores</h2>
-          <div class="pill-list">
-            {product.colors.map((item) => (
-              <span class="pill">{item}</span>
-            ))}
-          </div>
-        </>
-      ) : null}
-
       {product.highlights?.length ? (
         <>
           <h2>Detalles</h2>
@@ -160,31 +149,92 @@ const selectedSize = product.sizes?.[0] ?? "";
   <script>
     const root = document.querySelector(".pdp");
     if (root) {
+      const colorInput = root.querySelector("[data-color-value]");
       const sizeInput = root.querySelector("[data-size-value]");
-      const hint = root.querySelector("[data-size-hint]");
+      const colorHint = root.querySelector("[data-color-hint]");
+      const sizeHint = root.querySelector("[data-size-hint]");
+      const colorButtons = Array.from(root.querySelectorAll("[data-color-option]"));
       const sizeButtons = Array.from(root.querySelectorAll("[data-size-option]"));
       const cta = root.querySelector("[data-add-to-cart]");
 
-      const setSelected = (value) => {
-        if (!sizeInput) return;
-        sizeInput.value = value;
-        sizeButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.sizeOption === value));
-        if (hint) hint.textContent = value ? `Talle seleccionado: ${value}` : "Seleccioná tu talle para agregar al carrito.";
-        if (cta) cta.dataset.size = value || "";
+      const updateCta = () => {
+        if (!cta) return;
+        const needsColor = cta.dataset.requiresColor === "1";
+        const needsSize = cta.dataset.requiresSize === "1";
+        const hasColor = Boolean(cta.dataset.color);
+        const hasSize = Boolean(cta.dataset.size);
+        const isReady = (!needsColor || hasColor) && (!needsSize || hasSize);
+        cta.disabled = !isReady;
+        if (cta.disabled) {
+          if (needsColor && !hasColor && needsSize) cta.textContent = "Elegí color y talle";
+          else if (needsColor && !hasColor) cta.textContent = "Elegí color";
+          else if (needsSize && !hasSize) cta.textContent = "Elegí talle";
+        } else {
+          cta.textContent = "Agregar al carrito";
+        }
       };
 
-      sizeButtons.forEach((btn) => {
-        btn.addEventListener("click", () => setSelected(btn.dataset.sizeOption || ""));
+      const setSelectedColor = (value) => {
+        if (!cta) return;
+        const selected = (value || "").trim();
+        if (colorInput) colorInput.value = selected;
+        colorButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.colorOption === selected));
+        cta.dataset.color = selected;
+
+        // Cambiar color resetea talle (preparado para variantes futuras).
+        if (sizeInput) sizeInput.value = "";
+        sizeButtons.forEach((btn) => btn.classList.remove("is-selected"));
+        if (cta) cta.dataset.size = "";
+
+        if (colorHint) colorHint.textContent = "";
+        if (sizeHint) sizeHint.textContent = "Seleccioná tu talle para continuar.";
+        updateCta();
+      };
+
+      const setSelectedSize = (value) => {
+        if (!cta) return;
+        const selected = (value || "").trim();
+        if (sizeInput) sizeInput.value = selected;
+        sizeButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.sizeOption === selected));
+        cta.dataset.size = selected;
+        if (sizeHint) sizeHint.textContent = "";
+        updateCta();
+      };
+
+      colorButtons.forEach((btn) => {
+        btn.addEventListener("click", () => setSelectedColor(btn.dataset.colorOption || ""));
       });
+
+      sizeButtons.forEach((btn) => {
+        btn.addEventListener("click", () => setSelectedSize(btn.dataset.sizeOption || ""));
+      });
+
+      // Si hay 1 solo color, preseleccionarlo para no agregar fricción.
+      if (colorButtons.length === 1) setSelectedColor(colorButtons[0].dataset.colorOption || "");
+
+      // Si hay 1 solo talle, preseleccionarlo.
+      if (sizeButtons.length === 1) setSelectedSize(sizeButtons[0].dataset.sizeOption || "");
+
+      updateCta();
 
       if (cta) {
         cta.addEventListener("click", (event) => {
+          if (cta.dataset.requiresColor === "1" && !cta.dataset.color) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (colorHint) colorHint.textContent = "Elegí un color para continuar.";
+            const first = colorButtons[0];
+            if (first) first.focus();
+            updateCta();
+            return;
+          }
           if (cta.dataset.requiresSize === "1" && !cta.dataset.size) {
             event.preventDefault();
             event.stopPropagation();
-            if (hint) hint.textContent = "Elegí un talle antes de agregar al carrito.";
+            if (sizeHint) sizeHint.textContent = "Elegí un talle para continuar.";
             const first = sizeButtons[0];
             if (first) first.focus();
+            updateCta();
           }
         });
       }
