@@ -18,9 +18,15 @@ import Footer from "../components/Footer.astro";
       <div class="cart-list" data-cart-list></div>
 
       <div class="cart-summary" data-cart-summary>
-        <p><strong>Subtotal</strong>: <span data-cart-subtotal>—</span></p>
+        <div class="cart-summary-row">
+          <p><strong>Subtotal</strong></p>
+          <p><strong data-cart-subtotal>—</strong></p>
+        </div>
         <p class="muted">Envío e impuestos se calculan en el checkout.</p>
-        <a href="/checkout" class="btn">Continuar al checkout</a>
+        <div class="cart-summary-actions">
+          <button class="btn btn-ghost" type="button" data-clear-cart>Vaciar carrito</button>
+          <a href="/checkout" class="btn">Continuar al checkout</a>
+        </div>
       </div>
     </div>
   </main>
@@ -31,37 +37,124 @@ import Footer from "../components/Footer.astro";
     const CART_KEY = "fortunato_cart";
     const list = document.querySelector("[data-cart-list]");
     const subtotalEl = document.querySelector("[data-cart-subtotal]");
+    const summaryEl = document.querySelector("[data-cart-summary]");
+    const clearBtn = document.querySelector("[data-clear-cart]");
+    const cartBadge = document.querySelector("[data-cart-count]");
 
-    const format = (amount, currency) => amount ? `${currency} ${amount.toFixed(0)}` : "Precio a confirmar";
+    const money = (amount, currency) => {
+      if (amount === null || amount === undefined) return "Precio a confirmar";
+      const value = Number(amount);
+      if (!Number.isFinite(value)) return "Precio a confirmar";
+      return `${currency} ${value.toLocaleString("es-AR")}`;
+    };
+
+    const getCart = () => {
+      try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
+    };
+
+    const setCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
+
+    const keyFor = (item) => [item.id, item.color || "", item.size || ""].join("|");
+
+    const updateBadge = (cart) => {
+      if (!cartBadge) return;
+      const count = cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+      cartBadge.textContent = count ? String(count) : "";
+      cartBadge.classList.toggle("is-visible", count > 0);
+    };
 
     const render = () => {
-      let cart = [];
-      try { cart = JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch {}
+      const cart = getCart();
+      updateBadge(cart);
       if (!cart.length) {
-        list.innerHTML = "<p class='muted'>Tu carrito está vacío.</p>";
-        subtotalEl.textContent = "—";
-        return;
-      }
-      let subtotal = 0;
-      list.innerHTML = cart.map((item) => {
-        subtotal += (item.price || 0) * item.qty;
-        const colorLine = item.color ? `<p class='muted'>Color: ${item.color}</p>` : "";
-        const sizeLine = item.size ? `<p class='muted'>Talle: ${item.size}</p>` : "";
-        return `
-          <div class='cart-item'>
-            <img src='${item.image || "/placeholder.svg"}' alt='${item.name}' />
-            <div>
-              <strong>${item.name}</strong>
-              ${colorLine}
-              ${sizeLine}
-              <p class='muted'>Cantidad: ${item.qty}</p>
-            </div>
-            <div><strong>${format(item.price, item.currency)}</strong></div>
+        list.innerHTML = `
+          <div class="cart-empty">
+            <p class="muted">Tu carrito está vacío.</p>
+            <a class="btn" href="/#capsula">Ver cápsula</a>
           </div>
         `;
+        if (subtotalEl) subtotalEl.textContent = "—";
+        if (summaryEl) summaryEl.classList.add("is-hidden");
+        return;
+      }
+      if (summaryEl) summaryEl.classList.remove("is-hidden");
+      let subtotal = 0;
+      list.innerHTML = cart.map((item) => {
+        const qty = Number(item.qty) || 0;
+        const unit = Number(item.price) || 0;
+        const currency = item.currency || "ARS";
+        const lineTotal = unit * qty;
+        subtotal += lineTotal;
+        const metaParts = [];
+        if (item.color) metaParts.push(`Color: ${item.color}`);
+        if (item.size) metaParts.push(`Talle: ${item.size}`);
+        const meta = metaParts.length ? `<p class="cart-item-meta muted">${metaParts.join(" · ")}</p>` : "";
+        const key = encodeURIComponent(keyFor(item));
+        const lineLabel = money(lineTotal, currency);
+        const unitLabel = money(unit, currency);
+        const each = qty > 1 ? `<span class="cart-item-unit muted">${unitLabel} c/u</span>` : "";
+        return `
+          <article class="cart-item" data-key="${key}">
+            <img class="cart-thumb" src="${item.image || "/placeholder.svg"}" alt="${item.name}" loading="lazy" decoding="async" />
+            <div class="cart-item-main">
+              <div class="cart-item-head">
+                <strong class="cart-item-name">${item.name}</strong>
+                <button class="cart-remove" type="button" data-action="remove" data-key="${key}" aria-label="Eliminar">
+                  ×
+                </button>
+              </div>
+              ${meta}
+              <div class="cart-item-foot">
+                <div class="cart-stepper" aria-label="Cantidad">
+                  <button type="button" data-action="dec" data-key="${key}" aria-label="Restar">−</button>
+                  <span aria-label="Cantidad">${qty}</span>
+                  <button type="button" data-action="inc" data-key="${key}" aria-label="Sumar">+</button>
+                </div>
+                <div class="cart-item-price" aria-label="Precio">
+                  <strong class="cart-line-total">${lineLabel}</strong>
+                  ${each}
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
       }).join("");
-      subtotalEl.textContent = format(subtotal, cart[0]?.currency || "ARS");
+      if (subtotalEl) subtotalEl.textContent = money(subtotal, cart[0]?.currency || "ARS");
     };
+
+    list?.addEventListener("click", (event) => {
+      const btn = event.target.closest("button[data-action]");
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const key = decodeURIComponent(btn.dataset.key || "");
+      if (!action || !key) return;
+
+      const cart = getCart();
+      const index = cart.findIndex((item) => keyFor(item) === key);
+      if (index === -1) return;
+
+      if (action === "remove") {
+        cart.splice(index, 1);
+      }
+
+      if (action === "inc") {
+        cart[index].qty = (Number(cart[index].qty) || 0) + 1;
+      }
+
+      if (action === "dec") {
+        cart[index].qty = (Number(cart[index].qty) || 0) - 1;
+        if (cart[index].qty <= 0) cart.splice(index, 1);
+      }
+
+      setCart(cart);
+      render();
+    });
+
+    clearBtn?.addEventListener("click", () => {
+      if (!confirm("¿Vaciar el carrito?")) return;
+      localStorage.removeItem(CART_KEY);
+      render();
+    });
 
     render();
   </script>
