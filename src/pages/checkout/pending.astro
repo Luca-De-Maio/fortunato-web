@@ -1,0 +1,33 @@
+---
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+
+export const prerender = false;
+---
+
+<Base title="Fortunato | Pago pendiente" description="Tu pago quedó pendiente.">
+  <Header />
+
+  <main class="checkout-page">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Checkout</p>
+        <h2>Pago pendiente</h2>
+        <p class="muted">Tu pago todavía no se acreditó. Podés intentar de nuevo o escribirnos por WhatsApp.</p>
+      </div>
+
+      <div class="checkout-layout">
+        <section class="checkout-card">
+          <div style="display: grid; gap: 0.7rem;">
+            <a class="btn" href="/checkout">Volver al checkout</a>
+            <a class="btn btn-ghost" href="https://wa.me/5491132585919">Escribir por WhatsApp</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+

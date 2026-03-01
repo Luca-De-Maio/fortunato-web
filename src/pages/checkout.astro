@@ -15,24 +15,188 @@ import Footer from "../components/Footer.astro";
         <p class="muted">Elegí el canal que prefieras para completar tu pedido.</p>
       </div>
 
-      <div class="notice">
-        <strong>Checkout en definición.</strong> Mientras tanto podés finalizar por Tienda Nube o WhatsApp.
-      </div>
+      <div class="checkout-layout">
+        <section class="checkout-card checkout-order" aria-label="Resumen del pedido">
+          <h3>Tu pedido</h3>
+          <p class="muted">Revisá tu selección antes de pagar.</p>
 
-      <div class="benefits-grid" style="margin-top: 2rem;">
-        <div class="benefit-card">
-          <h3>Tienda Nube</h3>
-          <p>Pagá con tarjeta o transferencia en el checkout oficial.</p>
-          <a class="btn" href="#">Ir a Tienda Nube</a>
-        </div>
-        <div class="benefit-card">
-          <h3>WhatsApp</h3>
-          <p>Atención personalizada para talles, stock y envío.</p>
-          <a class="btn btn-ghost" href="https://wa.me/5491132585919">Comprar por WhatsApp</a>
-        </div>
+          <div class="checkout-items" data-checkout-items></div>
+
+          <div class="checkout-total">
+            <span>Total</span>
+            <strong data-checkout-total>—</strong>
+          </div>
+
+          <p class="muted checkout-note">
+            Pagás con Mercado Pago y, si querés, cerramos el envío por WhatsApp.
+          </p>
+        </section>
+
+        <section class="checkout-card checkout-actions" aria-label="Acciones de pago">
+          <div class="checkout-actions-grid">
+            <div class="checkout-action">
+              <h3>Mercado Pago</h3>
+              <p class="muted">Pagá con tarjeta, transferencia o saldo.</p>
+              <button class="btn" type="button" data-mp-pay>Pagar con Mercado Pago</button>
+              <p class="muted checkout-status" data-mp-status></p>
+            </div>
+
+            <div class="checkout-action">
+              <h3>WhatsApp</h3>
+              <p class="muted">Te enviamos el pedido armado (con total) y un link de pago.</p>
+              <button class="btn btn-ghost" type="button" data-wa-send>Enviar pedido por WhatsApp</button>
+              <p class="muted checkout-status" data-wa-status></p>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </main>
 
   <Footer />
+
+  <script>
+    const CART_KEY = "fortunato_cart";
+    const WA_NUMBER = "5491132585919";
+
+    const itemsEl = document.querySelector("[data-checkout-items]");
+    const totalEl = document.querySelector("[data-checkout-total]");
+    const mpBtn = document.querySelector("[data-mp-pay]");
+    const waBtn = document.querySelector("[data-wa-send]");
+    const mpStatus = document.querySelector("[data-mp-status]");
+    const waStatus = document.querySelector("[data-wa-status]");
+
+    const money = (amount, currency) => {
+      const value = Number(amount);
+      if (!Number.isFinite(value)) return "—";
+      return `${currency} ${value.toLocaleString("es-AR")}`;
+    };
+
+    const getCart = () => {
+      try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
+    };
+
+    const cartToPayload = (cart) => ({
+      items: cart.map((item) => ({
+        id: item.id,
+        qty: Number(item.qty) || 0,
+        color: item.color || "",
+        size: item.size || ""
+      }))
+    });
+
+    const render = () => {
+      const cart = getCart();
+      if (!cart.length) {
+        itemsEl.innerHTML = `
+          <div class="checkout-empty">
+            <p class="muted">Tu carrito está vacío.</p>
+            <a class="btn" href="/#capsula">Ver cápsula</a>
+          </div>
+        `;
+        totalEl.textContent = "—";
+        mpBtn.disabled = true;
+        waBtn.disabled = true;
+        return;
+      }
+
+      let total = 0;
+      const currency = cart[0]?.currency || "ARS";
+      itemsEl.innerHTML = cart.map((item) => {
+        const qty = Number(item.qty) || 0;
+        const unit = Number(item.price) || 0;
+        const line = qty * unit;
+        total += line;
+        const meta = [item.color ? `Color: ${item.color}` : "", item.size ? `Talle: ${item.size}` : ""].filter(Boolean).join(" · ");
+        return `
+          <div class="checkout-item">
+            <div class="checkout-item-left">
+              <strong class="checkout-item-name">${item.name}</strong>
+              ${meta ? `<div class="checkout-item-meta muted">${meta}</div>` : ""}
+              <div class="checkout-item-qty muted">Cantidad: ${qty}</div>
+            </div>
+            <div class="checkout-item-right">
+              <strong>${money(line, currency)}</strong>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      totalEl.textContent = money(total, currency);
+      mpBtn.disabled = false;
+      waBtn.disabled = false;
+    };
+
+    const createPreference = async () => {
+      const cart = getCart();
+      const res = await fetch("/api/mercadopago/preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cartToPayload(cart))
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Error Mercado Pago");
+      return data;
+    };
+
+    const buildWhatsappMessage = ({ cart, totalLabel, mpUrl }) => {
+      const lines = [];
+      lines.push("Hola Fortunato! Quiero hacer este pedido:");
+      lines.push("");
+      for (const item of cart) {
+        const meta = [item.color ? item.color : "", item.size ? item.size : ""].filter(Boolean).join(", ");
+        const suffix = meta ? ` (${meta})` : "";
+        lines.push(`- ${item.name}${suffix} x${item.qty}`);
+      }
+      lines.push("");
+      lines.push(`Total: ${totalLabel}`);
+      if (mpUrl) {
+        lines.push("");
+        lines.push(`Link de pago (Mercado Pago): ${mpUrl}`);
+      }
+      return lines.join("\n");
+    };
+
+    mpBtn?.addEventListener("click", async () => {
+      mpStatus.textContent = "Generando link de pago...";
+      mpBtn.disabled = true;
+      try {
+        const pref = await createPreference();
+        mpStatus.textContent = "Redirigiendo a Mercado Pago...";
+        window.location.href = pref.checkoutUrl;
+      } catch (err) {
+        mpStatus.textContent = "No pudimos generar el link. Probá de nuevo o usá WhatsApp.";
+        mpBtn.disabled = false;
+      }
+    });
+
+    waBtn?.addEventListener("click", async () => {
+      const cart = getCart();
+      if (!cart.length) return;
+      const currency = cart[0]?.currency || "ARS";
+      const total = cart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0), 0);
+      const totalLabel = money(total, currency);
+
+      waStatus.textContent = "Preparando mensaje...";
+      waBtn.disabled = true;
+
+      let mpUrl = "";
+      try {
+        waStatus.textContent = "Generando link de pago...";
+        const pref = await createPreference();
+        mpUrl = pref.checkoutUrl || "";
+      } catch {
+        mpUrl = "";
+      }
+
+      const text = buildWhatsappMessage({ cart, totalLabel, mpUrl });
+      const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+      window.location.href = waUrl;
+
+      waStatus.textContent = "";
+      waBtn.disabled = false;
+    });
+
+    render();
+  </script>
 </Base>
