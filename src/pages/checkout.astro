@@ -140,13 +140,16 @@ import Footer from "../components/Footer.astro";
     };
 
     const buildWhatsappMessage = ({ cart, totalLabel, mpUrl }) => {
+      const currency = cart?.[0]?.currency || "ARS";
       const lines = [];
       lines.push("Hola Fortunato! Quiero hacer este pedido:");
       lines.push("");
       for (const item of cart) {
         const meta = [item.color ? item.color : "", item.size ? item.size : ""].filter(Boolean).join(", ");
         const suffix = meta ? ` (${meta})` : "";
-        lines.push(`- ${item.name}${suffix} x${item.qty}`);
+        const qty = Number(item.qty) || 0;
+        const lineTotal = (Number(item.price) || 0) * qty;
+        lines.push(`- ${item.name}${suffix} x${qty} — ${money(lineTotal, currency)}`);
       }
       lines.push("");
       lines.push(`Total: ${totalLabel}`);
