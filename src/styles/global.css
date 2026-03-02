@@ -446,6 +446,42 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   color: rgba(75, 79, 78, 0.85);
 }
 
+.pdp-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pdp-color-pill {
+  border: 1px solid rgba(24, 74, 69, 0.18);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pdp-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--swatch, #c9c3bb);
+  border: 1px solid rgba(24, 74, 69, 0.25);
+}
+
+.pdp-color-pill.is-selected {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--beige);
+}
+
+.pdp-color-pill.is-selected .pdp-swatch {
+  border-color: rgba(245, 232, 215, 0.7);
+}
+
 .pdp-sizes {
   display: flex;
   flex-wrap: wrap;

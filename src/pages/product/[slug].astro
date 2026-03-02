@@ -33,9 +33,27 @@ const summaryHighlights = [];
 if (product.microcopy?.trim()) summaryHighlights.push(product.microcopy.trim());
 if (product.fit?.trim()) summaryHighlights.push(product.fit.trim());
 if (!summaryHighlights.length && product.materials?.length) summaryHighlights.push(product.materials.slice(0, 2).join(" · "));
-if (summaryHighlights.length < 3 && product.colors?.length) summaryHighlights.push(product.colors.slice(0, 2).join(" · "));
+const needsColor = Boolean(product.colors?.length);
+const needsSize = Boolean(product.sizes?.length);
+const initialCtaLabel =
+  needsColor && needsSize ? "Elegí color y talle" :
+  needsColor ? "Elegí color" :
+  needsSize ? "Elegí talle" :
+  "Agregar al carrito";
 
-const selectedSize = product.sizes?.[0] ?? "";
+const swatchFor = (label = "") => {
+  const key = String(label).trim().toLowerCase();
+  const map = {
+    negro: "#111214",
+    blanco: "#f6f2ea",
+    beige: "#d7c3a4",
+    camel: "#c19a6b",
+    mostaza: "#b9821e",
+    oliva: "#6b6a3a",
+    terracota: "#b3563f"
+  };
+  return map[key] || "#c9c3bb";
+};
 ---
 
 <Base title={`Fortunato | ${product.name}`} description={product.description}>
@@ -82,20 +100,45 @@ const selectedSize = product.sizes?.[0] ?? "";
 
         <p class="pdp-installments">3 cuotas sin interés · 6 cuotas con interés</p>
 
+        {product.colors?.length ? (
+          <div class="pdp-field">
+            <p class="pdp-label">Color</p>
+            <div class="pdp-colors" role="list">
+              {product.colors.map((color) => (
+                <button
+                  type="button"
+                  class="pdp-color-pill"
+                  data-color-option={color}
+                  style={`--swatch:${swatchFor(color)};`}
+                  role="listitem"
+                >
+                  <span class="pdp-swatch" aria-hidden="true"></span>
+                  <span>{color}</span>
+                </button>
+              ))}
+            </div>
+            <input type="hidden" value="" data-color-value />
+            <p class="muted pdp-variant-hint" data-color-hint>Seleccioná un color para continuar.</p>
+          </div>
+        ) : null}
+
         {product.sizes?.length ? (
           <div class="pdp-field">
             <p class="pdp-label">Talles</p>
-            <div class="pdp-sizes" data-size-picker>
-              {product.sizes.map((size, index) => (
+            <div class="pdp-sizes" role="list">
+              {product.sizes.map((size) => (
                 <button
                   type="button"
-                  class={`pdp-size-pill${index === 0 ? " is-selected" : ""}`}
-                  data-size={size}
+                  class="pdp-size-pill"
+                  data-size-option={size}
+                  role="listitem"
                 >
                   {size}
                 </button>
               ))}
             </div>
+            <input type="hidden" value="" data-size-value />
+            <p class="muted pdp-variant-hint" data-size-hint>Seleccioná tu talle para continuar.</p>
           </div>
         ) : null}
 
@@ -107,9 +150,11 @@ const selectedSize = product.sizes?.[0] ?? "";
           data-price={product.price ?? 0}
           data-currency={product.currency}
           data-image={product.images?.[0] ?? "/placeholder.svg"}
-          data-size={selectedSize}
+          data-requires-color={needsColor ? "1" : "0"}
+          data-requires-size={needsSize ? "1" : "0"}
+          disabled={needsColor || needsSize ? true : undefined}
         >
-          Agregar al carrito
+          {initialCtaLabel}
         </button>
 
         <a href="/checkout" class="btn btn-ghost pdp-buy-now">Comprar ahora</a>
@@ -187,7 +232,7 @@ const selectedSize = product.sizes?.[0] ?? "";
         if (cta) cta.dataset.size = "";
 
         if (colorHint) colorHint.textContent = "";
-        if (sizeHint) sizeHint.textContent = "Seleccioná tu talle para continuar.";
+        if (sizeHint && cta.dataset.requiresSize === "1") sizeHint.textContent = "Seleccioná tu talle para continuar.";
         updateCta();
       };
 
@@ -241,18 +286,3 @@ const selectedSize = product.sizes?.[0] ?? "";
     }
   </script>
 </Base>
-
-<script is:inline>
-  const sizePicker = document.querySelector("[data-size-picker]");
-  const addButton = document.querySelector("[data-add-to-cart]");
-  if (sizePicker && addButton) {
-    const buttons = Array.from(sizePicker.querySelectorAll("[data-size]"));
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        buttons.forEach((b) => b.classList.remove("is-selected"));
-        btn.classList.add("is-selected");
-        addButton.dataset.size = btn.dataset.size || "";
-      });
-    });
-  }
-</script>
