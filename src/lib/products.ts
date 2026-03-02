@@ -42,8 +42,16 @@ const ensureSeeded = async () => {
   if (count > 0) {
     const seed = JSON.parse(readFileSync(jsonPath, "utf-8"));
     const stmt = db.prepare("UPDATE products SET badge = ?, microcopy = ? WHERE id = ? AND ((badge IS NULL OR badge = '') OR (microcopy IS NULL OR microcopy = ''));");
+    const fillJsonStmt = db.prepare(`
+      UPDATE products SET
+        colors = CASE WHEN (colors IS NULL OR colors = '' OR colors = '[]') THEN ? ELSE colors END,
+        sizes  = CASE WHEN (sizes  IS NULL OR sizes  = '' OR sizes  = '[]') THEN ? ELSE sizes  END,
+        images = CASE WHEN (images IS NULL OR images = '' OR images = '[]') THEN ? ELSE images END
+      WHERE id = ?;
+    `);
     const sizesFixStmt = db.prepare("UPDATE products SET sizes = ? WHERE id = ? AND sizes = ?;");
     const groupedSizes = serialize(["S/M", "L/XL"]);
+    const reversedGroupedSizes = serialize(["L/XL", "S/M"]);
     db.run("BEGIN;");
     try {
       for (const product of seed) {
@@ -54,11 +62,25 @@ const ensureSeeded = async () => {
             product.id
           ]);
         }
+
+        // Fill missing JSON columns for older DBs without overwriting existing admin content.
+        fillJsonStmt.run([
+          serialize(product.colors),
+          serialize(product.sizes),
+          serialize(product.images),
+          product.id
+        ]);
       }
 
       // One-time data fix: these products are sold in grouped sizes (S/M, L/XL)
       sizesFixStmt.run([groupedSizes, "bermuda-sastrera", serialize(["M", "S", "L", "XL"])]);
       sizesFixStmt.run([groupedSizes, "bermuda-sastrera", serialize(["S", "M", "L", "XL"])]);
+      sizesFixStmt.run([groupedSizes, "pantalon-sastrero", serialize(["S", "M", "L", "XL"])]);
+      sizesFixStmt.run([groupedSizes, "pantalon-sastrero", serialize(["M", "S", "L", "XL"])]);
+
+      // Normalize grouped sizes order (S/M first).
+      sizesFixStmt.run([groupedSizes, "remera-doppio-collo", reversedGroupedSizes]);
+      sizesFixStmt.run([groupedSizes, "chomba-sprezzata", reversedGroupedSizes]);
 
       db.run("COMMIT;");
     } catch (err) {

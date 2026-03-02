@@ -64,6 +64,34 @@ export const getDb = async () => {
     if (!hasCompareAt) {
       db.run("ALTER TABLE products ADD COLUMN compareAt INTEGER;");
     }
+    const hasMaterials = columns.some((row) => row[1] === "materials");
+    if (!hasMaterials) {
+      db.run("ALTER TABLE products ADD COLUMN materials TEXT;");
+    }
+    const hasFit = columns.some((row) => row[1] === "fit");
+    if (!hasFit) {
+      db.run("ALTER TABLE products ADD COLUMN fit TEXT;");
+    }
+    const hasColors = columns.some((row) => row[1] === "colors");
+    if (!hasColors) {
+      db.run("ALTER TABLE products ADD COLUMN colors TEXT;");
+    }
+    const hasSizes = columns.some((row) => row[1] === "sizes");
+    if (!hasSizes) {
+      db.run("ALTER TABLE products ADD COLUMN sizes TEXT;");
+    }
+    const hasImages = columns.some((row) => row[1] === "images");
+    if (!hasImages) {
+      db.run("ALTER TABLE products ADD COLUMN images TEXT;");
+    }
+    const hasHighlights = columns.some((row) => row[1] === "highlights");
+    if (!hasHighlights) {
+      db.run("ALTER TABLE products ADD COLUMN highlights TEXT;");
+    }
+    const hasCombinations = columns.some((row) => row[1] === "combinations");
+    if (!hasCombinations) {
+      db.run("ALTER TABLE products ADD COLUMN combinations TEXT;");
+    }
     const hasBadge = columns.some((row) => row[1] === "badge");
     if (!hasBadge) {
       db.run("ALTER TABLE products ADD COLUMN badge TEXT;");
