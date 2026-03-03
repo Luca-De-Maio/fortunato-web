@@ -35,6 +35,22 @@ const mapRow = (row) => ({
   microcopy: row.microcopy || ""
 });
 
+const normalizeSizes = (category, raw) => {
+  const sizes = Array.isArray(raw) ? raw.map((v) => String(v)) : [];
+  const cat = String(category || "").toLowerCase();
+  if (cat === "top" || cat === "bottom") {
+    const set = new Set(sizes);
+    const legacy = new Set(["S", "M", "L", "XL"]);
+    if (sizes.length === 4 && Array.from(set).every((v) => legacy.has(v))) {
+      return ["S/M", "L/XL"];
+    }
+    if (sizes.length === 2 && set.has("S/M") && set.has("L/XL")) {
+      return ["S/M", "L/XL"];
+    }
+  }
+  return sizes;
+};
+
 const ensureSeeded = async () => {
   const { db } = await getDb();
   const result = db.exec("SELECT COUNT(*) as count FROM products;");
@@ -42,16 +58,15 @@ const ensureSeeded = async () => {
   if (count > 0) {
     const seed = JSON.parse(readFileSync(jsonPath, "utf-8"));
     const stmt = db.prepare("UPDATE products SET badge = ?, microcopy = ? WHERE id = ? AND ((badge IS NULL OR badge = '') OR (microcopy IS NULL OR microcopy = ''));");
-    const fillJsonStmt = db.prepare(`
-      UPDATE products SET
-        colors = CASE WHEN (colors IS NULL OR colors = '' OR colors = '[]') THEN ? ELSE colors END,
-        sizes  = CASE WHEN (sizes  IS NULL OR sizes  = '' OR sizes  = '[]') THEN ? ELSE sizes  END,
-        images = CASE WHEN (images IS NULL OR images = '' OR images = '[]') THEN ? ELSE images END
-      WHERE id = ?;
-    `);
-    const sizesFixStmt = db.prepare("UPDATE products SET sizes = ? WHERE id = ? AND sizes = ?;");
-    const groupedSizes = serialize(["S/M", "L/XL"]);
-    const reversedGroupedSizes = serialize(["L/XL", "S/M"]);
+    const sizeStmt = db.prepare("UPDATE products SET sizes = ? WHERE id = ?;");
+
+    const resAll = db.exec("SELECT id, category, sizes FROM products;");
+    const rows = resAll?.[0]?.values ?? [];
+    const cols = resAll?.[0]?.columns ?? [];
+    const idIndex = cols.indexOf("id");
+    const categoryIndex = cols.indexOf("category");
+    const sizesIndex = cols.indexOf("sizes");
+
     db.run("BEGIN;");
     try {
       for (const product of seed) {
@@ -62,25 +77,20 @@ const ensureSeeded = async () => {
             product.id
           ]);
         }
-
-        // Fill missing JSON columns for older DBs without overwriting existing admin content.
-        fillJsonStmt.run([
-          serialize(product.colors),
-          serialize(product.sizes),
-          serialize(product.images),
-          product.id
-        ]);
       }
 
-      // One-time data fix: these products are sold in grouped sizes (S/M, L/XL)
-      sizesFixStmt.run([groupedSizes, "bermuda-sastrera", serialize(["M", "S", "L", "XL"])]);
-      sizesFixStmt.run([groupedSizes, "bermuda-sastrera", serialize(["S", "M", "L", "XL"])]);
-      sizesFixStmt.run([groupedSizes, "pantalon-sastrero", serialize(["S", "M", "L", "XL"])]);
-      sizesFixStmt.run([groupedSizes, "pantalon-sastrero", serialize(["M", "S", "L", "XL"])]);
-
-      // Normalize grouped sizes order (S/M first).
-      sizesFixStmt.run([groupedSizes, "remera-doppio-collo", reversedGroupedSizes]);
-      sizesFixStmt.run([groupedSizes, "chomba-sprezzata", reversedGroupedSizes]);
+      // Normalize apparel sizes to S/M and L/XL (keeps calzado numeric sizes intact).
+      for (const row of rows) {
+        const id = String(row[idIndex] ?? "");
+        const category = row[categoryIndex] ?? "";
+        const current = parseJson(row[sizesIndex], []);
+        const next = normalizeSizes(category, current);
+        const nextSerialized = serialize(next);
+        const currentSerialized = serialize(current);
+        if (nextSerialized !== currentSerialized) {
+          sizeStmt.run([nextSerialized, id]);
+        }
+      }
 
       db.run("COMMIT;");
     } catch (err) {

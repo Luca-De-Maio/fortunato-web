@@ -1,114 +1,102 @@
 import type { APIRoute } from "astro";
 import { getAllProducts } from "../../../lib/products";
 
-const json = (data: unknown, init: ResponseInit = {}) =>
-  new Response(JSON.stringify(data), {
-    ...init,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      ...(init.headers ?? {})
-    }
-  });
+export const prerender = false;
 
-type CartItemPayload = {
-  id: string;
-  qty: number;
-  color?: string;
-  size?: string;
+const getBaseUrl = (requestUrl: string) => {
+  const env =
+    (process.env.PUBLIC_SITE_URL || "").trim() ||
+    (process.env.SITE_URL || "").trim();
+  if (env) return env.replace(/\/+$/, "");
+  try {
+    return new URL(requestUrl).origin;
+  } catch {
+    return "http://localhost:4321";
+  }
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
-  if (!accessToken) {
-    return json({ error: "Missing MERCADOPAGO_ACCESS_TOKEN" }, { status: 500 });
+  const token = (process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim();
+  if (!token) {
+    return new Response("Missing MERCADOPAGO_ACCESS_TOKEN", { status: 500 });
   }
 
-  let body: { items?: CartItemPayload[] } = {};
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const payloadItems = Array.isArray(body.items) ? body.items : [];
-  if (!payloadItems.length) {
-    return json({ error: "Empty cart" }, { status: 400 });
+  const body = await request.json().catch(() => null) as any;
+  const cart = Array.isArray(body?.cart) ? body.cart : null;
+  if (!cart || !cart.length) {
+    return new Response("Invalid cart", { status: 400 });
   }
 
   const products = await getAllProducts();
-  const byId = new Map(products.map((p) => [p.id, p]));
+  const byId = new Map(products.map((p: any) => [p.id, p]));
 
-  const items = [];
-  for (const raw of payloadItems) {
-    const id = (raw?.id ?? "").toString();
-    const qty = Number(raw?.qty ?? 0);
-    if (!id || !Number.isFinite(qty) || qty <= 0) continue;
-    const product = byId.get(id);
-    if (!product) continue;
+  const items = cart
+    .map((row: any) => {
+      const id = String(row?.id || "");
+      const qty = Math.max(1, Math.min(99, Number(row?.qty || 1)));
+      const color = String(row?.color || "").trim();
+      const size = String(row?.size || "").trim();
 
-    const color = (raw?.color ?? "").toString().trim();
-    const size = (raw?.size ?? "").toString().trim();
-    const descriptionParts = [];
-    if (color) descriptionParts.push(`Color: ${color}`);
-    if (size) descriptionParts.push(`Talle: ${size}`);
+      const product = byId.get(id);
+      if (!product) return null;
 
-    items.push({
-      id: product.id,
-      title: product.name,
-      description: descriptionParts.join(" · "),
-      quantity: qty,
-      unit_price: Number(product.price ?? 0),
-      currency_id: product.currency || "ARS",
-      picture_url: product.images?.[0]
-        ? new URL(product.images[0], new URL(request.url).origin).toString()
-        : undefined
-    });
-  }
+      const unitPrice = Number(product.price || 0);
+      const currency = String(product.currency || "ARS");
+      const titleParts = [String(product.name || "Producto")];
+      if (color) titleParts.push(color);
+      if (size) titleParts.push(`Talle ${size}`);
+      const title = titleParts.join(" · ");
+
+      return {
+        title,
+        quantity: qty,
+        unit_price: unitPrice,
+        currency_id: currency === "ARS" ? "ARS" : currency
+      };
+    })
+    .filter(Boolean);
 
   if (!items.length) {
-    return json({ error: "No valid items" }, { status: 400 });
+    return new Response("No valid items", { status: 400 });
   }
 
-  const origin = new URL(request.url).origin;
-  const preferenceBody = {
+  const baseUrl = getBaseUrl(request.url);
+  const preference = {
     items,
     back_urls: {
-      success: `${origin}/checkout/success`,
-      failure: `${origin}/checkout/failure`,
-      pending: `${origin}/checkout/pending`
+      success: `${baseUrl}/checkout/success`,
+      pending: `${baseUrl}/checkout/pending`,
+      failure: `${baseUrl}/checkout/failure`
     },
     auto_return: "approved"
   };
 
-  const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
+  const mpRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(preferenceBody)
+    body: JSON.stringify(preference)
   });
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    return json(
-      {
-        error: "Mercado Pago error",
-        status: res.status,
-        details: data
-      },
-      { status: 502 }
-    );
+  if (!mpRes.ok) {
+    const text = await mpRes.text().catch(() => "");
+    return new Response(text || "Mercado Pago error", { status: 502 });
   }
 
-  const env = (process.env.MERCADOPAGO_ENV || "prod").toLowerCase();
-  const checkoutUrl = env === "sandbox" ? data.sandbox_init_point : data.init_point;
+  const data = await mpRes.json().catch(() => ({} as any));
+  const mode = (process.env.MERCADOPAGO_ENV || "prod").toLowerCase();
+  const checkoutUrl =
+    mode === "sandbox" ? data.sandbox_init_point : data.init_point;
 
-  return json({
-    id: data.id,
-    checkoutUrl,
-    init_point: data.init_point,
-    sandbox_init_point: data.sandbox_init_point
+  if (!checkoutUrl) {
+    return new Response("Mercado Pago response missing init_point", { status: 502 });
+  }
+
+  return new Response(JSON.stringify({ checkoutUrl }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
   });
 };
 

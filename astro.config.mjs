@@ -5,5 +5,6 @@ export default defineConfig({
   site: "https://fortunato.example",
   output: "server",
   adapter: node({ mode: "standalone" }),
+  server: { host: true },
   trailingSlash: "never"
 });

@@ -18,13 +18,10 @@ import Footer from "../components/Footer.astro";
       <div class="cart-list" data-cart-list></div>
 
       <div class="cart-summary" data-cart-summary>
-        <div class="cart-summary-row">
-          <p><strong>Subtotal</strong></p>
-          <p><strong data-cart-subtotal>—</strong></p>
-        </div>
+        <p><strong>Subtotal</strong>: <span data-cart-subtotal>—</span></p>
         <p class="muted">Envío e impuestos se calculan en el checkout.</p>
         <div class="cart-summary-actions">
-          <button class="btn btn-ghost" type="button" data-clear-cart>Vaciar carrito</button>
+          <button class="btn btn-ghost" type="button" data-cart-clear>Vaciar carrito</button>
           <a href="/checkout" class="btn">Continuar al checkout</a>
         </div>
       </div>
@@ -37,122 +34,110 @@ import Footer from "../components/Footer.astro";
     const CART_KEY = "fortunato_cart";
     const list = document.querySelector("[data-cart-list]");
     const subtotalEl = document.querySelector("[data-cart-subtotal]");
-    const summaryEl = document.querySelector("[data-cart-summary]");
-    const clearBtn = document.querySelector("[data-clear-cart]");
-    const cartBadge = document.querySelector("[data-cart-count]");
-
-    const money = (amount, currency) => {
-      if (amount === null || amount === undefined) return "Precio a confirmar";
-      const value = Number(amount);
-      if (!Number.isFinite(value)) return "Precio a confirmar";
-      return `${currency} ${value.toLocaleString("es-AR")}`;
-    };
+    const clearBtn = document.querySelector("[data-cart-clear]");
 
     const getCart = () => {
       try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
     };
+    const setCart = (cart) => localStorage.setItem(CART_KEY, JSON.stringify(cart));
 
-    const setCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
+    const format = (amount, currency) =>
+      typeof amount === "number" && !Number.isNaN(amount)
+        ? `${currency} ${amount.toLocaleString("es-AR")}`
+        : "Precio a confirmar";
 
-    const keyFor = (item) => [item.id, item.color || "", item.size || ""].join("|");
+    const makeKey = (item) => `${item.id}__${item.color || ""}__${item.size || ""}`;
 
-    const updateBadge = (cart) => {
-      if (!cartBadge) return;
-      const count = cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
-      cartBadge.textContent = count ? String(count) : "";
-      cartBadge.classList.toggle("is-visible", count > 0);
+    const updateBadge = () => {
+      const badge = document.querySelector("[data-cart-count]");
+      if (!badge) return;
+      const count = getCart().reduce((sum, item) => sum + (item.qty || 0), 0);
+      badge.textContent = count ? String(count) : "";
+      badge.classList.toggle("is-visible", count > 0);
     };
 
     const render = () => {
       const cart = getCart();
-      updateBadge(cart);
       if (!cart.length) {
-        list.innerHTML = `
-          <div class="cart-empty">
-            <p class="muted">Tu carrito está vacío.</p>
-            <a class="btn" href="/#capsula">Ver cápsula</a>
-          </div>
-        `;
-        if (subtotalEl) subtotalEl.textContent = "—";
-        if (summaryEl) summaryEl.classList.add("is-hidden");
+        list.innerHTML = "<p class='muted'>Tu carrito está vacío.</p>";
+        subtotalEl.textContent = "—";
+        updateBadge();
         return;
       }
-      if (summaryEl) summaryEl.classList.remove("is-hidden");
       let subtotal = 0;
       list.innerHTML = cart.map((item) => {
-        const qty = Number(item.qty) || 0;
-        const unit = Number(item.price) || 0;
-        const currency = item.currency || "ARS";
-        const lineTotal = unit * qty;
-        subtotal += lineTotal;
-        const metaParts = [];
-        if (item.color) metaParts.push(`Color: ${item.color}`);
-        if (item.size) metaParts.push(`Talle: ${item.size}`);
-        const meta = metaParts.length ? `<p class="cart-item-meta muted">${metaParts.join(" · ")}</p>` : "";
-        const key = encodeURIComponent(keyFor(item));
-        const lineLabel = money(lineTotal, currency);
-        const unitLabel = money(unit, currency);
-        const each = qty > 1 ? `<span class="cart-item-unit muted">${unitLabel} c/u</span>` : "";
+        const qty = Number(item.qty || 0);
+        const price = Number(item.price || 0);
+        const line = price * qty;
+        subtotal += line;
+        const colorLine = item.color ? `<p class='muted'>Color: ${item.color}</p>` : "";
+        const sizeLine = item.size ? `<p class='muted'>Talle: ${item.size}</p>` : "";
+        const eachLine = qty > 1 ? `<span class='muted cart-each'>(c/u ${format(price, item.currency || "ARS")})</span>` : "";
         return `
-          <article class="cart-item" data-key="${key}">
-            <img class="cart-thumb" src="${item.image || "/placeholder.svg"}" alt="${item.name}" loading="lazy" decoding="async" />
-            <div class="cart-item-main">
-              <div class="cart-item-head">
-                <strong class="cart-item-name">${item.name}</strong>
-                <button class="cart-remove" type="button" data-action="remove" data-key="${key}" aria-label="Eliminar">
-                  ×
-                </button>
+          <article class='cart-item' data-key='${makeKey(item)}'>
+            <img src='${item.image || "/placeholder.svg"}' alt='${item.name}' />
+            <div class='cart-item-main'>
+              <div class='cart-item-top'>
+                <strong class='cart-item-name'>${item.name}</strong>
+                <button class='cart-remove' type='button' data-cart-remove aria-label='Eliminar'>×</button>
               </div>
-              ${meta}
-              <div class="cart-item-foot">
-                <div class="cart-stepper" aria-label="Cantidad">
-                  <button type="button" data-action="dec" data-key="${key}" aria-label="Restar">−</button>
-                  <span aria-label="Cantidad">${qty}</span>
-                  <button type="button" data-action="inc" data-key="${key}" aria-label="Sumar">+</button>
+              ${colorLine}
+              ${sizeLine}
+              <div class='cart-item-bottom'>
+                <div class='cart-qty' aria-label='Cantidad'>
+                  <button type='button' class='cart-qty-btn' data-cart-dec aria-label='Disminuir'>−</button>
+                  <span class='cart-qty-value' aria-live='polite'>${qty}</span>
+                  <button type='button' class='cart-qty-btn' data-cart-inc aria-label='Aumentar'>+</button>
                 </div>
-                <div class="cart-item-price" aria-label="Precio">
-                  <strong class="cart-line-total">${lineLabel}</strong>
-                  ${each}
+                <div class='cart-price-block'>
+                  <strong class='cart-line-total'>${format(line, item.currency || "ARS")}</strong>
+                  ${eachLine}
                 </div>
               </div>
             </div>
           </article>
         `;
       }).join("");
-      if (subtotalEl) subtotalEl.textContent = money(subtotal, cart[0]?.currency || "ARS");
+      subtotalEl.textContent = format(subtotal, cart[0]?.currency || "ARS");
+      updateBadge();
     };
 
     list?.addEventListener("click", (event) => {
-      const btn = event.target.closest("button[data-action]");
-      if (!btn) return;
-      const action = btn.dataset.action;
-      const key = decodeURIComponent(btn.dataset.key || "");
-      if (!action || !key) return;
-
+      const row = event.target.closest("[data-key]");
+      if (!row) return;
+      const key = row.dataset.key;
       const cart = getCart();
-      const index = cart.findIndex((item) => keyFor(item) === key);
+      const index = cart.findIndex((item) => makeKey(item) === key);
       if (index === -1) return;
 
-      if (action === "remove") {
+      if (event.target.closest("[data-cart-remove]")) {
         cart.splice(index, 1);
+        setCart(cart);
+        render();
+        return;
       }
 
-      if (action === "inc") {
-        cart[index].qty = (Number(cart[index].qty) || 0) + 1;
+      if (event.target.closest("[data-cart-inc]")) {
+        cart[index].qty = Number(cart[index].qty || 0) + 1;
+        setCart(cart);
+        render();
+        return;
       }
 
-      if (action === "dec") {
-        cart[index].qty = (Number(cart[index].qty) || 0) - 1;
-        if (cart[index].qty <= 0) cart.splice(index, 1);
+      if (event.target.closest("[data-cart-dec]")) {
+        const next = Number(cart[index].qty || 0) - 1;
+        if (next <= 0) cart.splice(index, 1);
+        else cart[index].qty = next;
+        setCart(cart);
+        render();
       }
-
-      setCart(cart);
-      render();
     });
 
     clearBtn?.addEventListener("click", () => {
-      if (!confirm("¿Vaciar el carrito?")) return;
-      localStorage.removeItem(CART_KEY);
+      const cart = getCart();
+      if (!cart.length) return;
+      if (!confirm("¿Vaciar carrito?")) return;
+      setCart([]);
       render();
     });
 

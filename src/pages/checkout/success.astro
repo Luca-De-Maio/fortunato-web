@@ -2,44 +2,33 @@
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
-
-export const prerender = false;
-
-const params = Astro.url.searchParams;
-const paymentId = params.get("payment_id") || params.get("paymentId") || "";
-const status = params.get("status") || "";
-const merchantOrderId = params.get("merchant_order_id") || "";
 ---
 
-<Base title="Fortunato | Pago confirmado" description="Tu pago fue recibido.">
+<Base title="Fortunato | Pago aprobado" description="Tu pago fue aprobado.">
   <Header />
 
   <main class="checkout-page">
     <div class="container">
       <div class="section-head">
-        <p class="eyebrow">Checkout</p>
-        <h2>Pago confirmado</h2>
-        <p class="muted">Gracias. Si querés, escribinos por WhatsApp para coordinar envío y cualquier detalle.</p>
+        <p class="eyebrow">Mercado Pago</p>
+        <h2>Pago aprobado</h2>
+        <p class="muted">Gracias. Recibimos tu pago y estamos preparando tu pedido.</p>
       </div>
 
-      <div class="checkout-layout">
-        <section class="checkout-card">
-          <h3>Referencia</h3>
-          <p class="muted">Si Mercado Pago envió datos de la operación, los vas a ver acá.</p>
-          <div class="pill-list" style="margin-top: 0.9rem;">
-            {status ? <span class="pill">Estado: {status}</span> : null}
-            {paymentId ? <span class="pill">Pago: {paymentId}</span> : null}
-            {merchantOrderId ? <span class="pill">Orden: {merchantOrderId}</span> : null}
-          </div>
-          <div style="margin-top: 1.2rem; display: grid; gap: 0.7rem;">
-            <a class="btn" href="/">Volver al inicio</a>
-            <a class="btn btn-ghost" href="https://wa.me/5491132585919">Escribir por WhatsApp</a>
-          </div>
-        </section>
+      <div class="notice">
+        <strong>¿Querés confirmar por WhatsApp?</strong> Si necesitás coordinar envío o tenés dudas de talle, escribinos.
+      </div>
+
+      <div style="margin-top: 1.4rem; display: grid; gap: 0.8rem;">
+        <a class="btn" href="/">Volver al inicio</a>
+        <a class="btn btn-ghost" href="https://wa.me/5491158204344">Hablar por WhatsApp</a>
       </div>
     </div>
   </main>
 
   <Footer />
-</Base>
 
+  <script>
+    try { localStorage.setItem("fortunato_cart", "[]"); } catch {}
+  </script>
+</Base>

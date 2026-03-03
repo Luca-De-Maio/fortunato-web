@@ -197,15 +197,23 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   border-radius: 999px;
   font-weight: 500;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 12px 30px rgba(24, 74, 69, 0.2);
 }
 
-.btn:hover { transform: translateY(-2px); }
-
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover { transform: translateY(-2px); }
+  .btn:disabled:hover { transform: none; }
+}
 .btn:disabled {
-  opacity: 0.55;
   cursor: not-allowed;
+  opacity: 0.72;
   transform: none;
   box-shadow: none;
 }
@@ -215,8 +223,6 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   color: var(--green);
   border: 1px solid rgba(24, 74, 69, 0.18);
   box-shadow: none;
-  border-radius: 14px;
-  padding: 0.55rem 1rem;
 }
 
 .capsule-grid {
@@ -319,228 +325,254 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 .footer-bottom { margin-top: 2rem; font-size: 0.85rem; opacity: 0.7; }
 
 .pdp {
-  padding: 4.5rem 0;
+  padding: 0 0 4.5rem;
 }
 
 .pdp-hero {
   position: relative;
-  width: min(100% - 2.5rem, var(--max));
-  margin: 0 auto;
-  height: 520px;
-  max-height: 520px;
-  border-radius: 22px;
+  width: 100%;
   overflow: hidden;
   background: #000;
-  box-shadow: var(--shadow);
 }
-
 .pdp-hero__img {
   width: 100%;
-  height: 100%;
+  height: min(68vh, 520px);
   object-fit: cover;
-  display: block;
+  object-position: 50% 50%;
+  border-radius: 0 0 22px 22px;
 }
 
+.pdp-gallery {
+  display: grid;
+  gap: 10px;
+}
+
+.pdp-thumbs {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.pdp-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 96px;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 232, 215, 0.22);
+  background: rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+}
+
+.pdp-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.pdp-thumb.is-active {
+  border-color: rgba(245, 232, 215, 0.92);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+}
 .pdp-badge {
   position: absolute;
-  top: 16px;
+  top: 12px;
   left: 16px;
-  font-size: 12px;
+  background: rgba(245, 232, 215, 0.96);
+  color: rgba(40, 44, 43, 0.96);
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.35rem 0.6rem;
   border-radius: 999px;
-  background: rgba(245, 232, 215, 0.95);
   border: 1px solid rgba(24, 74, 69, 0.12);
+  backdrop-filter: blur(8px);
 }
 
 .pdp-summary,
 .pdp-buy,
 .pdp-details {
-  width: min(100% - 2.5rem, var(--max));
-  margin: 0 auto;
+  padding: 0 16px;
 }
 
 .pdp-summary {
-  padding: 1.4rem 0 0.6rem;
+  padding-top: 16px;
+  padding-bottom: 12px;
   display: grid;
-  gap: 0.65rem;
+  gap: 10px;
 }
-
 .pdp-kicker {
   text-transform: uppercase;
-  letter-spacing: 0.3em;
-  font-size: 0.75rem;
+  letter-spacing: 0.32em;
+  font-size: 0.72rem;
   color: var(--warm);
 }
-
 .pdp-title {
   font-family: "Cinzel", "Cormorant Garamond", serif;
-  font-size: clamp(2rem, 3.6vw, 3rem);
-  line-height: 1.05;
+  font-size: clamp(2.05rem, 4.8vw, 3.2rem);
   color: var(--green);
+  line-height: 1.08;
 }
-
 .pdp-highlights {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.55rem;
+  gap: 8px;
+  color: rgba(75, 79, 78, 0.85);
+  font-size: 1rem;
 }
-
 .pdp-highlights li {
-  display: flex;
-  gap: 0.6rem;
-  color: rgba(75, 79, 78, 0.82);
+  position: relative;
+  display: block;
+  list-style: none;
+  padding-left: 0;
 }
-
 .pdp-highlights li::before {
-  content: "•";
-  color: rgba(24, 74, 69, 0.55);
+  content: none;
 }
 
 .pdp-buy {
-  margin-top: 0.8rem;
+  padding-top: 8px;
 }
-
-.pdp-buy-card {
-  background: rgba(245, 232, 215, 0.6);
+.pdp-buycard {
+  background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(24, 74, 69, 0.1);
   border-radius: 20px;
-  padding: 1.2rem;
-  box-shadow: 0 18px 45px rgba(24, 74, 69, 0.08);
+  box-shadow: 0 18px 60px rgba(24, 74, 69, 0.10);
+  padding: 14px 14px 16px;
   display: grid;
-  gap: 0.9rem;
+  gap: 14px;
 }
-
-.pdp-price {
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: var(--green);
-}
-.pdp-variant-hint:empty { display: none; }
-
-.pdp-compare {
+.pdp-price-row {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 0.2rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-
-.pdp-installments {
-  margin: 0;
-  font-size: 0.95rem;
-  color: rgba(75, 79, 78, 0.76);
+.pdp-price__current {
+  font-weight: 700;
+  color: var(--green);
+  font-size: 1.3rem;
+  letter-spacing: 0.01em;
 }
-
-.pdp-field {
-  display: grid;
-  gap: 0.5rem;
+.pdp-price__compare {
+  color: rgba(75, 79, 78, 0.68);
+  text-decoration: line-through;
+  font-size: 1rem;
 }
-
-.pdp-label {
+.pdp-discount {
+  background: rgba(24, 74, 69, 0.14);
+  color: var(--green);
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
   font-size: 0.8rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(75, 79, 78, 0.85);
+  font-weight: 700;
+}
+.pdp-installments {
+  margin-top: 6px;
+  font-size: 0.95rem;
 }
 
-.pdp-colors {
+.pdp-field-label {
+  font-weight: 600;
+  color: rgba(40, 44, 43, 0.92);
+  font-size: 0.95rem;
+}
+.pdp-color-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
+  margin-top: 10px;
 }
-
-.pdp-color-pill {
-  border: 1px solid rgba(24, 74, 69, 0.18);
-  background: rgba(255, 255, 255, 0.85);
+.pdp-color {
+  border: 1px solid rgba(24, 74, 69, 0.16);
+  background: rgba(245, 232, 215, 0.35);
+  color: rgba(40, 44, 43, 0.9);
   border-radius: 999px;
-  padding: 0.45rem 0.75rem;
+  padding: 0.45rem 0.7rem;
+  font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
-
+.pdp-color:active { transform: translateY(1px); }
+.pdp-color.is-selected {
+  background: rgba(24, 74, 69, 0.14);
+  border-color: rgba(24, 74, 69, 0.32);
+  color: var(--green);
+}
 .pdp-swatch {
   width: 14px;
   height: 14px;
   border-radius: 999px;
   background: var(--swatch, #c9c3bb);
-  border: 1px solid rgba(24, 74, 69, 0.25);
+  border: 1px solid rgba(24, 74, 69, 0.18);
+  box-shadow: 0 6px 14px rgba(24, 74, 69, 0.12);
 }
-
-.pdp-color-pill.is-selected {
-  background: var(--green);
-  border-color: var(--green);
-  color: var(--beige);
+.pdp-color-hint {
+  margin-top: 10px;
+  font-size: 0.9rem;
 }
-
-.pdp-color-pill.is-selected .pdp-swatch {
-  border-color: rgba(245, 232, 215, 0.7);
-}
-
-.pdp-sizes {
+.pdp-size-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
+  margin-top: 10px;
 }
-
-.pdp-size-pill {
-  border: 1px solid rgba(24, 74, 69, 0.18);
-  background: rgba(255, 255, 255, 0.85);
+.pdp-size {
+  border: 1px solid rgba(24, 74, 69, 0.16);
+  background: rgba(245, 232, 215, 0.35);
+  color: rgba(40, 44, 43, 0.9);
   border-radius: 999px;
-  padding: 0.45rem 0.75rem;
+  padding: 0.45rem 0.7rem;
+  font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.pdp-size:active { transform: translateY(1px); }
+.pdp-size.is-selected {
+  background: rgba(24, 74, 69, 0.14);
+  border-color: rgba(24, 74, 69, 0.32);
+  color: var(--green);
+}
+.pdp-size-hint {
+  margin-top: 10px;
+  font-size: 0.9rem;
 }
 
-.pdp-size-pill.is-selected {
-  background: var(--green);
-  border-color: var(--green);
-  color: var(--beige);
+.pdp-ctas {
+  display: grid;
+  gap: 10px;
 }
-
-.pdp-buy-now {
+.pdp-cta {
   width: 100%;
-  text-align: center;
+  justify-content: center;
 }
 
 .pdp-details {
-  padding: 2.2rem 0 0;
-}
-
-.pdp-details h2 {
-  margin: 1.4rem 0 0.6rem;
-  font-size: 0.85rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(75, 79, 78, 0.85);
-}
-
-.pdp-details h2:first-child {
-  margin-top: 0;
-}
-
-.pdp-details-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  padding-top: 22px;
   display: grid;
-  gap: 0.7rem;
-  color: rgba(75, 79, 78, 0.82);
+  gap: 12px;
 }
-
-.pdp-details-list li {
-  display: flex;
-  gap: 0.6rem;
+.pdp-details h2 {
+  font-family: "Cinzel", "Cormorant Garamond", serif;
+  font-size: 1.25rem;
+  color: rgba(24, 74, 69, 0.95);
 }
-
-.pdp-details-list li::before {
-  content: "•";
-  color: rgba(24, 74, 69, 0.55);
+.pdp-description {
+  font-size: 1.02rem;
 }
 
 .product-page {
@@ -562,98 +594,87 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   padding: 0.4rem 0.8rem; border-radius: 999px; background: var(--beige-deep); font-size: 0.85rem;
 }
 
-.cart-page { padding: 4rem 0 6.5rem; }
-.checkout-page { padding: 4rem 0; }
-
+.cart-page, .checkout-page { padding: 4rem 0 6.5rem; }
 .cart-list { display: grid; gap: 1rem; }
-
-.cart-empty {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(24, 74, 69, 0.1);
-  border-radius: 18px;
-  padding: 1.5rem;
-  display: grid;
-  gap: 0.9rem;
-  justify-items: start;
-  box-shadow: 0 18px 60px rgba(24, 74, 69, 0.08);
-}
-
 .cart-item {
   background: var(--white);
-  border-radius: 18px;
+  border-radius: 16px;
   border: 1px solid rgba(24, 74, 69, 0.1);
   padding: 1rem;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 78px 1fr;
-  align-items: start;
-  box-shadow: 0 18px 60px rgba(24, 74, 69, 0.08);
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
 }
-.cart-thumb {
-  width: 78px;
-  height: 78px;
-  border-radius: 16px;
+.cart-item img {
+  width: 84px;
+  height: 84px;
   object-fit: cover;
+  border-radius: 14px;
+  flex: 0 0 auto;
 }
-.cart-item-main { display: grid; gap: 0.45rem; }
-.cart-item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.9rem; }
-.cart-item-name { color: rgba(24, 74, 69, 0.95); font-weight: 700; }
-.cart-item-meta { margin-top: -0.15rem; }
-
+.cart-item-main {
+  flex: 1 1 auto;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.cart-item-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.cart-item-name { line-height: 1.2; }
 .cart-remove {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
   border: 1px solid rgba(24, 74, 69, 0.14);
   background: rgba(245, 232, 215, 0.35);
-  color: rgba(24, 74, 69, 0.72);
-  display: grid;
-  place-items: center;
-  font-size: 1.35rem;
-  line-height: 1;
+  color: rgba(40, 44, 43, 0.9);
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  line-height: 1;
+  font-size: 1.1rem;
 }
-.cart-remove:active { transform: translateY(1px); }
-.cart-remove:hover {
-  background: rgba(245, 232, 215, 0.55);
-  border-color: rgba(24, 74, 69, 0.22);
-}
-
-.cart-item-foot {
+.cart-item-bottom {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-top: 0.55rem;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.2rem;
 }
-.cart-stepper {
+.cart-qty {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  gap: 0.35rem;
   border: 1px solid rgba(24, 74, 69, 0.14);
-  background: rgba(245, 232, 215, 0.35);
-  overflow: hidden;
+  background: rgba(245, 232, 215, 0.25);
+  border-radius: 999px;
+  padding: 0.25rem 0.35rem;
 }
-.cart-stepper button {
-  width: 40px;
-  height: 40px;
-  border: 0;
-  background: transparent;
+.cart-qty-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(24, 74, 69, 0.12);
   color: var(--green);
-  font-size: 1.15rem;
   font-weight: 700;
   cursor: pointer;
 }
-.cart-stepper span {
-  min-width: 38px;
+.cart-qty-value {
+  min-width: 24px;
   text-align: center;
   font-weight: 700;
-  color: rgba(24, 74, 69, 0.95);
+  color: rgba(40, 44, 43, 0.92);
 }
-.cart-item-price { display: grid; gap: 0.1rem; text-align: right; }
-.cart-line-total { color: rgba(24, 74, 69, 0.95); }
-.cart-item-unit { font-size: 0.85rem; }
+.cart-price-block {
+  display: grid;
+  gap: 0.1rem;
+  text-align: right;
+}
+.cart-line-total { color: rgba(40, 44, 43, 0.95); }
+.cart-each { font-size: 0.85rem; }
 
 .cart-summary {
   background: var(--beige);
@@ -663,76 +684,65 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   display: grid;
   gap: 0.8rem;
 }
-.cart-summary-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-}
 .cart-summary-actions {
   display: grid;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  gap: 0.7rem;
+  grid-template-columns: 1fr;
+  align-items: stretch;
 }
-.cart-summary-actions .btn { width: 100%; justify-content: center; }
-.cart-summary.is-hidden { display: none; }
 
-.checkout-layout {
+.checkout-grid {
   display: grid;
-  gap: 1.4rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   align-items: start;
 }
 .checkout-card {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--white);
+  border-radius: 18px;
   border: 1px solid rgba(24, 74, 69, 0.1);
-  border-radius: 20px;
-  box-shadow: 0 18px 60px rgba(24, 74, 69, 0.10);
-  padding: 1.4rem 1.4rem 1.5rem;
+  padding: 1.6rem;
+  box-shadow: var(--shadow);
 }
-.checkout-card h3 { color: rgba(24, 74, 69, 0.95); }
-.checkout-note { margin-top: 0.9rem; }
-
-.checkout-items { margin-top: 1.1rem; display: grid; gap: 0.9rem; }
+.checkout-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
 .checkout-item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-bottom: 0.9rem;
-  border-bottom: 1px solid rgba(24, 74, 69, 0.08);
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: 1px solid rgba(24, 74, 69, 0.08);
+  background: rgba(245, 232, 215, 0.22);
 }
-.checkout-item:last-child { padding-bottom: 0; border-bottom: 0; }
-.checkout-item-name { display: block; }
-.checkout-item-meta { margin-top: 0.15rem; font-size: 0.92rem; }
-.checkout-item-qty { margin-top: 0.15rem; font-size: 0.92rem; }
-.checkout-item-right { text-align: right; }
-
+.checkout-item img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.checkout-item-main { min-width: 0; display: grid; gap: 0.2rem; }
+.checkout-item-main strong { line-height: 1.15; }
+.checkout-item-total { text-align: right; white-space: nowrap; }
 .checkout-total {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
   margin-top: 1.1rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(24, 74, 69, 0.12);
-  font-size: 1.05rem;
 }
-
-.checkout-actions-grid { display: grid; gap: 1.1rem; margin-top: 0.4rem; }
-.checkout-action { display: grid; gap: 0.6rem; }
-.checkout-action .btn { width: 100%; justify-content: center; }
-.checkout-status:empty { display: none; }
-
-.checkout-empty {
-  background: rgba(245, 232, 215, 0.35);
-  border: 1px dashed rgba(24, 74, 69, 0.18);
-  border-radius: 16px;
-  padding: 1.2rem;
-  display: grid;
-  gap: 0.8rem;
-  justify-items: start;
+.checkout-total-amount {
+  font-weight: 800;
+  font-size: 1.55rem;
+  color: var(--green);
+  letter-spacing: 0.01em;
 }
+.checkout-actions { margin-top: 1rem; display: grid; gap: 0.7rem; }
+.checkout-status { min-height: 1.25rem; }
+.checkout-status[data-type="pending"] { color: rgba(40, 44, 43, 0.78); }
+.checkout-status[data-type="error"] { color: #7b2f2f; }
 
 .notice {
   padding: 1rem 1.2rem;
@@ -923,35 +933,6 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   .product-card h3 { font-size: 0.95rem; line-height: 1.2; }
   .product-price { font-size: 0.95rem; }
   .btn-full { font-size: 0.82rem; padding: 0.5rem 0.6rem; }
-  .cart-page { padding: 3.5rem 0 7.2rem; }
-  .cart-item { grid-template-columns: 72px 1fr; padding: 0.9rem; }
-  .cart-thumb { width: 72px; height: 72px; border-radius: 14px; }
+  .cart-item { padding: 0.95rem; }
   .whatsapp-fab { right: 0.9rem; bottom: 0.9rem; padding: 0.6rem 0.9rem; }
-}
-
-@media (max-width: 768px) {
-  .pdp { padding: 0 0 3.5rem; }
-  .pdp-hero {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-    height: min(68vh, 520px);
-    max-height: 520px;
-    border-radius: 0 0 22px 22px;
-    box-shadow: none;
-  }
-  .pdp-summary,
-  .pdp-buy,
-  .pdp-details {
-    width: 100%;
-    margin: 0;
-    padding: 0 16px;
-  }
-  .pdp-summary {
-    padding-top: 16px;
-    padding-bottom: 18px;
-    gap: 10px;
-  }
-  .pdp-buy-card { padding: 16px; }
-  .pdp-details { padding-top: 1.8rem; }
 }

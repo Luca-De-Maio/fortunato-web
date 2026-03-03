@@ -11,38 +11,45 @@ const product = await getProductBySlug(slug);
 if (!product) {
   throw new Response(null, { status: 404, statusText: "Not found" });
 }
+const images = product.images?.length ? product.images : ["/placeholder.svg"];
 const formatPrice = (value) =>
-  value ? `$ ${value.toLocaleString("es-AR")}` : "Precio a confirmar";
+  value ? `${product.currency} ${value.toLocaleString("es-AR")}` : "Precio a confirmar";
 const priceLabel = formatPrice(product.price);
 const compareAt = product.compareAt || null;
 const discount = compareAt && product.price ? Math.round(100 - (product.price / compareAt) * 100) : null;
+const initialCtaLabel =
+  product.colors?.length && product.sizes?.length
+    ? "Elegí color y talle"
+    : product.colors?.length
+      ? "Elegí color"
+      : product.sizes?.length
+        ? "Elegí talle"
+        : "Agregar al carrito";
 const nameLower = product.name?.toLowerCase?.() ?? "";
 const categoryLower = (product.category ?? "").toString().toLowerCase();
-const kickerLabel =
-  nameLower.includes("bermuda") ? "BERMUDA" :
-  nameLower.includes("pantalon") ? "PANTALÓN" :
-  nameLower.includes("chomba") ? "CHOMBA" :
-  nameLower.includes("remera") ? "REMERA" :
-  nameLower.includes("sandalia") ? "SANDALIA" :
-  categoryLower === "top" ? "TOP" :
-  categoryLower === "bottom" ? "BOTTOM" :
-  categoryLower === "calzado" ? "CALZADO" :
-  String(product.category || "").toUpperCase();
-
-const summaryHighlights = [];
-if (product.microcopy?.trim()) summaryHighlights.push(product.microcopy.trim());
-if (product.fit?.trim()) summaryHighlights.push(product.fit.trim());
-if (!summaryHighlights.length && product.materials?.length) summaryHighlights.push(product.materials.slice(0, 2).join(" · "));
-const needsColor = Boolean(product.colors?.length);
-const needsSize = Boolean(product.sizes?.length);
-const initialCtaLabel =
-  needsColor && needsSize ? "Elegí color y talle" :
-  needsColor ? "Elegí color" :
-  needsSize ? "Elegí talle" :
-  "Agregar al carrito";
+const typeLabel =
+  nameLower.includes("bermuda") ? "Bermuda" :
+  nameLower.includes("pantalon") ? "Pantalón" :
+  nameLower.includes("chomba") ? "Chomba" :
+  nameLower.includes("remera") ? "Remera" :
+  nameLower.includes("sandalia") ? "Sandalia" :
+  categoryLower === "top" ? "Top" :
+  categoryLower === "bottom" ? "Bottom" :
+  categoryLower === "calzado" ? "Calzado" :
+  (product.category ?? "").toString();
+const summaryBullets = (() => {
+  const bullets = [];
+  const micro = product.microcopy?.trim?.();
+  if (micro) bullets.push(micro);
+  const fit = product.fit?.trim?.();
+  if (fit) bullets.push(fit);
+  if (product.materials?.length) bullets.push(product.materials.slice(0, 2).join(" · "));
+  if (bullets.length < 2 && product.colors?.length) bullets.push(`Colores: ${product.colors.slice(0, 2).join(" · ")}`);
+  return bullets.slice(0, 3);
+})();
 
 const swatchFor = (label = "") => {
-  const key = String(label).trim().toLowerCase();
+  const key = label.trim().toLowerCase();
   const map = {
     negro: "#111214",
     blanco: "#f6f2ea",
@@ -60,54 +67,72 @@ const swatchFor = (label = "") => {
   <Header />
 
   <main class="pdp">
-    <section class="pdp-hero">
-      <img
-        class="pdp-hero__img"
-        src={product.images?.[0] ?? "/placeholder.svg"}
-        alt={product.name}
-        loading="eager"
-        fetchpriority="high"
-        width="1600"
-        height="2000"
-        decoding="async"
-      />
+    {/* 1) Imagen full width */}
+    <section class="pdp-hero" aria-label={`Fotos de ${product.name}`}>
+      <div class="pdp-gallery">
+        <img
+          class="pdp-hero__img"
+          src={images[0]}
+          alt={product.name}
+          loading="eager"
+          fetchpriority="high"
+          width="1200"
+          height="1500"
+          decoding="async"
+          data-pdp-main-image
+        />
+        {images.length > 1 ? (
+          <div class="pdp-thumbs" aria-label="Más fotos" role="list">
+            {images.map((src, index) => (
+              <button
+                type="button"
+                class:list={{ "pdp-thumb": true, "is-active": index === 0 }}
+                data-pdp-thumb={src}
+                role="listitem"
+                aria-label={`Ver foto ${index + 1}`}
+              >
+                <img src={src} alt="" loading="lazy" width="160" height="200" decoding="async" />
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
       {product.badge ? <span class="pdp-badge">{product.badge}</span> : null}
     </section>
 
-    <section class="pdp-summary">
-      {kickerLabel ? <p class="pdp-kicker">{kickerLabel}</p> : null}
+    {/* 2) Resumen: SOLO título + detalles */}
+    <section class="pdp-summary" aria-label="Resumen">
+      <p class="pdp-kicker">{typeLabel}</p>
       <h1 class="pdp-title">{product.name}</h1>
-      {summaryHighlights.length ? (
+      {summaryBullets.length ? (
         <ul class="pdp-highlights">
-          {summaryHighlights.slice(0, 3).map((item) => (
+          {summaryBullets.map((item) => (
             <li>{item}</li>
           ))}
         </ul>
       ) : null}
     </section>
 
-    <section class="pdp-buy">
-      <div class="pdp-buy-card">
-        <div class="pdp-price-stack">
-          <p class="pdp-price">{priceLabel}</p>
-          {compareAt ? (
-            <p class="pdp-compare">
-              <span class="compare-price">{formatPrice(compareAt)}</span>
-              {discount ? <span class="discount-pill">{discount}% OFF</span> : null}
-            </p>
-          ) : null}
+    {/* 3) Compra: precio + cuotas + talles + CTA */}
+    <section class="pdp-buy" aria-label="Compra">
+      <div class="pdp-buycard">
+        <div class="pdp-price">
+          <div class="pdp-price-row">
+            <p class="pdp-price__current">{priceLabel}</p>
+            {compareAt ? <p class="pdp-price__compare">{formatPrice(compareAt)}</p> : null}
+            {discount ? <span class="pdp-discount">{discount}% OFF</span> : null}
+          </div>
+          <p class="pdp-installments muted">3 cuotas sin interés · 6 cuotas con interés</p>
         </div>
 
-        <p class="pdp-installments">3 cuotas sin interés · 6 cuotas con interés</p>
-
         {product.colors?.length ? (
-          <div class="pdp-field">
-            <p class="pdp-label">Color</p>
-            <div class="pdp-colors" role="list">
+          <div class="pdp-colors" aria-label="Colores">
+            <p class="pdp-field-label">Color</p>
+            <div class="pdp-color-grid" role="list">
               {product.colors.map((color) => (
                 <button
                   type="button"
-                  class="pdp-color-pill"
+                  class="pdp-color"
                   data-color-option={color}
                   style={`--swatch:${swatchFor(color)};`}
                   role="listitem"
@@ -117,53 +142,64 @@ const swatchFor = (label = "") => {
                 </button>
               ))}
             </div>
-            <input type="hidden" value="" data-color-value />
-            <p class="muted pdp-variant-hint" data-color-hint>Seleccioná un color para continuar.</p>
+            <input type="hidden" name="color" value="" data-color-value />
+            <p class="pdp-color-hint muted" data-color-hint>Seleccioná un color para continuar.</p>
           </div>
         ) : null}
 
         {product.sizes?.length ? (
-          <div class="pdp-field">
-            <p class="pdp-label">Talles</p>
-            <div class="pdp-sizes" role="list">
+          <div class="pdp-sizes" aria-label="Talles">
+            <p class="pdp-field-label">Talle</p>
+            <div class="pdp-size-grid" role="list">
               {product.sizes.map((size) => (
-                <button
-                  type="button"
-                  class="pdp-size-pill"
-                  data-size-option={size}
-                  role="listitem"
-                >
+                <button type="button" class="pdp-size" data-size-option={size} role="listitem">
                   {size}
                 </button>
               ))}
             </div>
-            <input type="hidden" value="" data-size-value />
-            <p class="muted pdp-variant-hint" data-size-hint>Seleccioná tu talle para continuar.</p>
+            <input type="hidden" name="size" value="" data-size-value />
+            <p class="pdp-size-hint muted" data-size-hint>Seleccioná tu talle para agregar al carrito.</p>
           </div>
         ) : null}
 
-        <button
-          class="btn btn-full"
-          data-add-to-cart
-          data-id={product.id}
-          data-name={product.name}
-          data-price={product.price ?? 0}
-          data-currency={product.currency}
-          data-image={product.images?.[0] ?? "/placeholder.svg"}
-          data-requires-color={needsColor ? "1" : "0"}
-          data-requires-size={needsSize ? "1" : "0"}
-          disabled={needsColor || needsSize ? true : undefined}
-        >
-          {initialCtaLabel}
-        </button>
-
-        <a href="/checkout" class="btn btn-ghost pdp-buy-now">Comprar ahora</a>
+        <div class="pdp-ctas">
+          <button
+            class="btn pdp-cta"
+            data-add-to-cart
+            data-id={product.id}
+            data-name={product.name}
+            data-price={product.price ?? 0}
+            data-currency={product.currency}
+            data-image={images[0]}
+            data-requires-color={product.colors?.length ? "1" : "0"}
+            data-requires-size={product.sizes?.length ? "1" : "0"}
+            disabled={product.colors?.length || product.sizes?.length ? true : undefined}
+          >
+            {initialCtaLabel}
+          </button>
+          <button
+            class="btn btn-ghost pdp-cta"
+            type="button"
+            data-buy-now
+            data-id={product.id}
+            data-name={product.name}
+            data-price={product.price ?? 0}
+            data-currency={product.currency}
+            data-image={images[0]}
+            data-requires-color={product.colors?.length ? "1" : "0"}
+            data-requires-size={product.sizes?.length ? "1" : "0"}
+            disabled={product.colors?.length || product.sizes?.length ? true : undefined}
+          >
+            Comprar ahora
+          </button>
+        </div>
       </div>
     </section>
 
-    <section class="pdp-details">
+    {/* 4) Detalles extendidos */}
+    <section class="pdp-details" aria-label="Detalles">
       <h2>Descripción</h2>
-      <p class="muted">{product.description}</p>
+      <p class="muted pdp-description">{product.description}</p>
 
       {product.materials?.length ? (
         <>
@@ -179,9 +215,9 @@ const swatchFor = (label = "") => {
       {product.highlights?.length ? (
         <>
           <h2>Detalles</h2>
-          <ul class="pdp-details-list">
+          <ul class="product-highlights">
             {product.highlights.map((item) => (
-              <li>{item}</li>
+              <li>• {item}</li>
             ))}
           </ul>
         </>
@@ -194,95 +230,108 @@ const swatchFor = (label = "") => {
   <script>
     const root = document.querySelector(".pdp");
     if (root) {
+      const mainImage = root.querySelector("[data-pdp-main-image]");
+      const thumbs = Array.from(root.querySelectorAll("[data-pdp-thumb]"));
+
+      const setMainImage = (src) => {
+        if (!mainImage || !src) return;
+        mainImage.src = src;
+        thumbs.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.pdpThumb === src));
+      };
+
+      thumbs.forEach((btn) => {
+        btn.addEventListener("click", () => setMainImage(btn.dataset.pdpThumb || ""));
+      });
+
       const colorInput = root.querySelector("[data-color-value]");
-      const sizeInput = root.querySelector("[data-size-value]");
       const colorHint = root.querySelector("[data-color-hint]");
-      const sizeHint = root.querySelector("[data-size-hint]");
       const colorButtons = Array.from(root.querySelectorAll("[data-color-option]"));
+      const sizeInput = root.querySelector("[data-size-value]");
+      const hint = root.querySelector("[data-size-hint]");
       const sizeButtons = Array.from(root.querySelectorAll("[data-size-option]"));
       const cta = root.querySelector("[data-add-to-cart]");
+      const buyNow = root.querySelector("[data-buy-now]");
+
+      const requiresColor = cta?.dataset.requiresColor === "1";
+      const requiresSize = cta?.dataset.requiresSize === "1";
 
       const updateCta = () => {
         if (!cta) return;
-        const needsColor = cta.dataset.requiresColor === "1";
-        const needsSize = cta.dataset.requiresSize === "1";
         const hasColor = Boolean(cta.dataset.color);
         const hasSize = Boolean(cta.dataset.size);
-        const isReady = (!needsColor || hasColor) && (!needsSize || hasSize);
-        cta.disabled = !isReady;
-        if (cta.disabled) {
-          if (needsColor && !hasColor && needsSize) cta.textContent = "Elegí color y talle";
-          else if (needsColor && !hasColor) cta.textContent = "Elegí color";
-          else if (needsSize && !hasSize) cta.textContent = "Elegí talle";
-        } else {
-          cta.textContent = "Agregar al carrito";
+
+        let label = "Agregar al carrito";
+        let disabled = false;
+
+        if (requiresColor && requiresSize) {
+          if (!hasColor && !hasSize) {
+            label = "Elegí color y talle";
+            disabled = true;
+          } else if (!hasColor) {
+            label = "Elegí color";
+            disabled = true;
+          } else if (!hasSize) {
+            label = "Elegí talle";
+            disabled = true;
+          }
+        } else if (requiresColor) {
+          if (!hasColor) {
+            label = "Elegí color";
+            disabled = true;
+          }
+        } else if (requiresSize) {
+          if (!hasSize) {
+            label = "Elegí talle";
+            disabled = true;
+          }
+        }
+
+        cta.disabled = disabled;
+        cta.textContent = label;
+
+        if (buyNow) {
+          buyNow.disabled = disabled;
+          buyNow.textContent = disabled ? label : "Comprar ahora";
         }
       };
 
-      const setSelectedColor = (value) => {
-        if (!cta) return;
-        const selected = (value || "").trim();
-        if (colorInput) colorInput.value = selected;
-        colorButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.colorOption === selected));
-        cta.dataset.color = selected;
+      const setColor = (value) => {
+        if (colorInput) colorInput.value = value;
+        colorButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.colorOption === value));
+        if (colorHint) colorHint.textContent = value ? `Color seleccionado: ${value}` : "Seleccioná un color para continuar.";
+        if (cta) cta.dataset.color = value || "";
+        if (buyNow) buyNow.dataset.color = value || "";
 
-        // Cambiar color resetea talle (preparado para variantes futuras).
-        if (sizeInput) sizeInput.value = "";
-        sizeButtons.forEach((btn) => btn.classList.remove("is-selected"));
-        if (cta) cta.dataset.size = "";
+        // Preparado para stock por variante: cambiar color resetea talle.
+        if (requiresSize) {
+          if (sizeInput) sizeInput.value = "";
+          sizeButtons.forEach((btn) => btn.classList.remove("is-selected"));
+          if (hint) hint.textContent = "Seleccioná tu talle para continuar.";
+          if (cta) cta.dataset.size = "";
+          if (buyNow) buyNow.dataset.size = "";
+        }
 
-        if (colorHint) colorHint.textContent = "";
-        if (sizeHint && cta.dataset.requiresSize === "1") sizeHint.textContent = "Seleccioná tu talle para continuar.";
         updateCta();
       };
 
-      const setSelectedSize = (value) => {
-        if (!cta) return;
-        const selected = (value || "").trim();
-        if (sizeInput) sizeInput.value = selected;
-        sizeButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.sizeOption === selected));
-        cta.dataset.size = selected;
-        if (sizeHint) sizeHint.textContent = "";
+      const setSize = (value) => {
+        if (sizeInput) sizeInput.value = value;
+        sizeButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.sizeOption === value));
+        if (hint) hint.textContent = value ? `Talle seleccionado: ${value}` : "Seleccioná tu talle para continuar.";
+        if (cta) cta.dataset.size = value || "";
+        if (buyNow) buyNow.dataset.size = value || "";
         updateCta();
       };
 
       colorButtons.forEach((btn) => {
-        btn.addEventListener("click", () => setSelectedColor(btn.dataset.colorOption || ""));
+        btn.addEventListener("click", () => setColor(btn.dataset.colorOption || ""));
       });
 
       sizeButtons.forEach((btn) => {
-        btn.addEventListener("click", () => setSelectedSize(btn.dataset.sizeOption || ""));
+        btn.addEventListener("click", () => setSize(btn.dataset.sizeOption || ""));
       });
 
-      // Si hay 1 solo color, preseleccionarlo para no agregar fricción.
-      if (colorButtons.length === 1) setSelectedColor(colorButtons[0].dataset.colorOption || "");
-
-      // Si hay 1 solo talle, preseleccionarlo.
-      if (sizeButtons.length === 1) setSelectedSize(sizeButtons[0].dataset.sizeOption || "");
-
       updateCta();
-
-      if (cta) {
-        cta.addEventListener("click", (event) => {
-          if (cta.dataset.requiresColor === "1" && !cta.dataset.color) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (colorHint) colorHint.textContent = "Elegí un color para continuar.";
-            const first = colorButtons[0];
-            if (first) first.focus();
-            updateCta();
-            return;
-          }
-          if (cta.dataset.requiresSize === "1" && !cta.dataset.size) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (sizeHint) sizeHint.textContent = "Elegí un talle para continuar.";
-            const first = sizeButtons[0];
-            if (first) first.focus();
-            updateCta();
-          }
-        });
-      }
     }
   </script>
 </Base>

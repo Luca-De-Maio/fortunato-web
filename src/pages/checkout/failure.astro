@@ -2,32 +2,25 @@
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
-
-export const prerender = false;
 ---
 
-<Base title="Fortunato | Pago rechazado" description="Tu pago no pudo completarse.">
+<Base title="Fortunato | Pago rechazado" description="No se pudo completar el pago.">
   <Header />
 
   <main class="checkout-page">
     <div class="container">
       <div class="section-head">
-        <p class="eyebrow">Checkout</p>
+        <p class="eyebrow">Mercado Pago</p>
         <h2>No se pudo completar el pago</h2>
-        <p class="muted">Podés intentar nuevamente o escribirnos por WhatsApp y lo resolvemos juntos.</p>
+        <p class="muted">Tu pago fue rechazado o cancelado. Podés intentar de nuevo o escribirnos por WhatsApp.</p>
       </div>
 
-      <div class="checkout-layout">
-        <section class="checkout-card">
-          <div style="display: grid; gap: 0.7rem;">
-            <a class="btn" href="/checkout">Intentar de nuevo</a>
-            <a class="btn btn-ghost" href="https://wa.me/5491132585919">Escribir por WhatsApp</a>
-          </div>
-        </section>
+      <div style="margin-top: 1.4rem; display: grid; gap: 0.8rem;">
+        <a class="btn" href="/checkout">Reintentar</a>
+        <a class="btn btn-ghost" href="https://wa.me/5491158204344">Comprar por WhatsApp</a>
       </div>
     </div>
   </main>
 
   <Footer />
 </Base>
-
