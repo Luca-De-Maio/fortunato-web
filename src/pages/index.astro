@@ -36,12 +36,8 @@ const combinations = await getAllCombinations();
 <Base title="Fortunato | Moda masculina premium" description="Cápsula limitada de prendas premium inspiradas en la herencia italo-argentina.">
   <Header />
   <main>
-    <section id="capsula" class="section">
+    <section id="capsula" class="section section-capsule">
       <div class="container">
-        <div class="section-head">
-          <p class="eyebrow">Cápsula</p>
-          <h2>7 piezas esenciales para un verano sofisticado</h2>
-        </div>
         <div class="capsule-grid">
           {orderedProducts.map((product) => (
             <ProductCard product={product} />
@@ -49,6 +45,8 @@ const combinations = await getAllCombinations();
         </div>
       </div>
     </section>
+
+    <Benefits />
 
     <section class="hero">
       <div class="hero-video is-autoplay">
@@ -72,8 +70,6 @@ const combinations = await getAllCombinations();
         </div>
       </div>
     </section>
-
-    <Benefits />
 
     <section class="section">
       <div class="container">

@@ -6,18 +6,6 @@ const formatPrice = (value) =>
 const priceLabel = formatPrice(product.price);
 const compareAt = product.compareAt || null;
 const discount = compareAt && product.price ? Math.round(100 - (product.price / compareAt) * 100) : null;
-const nameLower = product.name?.toLowerCase?.() ?? "";
-const categoryLower = (product.category ?? "").toString().toLowerCase();
-const typeLabel =
-  nameLower.includes("bermuda") ? "Bermuda" :
-  nameLower.includes("pantalon") ? "Pantalón" :
-  nameLower.includes("chomba") ? "Chomba" :
-  nameLower.includes("remera") ? "Remera" :
-  nameLower.includes("sandalia") ? "Sandalia" :
-  categoryLower === "top" ? "Top" :
-  categoryLower === "bottom" ? "Bottom" :
-  categoryLower === "calzado" ? "Calzado" :
-  (product.category ?? "").toString();
 const attributeLine = product.microcopy?.trim()
   ? product.microcopy.trim()
   : product.materials?.length
@@ -43,7 +31,6 @@ const gridImage = product.gridImage || product.images?.[0] || "/placeholder.svg"
   </a>
   <div class="product-body">
     <a href={`/product/${product.slug}`} class="product-card-info" aria-label={`Ver ${product.name}`}>
-      <p class="product-category">{typeLabel}</p>
       <h3>{product.name}</h3>
       {attributeLine ? <p class="product-attr">{attributeLine}</p> : null}
       <div class="price-stack">
