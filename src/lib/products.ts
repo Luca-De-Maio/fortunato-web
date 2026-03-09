@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { getDb, saveDb } from "./db";
 
@@ -14,6 +14,49 @@ const parseJson = (value, fallback = []) => {
 };
 
 const serialize = (value) => JSON.stringify(value ?? []);
+const normalizeImageKey = (value) => String(value || "").trim().toLowerCase();
+const normalizeList = (value) => (Array.isArray(value) ? value.map((item) => String(item).trim()).filter(Boolean) : []);
+const readSeedProducts = () => JSON.parse(readFileSync(jsonPath, "utf-8"));
+const writeSeedProducts = (products) => {
+  writeFileSync(jsonPath, `${JSON.stringify(products, null, 2)}\n`, "utf-8");
+};
+const toSeedProduct = (payload) => {
+  const images = normalizeList(payload.images);
+  return {
+    id: String(payload.id ?? payload.slug ?? ""),
+    slug: String(payload.slug ?? payload.id ?? ""),
+    name: String(payload.name ?? ""),
+    category: String(payload.category ?? ""),
+    price: Number(payload.price ?? 0),
+    compareAt: payload.compareAt ?? null,
+    currency: String(payload.currency ?? "ARS"),
+    description: String(payload.description ?? ""),
+    materials: normalizeList(payload.materials),
+    fit: String(payload.fit ?? ""),
+    colors: normalizeList(payload.colors),
+    sizes: normalizeList(payload.sizes),
+    gridImage: String(payload.gridImage ?? images[0] ?? ""),
+    images,
+    highlights: normalizeList(payload.highlights),
+    combinations: Array.isArray(payload.combinations) ? payload.combinations : [],
+    badge: String(payload.badge ?? ""),
+    microcopy: String(payload.microcopy ?? "")
+  };
+};
+const normalizedImagesEqual = (left, right) => {
+  if (left.length !== right.length) return false;
+  return left.every((value, index) => normalizeImageKey(value) === normalizeImageKey(right[index]));
+};
+const hasDuplicateImages = (images) => {
+  const seen = new Set();
+  for (const image of Array.isArray(images) ? images : []) {
+    const key = normalizeImageKey(image);
+    if (!key) continue;
+    if (seen.has(key)) return true;
+    seen.add(key);
+  }
+  return false;
+};
 
 const mapRow = (row) => ({
   id: row.id,
@@ -28,6 +71,7 @@ const mapRow = (row) => ({
   fit: row.fit || "",
   colors: parseJson(row.colors, []),
   sizes: parseJson(row.sizes, []),
+  gridImage: row.gridImage || "",
   images: parseJson(row.images, []),
   highlights: parseJson(row.highlights, []),
   combinations: parseJson(row.combinations, []),
@@ -56,19 +100,55 @@ const ensureSeeded = async () => {
   const result = db.exec("SELECT COUNT(*) as count FROM products;");
   const count = result?.[0]?.values?.[0]?.[0] ?? 0;
   if (count > 0) {
-    const seed = JSON.parse(readFileSync(jsonPath, "utf-8"));
+    const seed = readSeedProducts();
+    const seedById = new Map(seed.map((product) => [String(product.id), product]));
     const stmt = db.prepare("UPDATE products SET badge = ?, microcopy = ? WHERE id = ? AND ((badge IS NULL OR badge = '') OR (microcopy IS NULL OR microcopy = ''));");
     const sizeStmt = db.prepare("UPDATE products SET sizes = ? WHERE id = ?;");
+    const gridStmt = db.prepare("UPDATE products SET gridImage = ? WHERE id = ?;");
+    const imagesStmt = db.prepare("UPDATE products SET images = ? WHERE id = ?;");
+    const insertStmt = db.prepare(`
+      INSERT INTO products
+      (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `);
 
-    const resAll = db.exec("SELECT id, category, sizes FROM products;");
+    const resAll = db.exec("SELECT id, slug, category, sizes, gridImage, images FROM products;");
     const rows = resAll?.[0]?.values ?? [];
     const cols = resAll?.[0]?.columns ?? [];
     const idIndex = cols.indexOf("id");
+    const slugIndex = cols.indexOf("slug");
     const categoryIndex = cols.indexOf("category");
     const sizesIndex = cols.indexOf("sizes");
+    const gridImageIndex = cols.indexOf("gridImage");
+    const imagesIndex = cols.indexOf("images");
 
     db.run("BEGIN;");
     try {
+      const existingIds = new Set(rows.map((row) => String(row[idIndex] ?? "")));
+      for (const product of seed) {
+        if (existingIds.has(String(product.id))) continue;
+        insertStmt.run([
+          product.id,
+          product.slug,
+          product.name,
+          product.category,
+          product.price,
+          product.compareAt ?? null,
+          product.currency,
+          product.description,
+          serialize(product.materials),
+          product.fit ?? "",
+          serialize(product.colors),
+          serialize(product.sizes),
+          product.gridImage ?? "",
+          serialize(product.images),
+          serialize(product.highlights),
+          serialize(product.combinations),
+          product.badge ?? "",
+          product.microcopy ?? ""
+        ]);
+      }
+
       for (const product of seed) {
         if (product.badge || product.microcopy) {
           stmt.run([
@@ -90,6 +170,49 @@ const ensureSeeded = async () => {
         if (nextSerialized !== currentSerialized) {
           sizeStmt.run([nextSerialized, id]);
         }
+
+        const currentImages = parseJson(row[imagesIndex], []);
+        const currentGridImage = String(row[gridImageIndex] ?? "");
+        const slug = String(row[slugIndex] ?? seedById.get(id)?.slug ?? "");
+        const seedImages = seedById.get(id)?.images ?? [];
+        const seedGridImage = seedById.get(id)?.gridImage ?? "";
+        const currentFirst = normalizeImageKey(currentImages[0]);
+        const seedFirst = normalizeImageKey(seedImages[0]);
+        const shouldPromoteSeedHero =
+          Boolean(seedFirst) &&
+          seedFirst.includes("-hero.") &&
+          currentFirst !== seedFirst;
+        const localPrefix = normalizeImageKey(`/images/products/${slug}/`);
+        const currentImagesAreLocal =
+          Boolean(localPrefix) &&
+          currentImages.length > 0 &&
+          currentImages.every((image) => normalizeImageKey(image).startsWith(localPrefix));
+        const shouldSyncSeedImages =
+          seedImages.length > 0 &&
+          (
+            currentImages.length === 0 ||
+            hasDuplicateImages(currentImages) ||
+            shouldPromoteSeedHero ||
+            (currentImagesAreLocal && !normalizedImagesEqual(currentImages, seedImages))
+          );
+        if (
+          shouldSyncSeedImages
+        ) {
+          imagesStmt.run([serialize(seedImages), id]);
+        }
+
+        const currentGridKey = normalizeImageKey(currentGridImage);
+        const seedGridKey = normalizeImageKey(seedGridImage);
+        const shouldSyncSeedGrid =
+          Boolean(seedGridKey) &&
+          (
+            !currentGridKey ||
+            shouldSyncSeedImages ||
+            (currentGridKey.startsWith(localPrefix) && currentGridKey !== seedGridKey)
+          );
+        if (shouldSyncSeedGrid) {
+          gridStmt.run([seedGridImage, id]);
+        }
       }
 
       db.run("COMMIT;");
@@ -101,11 +224,11 @@ const ensureSeeded = async () => {
     return;
   }
 
-  const seed = JSON.parse(readFileSync(jsonPath, "utf-8"));
+  const seed = readSeedProducts();
   const stmt = db.prepare(`
     INSERT INTO products
-    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, images, highlights, combinations, badge, microcopy)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `);
 
   db.run("BEGIN;");
@@ -124,6 +247,7 @@ const ensureSeeded = async () => {
         product.fit ?? "",
         serialize(product.colors),
         serialize(product.sizes),
+        product.gridImage ?? "",
         serialize(product.images),
         serialize(product.highlights),
         serialize(product.combinations),
@@ -164,10 +288,11 @@ export const getProductBySlug = async (slug) => {
 export const upsertProduct = async (payload) => {
   await ensureSeeded();
   const { db } = await getDb();
+  const nextProduct = toSeedProduct(payload);
   const stmt = db.prepare(`
     INSERT INTO products
-    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, images, highlights, combinations, badge, microcopy)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       slug=excluded.slug,
       name=excluded.name,
@@ -180,6 +305,7 @@ export const upsertProduct = async (payload) => {
       fit=excluded.fit,
       colors=excluded.colors,
       sizes=excluded.sizes,
+      gridImage=excluded.gridImage,
       images=excluded.images,
       highlights=excluded.highlights,
       combinations=excluded.combinations,
@@ -188,27 +314,34 @@ export const upsertProduct = async (payload) => {
   `);
 
   stmt.run([
-    payload.id,
-    payload.slug,
-    payload.name,
-    payload.category,
-    payload.price,
-    payload.compareAt ?? null,
-    payload.currency,
-    payload.description,
-    serialize(payload.materials),
-    payload.fit ?? "",
-    serialize(payload.colors),
-    serialize(payload.sizes),
-    serialize(payload.images),
-    serialize(payload.highlights),
-    serialize(payload.combinations),
-    payload.badge ?? "",
-    payload.microcopy ?? ""
+    nextProduct.id,
+    nextProduct.slug,
+    nextProduct.name,
+    nextProduct.category,
+    nextProduct.price,
+    nextProduct.compareAt ?? null,
+    nextProduct.currency,
+    nextProduct.description,
+    serialize(nextProduct.materials),
+    nextProduct.fit ?? "",
+    serialize(nextProduct.colors),
+    serialize(nextProduct.sizes),
+    nextProduct.gridImage,
+    serialize(nextProduct.images),
+    serialize(nextProduct.highlights),
+    serialize(nextProduct.combinations),
+    nextProduct.badge ?? "",
+    nextProduct.microcopy ?? ""
   ]);
 
+  const seed = readSeedProducts();
+  const index = seed.findIndex((product) => String(product.id) === nextProduct.id);
+  if (index === -1) seed.push(nextProduct);
+  else seed[index] = nextProduct;
+  writeSeedProducts(seed);
+
   await saveDb();
-  return payload;
+  return nextProduct;
 };
 
 export const deleteProduct = async (id) => {
@@ -216,5 +349,7 @@ export const deleteProduct = async (id) => {
   const { db } = await getDb();
   const stmt = db.prepare("DELETE FROM products WHERE id = ?;");
   stmt.run([id]);
+  const seed = readSeedProducts().filter((product) => String(product.id) !== String(id));
+  writeSeedProducts(seed);
   await saveDb();
 };

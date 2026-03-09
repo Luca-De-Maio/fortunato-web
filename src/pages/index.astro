@@ -3,34 +3,53 @@ import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ProductCard from "../components/ProductCard.astro";
+import ComboCarousel from "../components/ComboCarousel.astro";
 import Benefits from "../components/Benefits.astro";
 import FAQ from "../components/FAQ.astro";
 import { getAllProducts } from "../lib/products";
+import { getAllCombinations } from "../lib/combinations";
 
 const heroTitle = "Elegancia moderna para el hombre que honra su destino.";
 const heroCopy = "Fortunato es la herencia del old money guiada por el pulso de lo eterno. Una cápsula limitada, sobria y auténtica, con materiales nobles y cortes precisos.";
-const heroCombos = [
-  {
-    title: "Set Riviera",
-    items: ["Remera Doppio Collo", "Bermuda Rilassata", "Sandalias Crudem"],
-    image: "/placeholder.svg"
-  },
-  {
-    title: "Set Sereno",
-    items: ["Chomba Sprezzata", "Pantalon Sastrero", "Sandalias Crudem"],
-    image: "/placeholder.svg"
-  }
-];
 
 export const prerender = false;
 
 const products = await getAllProducts();
+const homeOrder = [
+  "chomba-sprezzata",
+  "remera-doppio-collo",
+  "pantalon-sastrero",
+  "bermuda-rilassata",
+  "bermuda-sastrera",
+  "sandalias-crudem"
+];
+const orderIndex = new Map(homeOrder.map((id, index) => [id, index]));
+const orderedProducts = [...products].sort((a, b) => {
+  const aIndex = orderIndex.has(a.id) ? orderIndex.get(a.id) : Number.MAX_SAFE_INTEGER;
+  const bIndex = orderIndex.has(b.id) ? orderIndex.get(b.id) : Number.MAX_SAFE_INTEGER;
+  if (aIndex !== bIndex) return aIndex - bIndex;
+  return String(a.name || "").localeCompare(String(b.name || ""), "es");
+});
+const combinations = await getAllCombinations();
 ---
 
 <Base title="Fortunato | Moda masculina premium" description="Cápsula limitada de prendas premium inspiradas en la herencia italo-argentina.">
   <Header />
-
   <main>
+    <section id="capsula" class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Cápsula</p>
+          <h2>7 piezas esenciales para un verano sofisticado</h2>
+        </div>
+        <div class="capsule-grid">
+          {orderedProducts.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </div>
+    </section>
+
     <section class="hero">
       <div class="hero-video is-autoplay">
         <iframe
@@ -45,37 +64,11 @@ const products = await getAllProducts();
           <p class="eyebrow">Cápsula verano 2026</p>
           <h1>{heroTitle}</h1>
           <p>{heroCopy}</p>
-          <div class="combo-carousel" aria-label="Combinaciones destacadas">
-            <div class="combo-track">
-              {heroCombos.map((combo) => (
-                <article class="combo-card">
-                  <img src={combo.image} alt={combo.title} loading="lazy" />
-                  <div class="combo-body">
-                    <p class="combo-title">{combo.title}</p>
-                    <p class="muted combo-items">{combo.items.join(" + ")}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
+          <ComboCarousel combinations={combinations} />
           <div class="hero-actions">
             <a href="#capsula" class="btn">Ver cápsula</a>
             <a href="/checkout" class="btn btn-ghost">Comprar ahora</a>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="capsula" class="section">
-      <div class="container">
-        <div class="section-head">
-          <p class="eyebrow">Cápsula</p>
-          <h2>7 piezas esenciales para un verano sofisticado</h2>
-        </div>
-        <div class="capsule-grid">
-          {products.map((product) => (
-            <ProductCard product={product} />
-          ))}
         </div>
       </div>
     </section>

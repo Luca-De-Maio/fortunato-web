@@ -50,6 +50,7 @@ export const getDb = async () => {
         fit TEXT,
         colors TEXT,
         sizes TEXT,
+        gridImage TEXT,
         images TEXT,
         highlights TEXT,
         combinations TEXT,
@@ -71,6 +72,10 @@ export const getDb = async () => {
     const hasMicrocopy = columns.some((row) => row[1] === "microcopy");
     if (!hasMicrocopy) {
       db.run("ALTER TABLE products ADD COLUMN microcopy TEXT;");
+    }
+    const hasGridImage = columns.some((row) => row[1] === "gridImage");
+    if (!hasGridImage) {
+      db.run("ALTER TABLE products ADD COLUMN gridImage TEXT;");
     }
 
     return { db, dbPath };

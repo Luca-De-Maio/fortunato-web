@@ -227,8 +227,10 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 
 .capsule-grid {
   display: grid;
-  gap: 2rem;
+  gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  justify-content: center;
+  margin-top: 1rem;
 }
 
 .product-card {
@@ -240,6 +242,7 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  max-width: 280px;
 }
 .product-media {
   display: block;
@@ -254,6 +257,7 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   object-fit: cover;
   object-position: 50% 50%;
   border-radius: 0;
+  image-orientation: from-image;
 }
 
 .product-badge {
@@ -331,43 +335,53 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 .pdp-hero {
   position: relative;
   width: 100%;
-  overflow: hidden;
-  background: #000;
+  overflow: visible;
+}
+.pdp-gallery {
+  display: grid;
+  gap: 1rem;
+  background: #040404;
+  border-radius: 32px;
+  padding: 1.75rem 1.5rem 1.4rem;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
 }
 .pdp-hero__img {
   width: 100%;
-  height: min(68vh, 520px);
-  object-fit: cover;
-  object-position: 50% 50%;
-  border-radius: 0 0 22px 22px;
-}
+  height: min(70vh, 560px);
+  object-fit: contain;
+  image-orientation: from-image;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 
-.pdp-gallery {
-  display: grid;
-  gap: 10px;
+  background: #040404;
 }
 
 .pdp-thumbs {
   display: flex;
-  gap: 10px;
-  padding: 10px 12px 12px;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  background: rgba(0, 0, 0, 0.08);
+  background: transparent;
 }
 
 .pdp-thumb {
   -webkit-appearance: none;
   appearance: none;
   flex: 0 0 auto;
-  width: 76px;
-  height: 96px;
-  border-radius: 14px;
-  border: 1px solid rgba(245, 232, 215, 0.22);
-  background: rgba(0, 0, 0, 0.12);
+  width: 90px;
+  height: 110px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
   padding: 0;
   cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pdp-thumb img {
@@ -378,8 +392,9 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 }
 
 .pdp-thumb.is-active {
-  border-color: rgba(245, 232, 215, 0.92);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  border-color: var(--beige);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px);
 }
 .pdp-badge {
   position: absolute;
@@ -490,7 +505,14 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+.pdp-color-grid li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .pdp-color {
   border: 1px solid rgba(24, 74, 69, 0.16);
@@ -528,7 +550,14 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+.pdp-size-grid li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .pdp-size {
   border: 1px solid rgba(24, 74, 69, 0.16);
@@ -879,13 +908,14 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   z-index: 20;
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
+  justify-content: center;
+  padding: 0;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
   background: #25d366;
   color: #0b3b2f;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
-  font-weight: 600;
 }
 .whatsapp-fab svg { width: 20px; height: 20px; fill: currentColor; }
 

@@ -94,6 +94,10 @@ const products = await getAllProducts();
             Imágenes (URLs separadas por coma)
             <input type="text" name="images" />
           </label>
+          <label>
+            Thumbnail grid (URL)
+            <input type="text" name="gridImage" placeholder="/images/products/...-grid.webp" />
+          </label>
           <div class="admin-upload">
             <div>
               <p class="muted">Subí imágenes a Cloudinary y se agregan a la lista.</p>
@@ -173,6 +177,8 @@ const products = await getAllProducts();
     const data = new FormData(form);
     const name = String(data.get("name") || "").trim();
     const slug = String(data.get("slug") || "").trim() || slugify(name);
+    const images = parseList(String(data.get("images") || ""));
+    const gridImage = String(data.get("gridImage") || "").trim() || images[0] || "";
     return {
       id: String(data.get("id") || slug),
       slug,
@@ -188,7 +194,8 @@ const products = await getAllProducts();
       colors: parseList(String(data.get("colors") || "")),
       sizes: parseList(String(data.get("sizes") || "")),
       microcopy: String(data.get("microcopy") || ""),
-      images: parseList(String(data.get("images") || "")),
+      images,
+      gridImage,
       highlights: parseList(String(data.get("highlights") || "")),
       combinations: (() => {
         const raw = String(data.get("combinations") || "").trim();
@@ -214,6 +221,7 @@ const products = await getAllProducts();
     form.querySelector("[name=sizes]").value = (product.sizes || []).join(", ");
     form.querySelector("[name=microcopy]").value = product.microcopy || "";
     form.querySelector("[name=images]").value = (product.images || []).join(", ");
+    form.querySelector("[name=gridImage]").value = product.gridImage || product.images?.[0] || "";
     form.querySelector("[name=highlights]").value = (product.highlights || []).join(", ");
     form.querySelector("[name=combinations]").value = JSON.stringify(product.combinations || []);
   };

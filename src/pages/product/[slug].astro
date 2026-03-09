@@ -1,4 +1,5 @@
 ---
+import { Image } from "astro:assets";
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
@@ -11,7 +12,25 @@ const product = await getProductBySlug(slug);
 if (!product) {
   throw new Response(null, { status: 404, statusText: "Not found" });
 }
-const images = product.images?.length ? product.images : ["/placeholder.svg"];
+const normalizeImageKey = (value = "") => String(value).trim().toLowerCase();
+const dedupedImages = (() => {
+  const seen = new Set();
+  const out = [];
+  const list = Array.isArray(product.images) ? product.images : [];
+  for (const src of list) {
+    const key = normalizeImageKey(src);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(src);
+  }
+  return out;
+})();
+const images = (() => {
+  if (!dedupedImages.length) return ["/placeholder.svg"];
+  const hero = dedupedImages.find((src) => normalizeImageKey(src).includes("-hero."));
+  if (!hero) return dedupedImages;
+  return [hero, ...dedupedImages.filter((src) => src !== hero)];
+})();
 const formatPrice = (value) =>
   value ? `${product.currency} ${value.toLocaleString("es-AR")}` : "Precio a confirmar";
 const priceLabel = formatPrice(product.price);
@@ -70,31 +89,32 @@ const swatchFor = (label = "") => {
     {/* 1) Imagen full width */}
     <section class="pdp-hero" aria-label={`Fotos de ${product.name}`}>
       <div class="pdp-gallery">
-        <img
+        <Image
           class="pdp-hero__img"
           src={images[0]}
           alt={product.name}
-          loading="eager"
-          fetchpriority="high"
-          width="1200"
-          height="1500"
+          priority
+          width={1200}
+          height={1500}
           decoding="async"
           data-pdp-main-image
         />
         {images.length > 1 ? (
-          <div class="pdp-thumbs" aria-label="Más fotos" role="list">
+          <ul class="pdp-thumbs" aria-label="Más fotos">
             {images.map((src, index) => (
-              <button
-                type="button"
-                class:list={{ "pdp-thumb": true, "is-active": index === 0 }}
-                data-pdp-thumb={src}
-                role="listitem"
-                aria-label={`Ver foto ${index + 1}`}
-              >
-                <img src={src} alt="" loading="lazy" width="160" height="200" decoding="async" />
-              </button>
+              <li>
+                <button
+                  type="button"
+                  class:list={{ "pdp-thumb": true, "is-active": index === 0 }}
+                  data-pdp-thumb={src}
+                  aria-label={`Ver foto ${index + 1}`}
+                  aria-pressed={index === 0 ? "true" : "false"}
+                >
+                  <Image src={src} alt="" loading="eager" width={160} height={200} decoding="async" />
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         ) : null}
       </div>
       {product.badge ? <span class="pdp-badge">{product.badge}</span> : null}
@@ -128,20 +148,22 @@ const swatchFor = (label = "") => {
         {product.colors?.length ? (
           <div class="pdp-colors" aria-label="Colores">
             <p class="pdp-field-label">Color</p>
-            <div class="pdp-color-grid" role="list">
+            <ul class="pdp-color-grid" aria-label="Opciones de color">
               {product.colors.map((color) => (
-                <button
-                  type="button"
-                  class="pdp-color"
-                  data-color-option={color}
-                  style={`--swatch:${swatchFor(color)};`}
-                  role="listitem"
-                >
-                  <span class="pdp-swatch" aria-hidden="true"></span>
-                  <span>{color}</span>
-                </button>
+                <li>
+                  <button
+                    type="button"
+                    class="pdp-color"
+                    data-color-option={color}
+                    style={`--swatch:${swatchFor(color)};`}
+                    aria-pressed="false"
+                  >
+                    <span class="pdp-swatch" aria-hidden="true"></span>
+                    <span>{color}</span>
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
             <input type="hidden" name="color" value="" data-color-value />
             <p class="pdp-color-hint muted" data-color-hint>Seleccioná un color para continuar.</p>
           </div>
@@ -150,13 +172,15 @@ const swatchFor = (label = "") => {
         {product.sizes?.length ? (
           <div class="pdp-sizes" aria-label="Talles">
             <p class="pdp-field-label">Talle</p>
-            <div class="pdp-size-grid" role="list">
+            <ul class="pdp-size-grid" aria-label="Opciones de talle">
               {product.sizes.map((size) => (
-                <button type="button" class="pdp-size" data-size-option={size} role="listitem">
-                  {size}
-                </button>
+                <li>
+                  <button type="button" class="pdp-size" data-size-option={size} aria-pressed="false">
+                    {size}
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
             <input type="hidden" name="size" value="" data-size-value />
             <p class="pdp-size-hint muted" data-size-hint>Seleccioná tu talle para agregar al carrito.</p>
           </div>
@@ -236,7 +260,12 @@ const swatchFor = (label = "") => {
       const setMainImage = (src) => {
         if (!mainImage || !src) return;
         mainImage.src = src;
-        thumbs.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.pdpThumb === src));
+        mainImage.removeAttribute("srcset");
+        thumbs.forEach((btn) => {
+          const isActive = btn.dataset.pdpThumb === src;
+          btn.classList.toggle("is-active", isActive);
+          btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
       };
 
       thumbs.forEach((btn) => {
@@ -297,7 +326,11 @@ const swatchFor = (label = "") => {
 
       const setColor = (value) => {
         if (colorInput) colorInput.value = value;
-        colorButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.colorOption === value));
+        colorButtons.forEach((btn) => {
+          const isSelected = btn.dataset.colorOption === value;
+          btn.classList.toggle("is-selected", isSelected);
+          btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
+        });
         if (colorHint) colorHint.textContent = value ? `Color seleccionado: ${value}` : "Seleccioná un color para continuar.";
         if (cta) cta.dataset.color = value || "";
         if (buyNow) buyNow.dataset.color = value || "";
@@ -316,7 +349,11 @@ const swatchFor = (label = "") => {
 
       const setSize = (value) => {
         if (sizeInput) sizeInput.value = value;
-        sizeButtons.forEach((btn) => btn.classList.toggle("is-selected", btn.dataset.sizeOption === value));
+        sizeButtons.forEach((btn) => {
+          const isSelected = btn.dataset.sizeOption === value;
+          btn.classList.toggle("is-selected", isSelected);
+          btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
+        });
         if (hint) hint.textContent = value ? `Talle seleccionado: ${value}` : "Seleccioná tu talle para continuar.";
         if (cta) cta.dataset.size = value || "";
         if (buyNow) buyNow.dataset.size = value || "";

@@ -32,7 +32,48 @@ npm run preview
 ```
 
 ## Content & Catalog
-Edit `data/products.json` to update products, prices, materials, and images.
+`data/products.json` is the catalog source of truth.
+
+### Add images to an existing product
+1. Copy the original photos into `public/images/products/<slug>/`
+2. Generate the curated `hero` and `grid` variants:
+
+```bash
+npm run image:prepare -- <slug> --pick <archivo-principal>
+```
+
+Example:
+
+```bash
+npm run image:prepare -- camisa-nuova --pick IMG_1042.JPG
+```
+
+This updates `data/products.json` with:
+- `gridImage`
+- ordered `images`
+- de-duplicated local gallery
+
+### Add a new product
+You now have 2 valid flows:
+
+#### Recommended: local assets + JSON
+1. Create the folder `public/images/products/<slug>/`
+2. Add the raw photos there
+3. Add the new product object to `data/products.json`
+4. Run:
+
+```bash
+npm run image:prepare -- <slug> --pick <archivo-principal>
+```
+
+The app syncs any missing product from `data/products.json` into the local DB automatically.
+
+#### Alternative: admin panel
+1. Go to `/admin/products`
+2. Create the product
+3. Upload images from the admin
+
+Admin saves now also persist back into `data/products.json`, so DB and catalog file stay aligned.
 
 ## Pages
 - `/` Home

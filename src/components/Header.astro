@@ -1,21 +1,21 @@
 ---
+import { Image } from "astro:assets";
+import logo from "../assets/logo.png";
 const { current = "" } = Astro.props;
 ---
 <header class="site-header">
   <div class="container header-inner">
     <a href="/" class="brand">
       <span class="brand-logo-box">
-        <picture>
-          <source srcset="/logo-320.webp" type="image/webp" />
-          <img
-            src="/logo-320.png"
-            alt="Fortunato"
-            class="brand-logo"
-            width="320"
-            height="202"
-            decoding="async"
-          />
-        </picture>
+        <Image
+          src={logo}
+          alt="Fortunato"
+          class="brand-logo"
+          width={320}
+          height={202}
+          priority
+          decoding="async"
+        />
       </span>
       <span class="brand-text">Fortunato</span>
     </a>

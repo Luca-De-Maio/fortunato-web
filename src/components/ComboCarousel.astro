@@ -1,0 +1,180 @@
+---
+interface ComboItem {
+  id: string;
+  slug: string;
+  name: string;
+}
+
+interface Combo {
+  id: string;
+  title: string;
+  notes: string;
+  currency: string;
+  image: string;
+  bundlePrice: number;
+  regularPrice: number;
+  savingsAmount: number;
+  savingsPercent: number;
+  items: ComboItem[];
+}
+
+const { combinations = [] } = Astro.props as { combinations?: Combo[] };
+
+const formatPrice = (value: number, currency: string) =>
+  `${currency} ${value.toLocaleString("es-AR")}`;
+---
+{combinations.length ? (
+  <div class="bundle-module" aria-label="Conjuntos destacados">
+    <div class="bundle-track">
+      {combinations.map((combo) => (
+        <article class="bundle-card">
+          <img
+            src={combo.image || "/placeholder.svg"}
+            alt={combo.title}
+            loading="lazy"
+            width="800"
+            height="1000"
+            decoding="async"
+          />
+          <div class="bundle-body">
+            <p class="bundle-title">{combo.title}</p>
+            {combo.notes ? <p class="bundle-note">{combo.notes}</p> : null}
+
+            <div class="bundle-pricing">
+              <p class="bundle-price">{formatPrice(combo.bundlePrice, combo.currency)}</p>
+              {combo.savingsAmount > 0 ? (
+                <p class="bundle-compare">
+                  <span class="compare-line">{formatPrice(combo.regularPrice, combo.currency)}</span>
+                  <span class="discount-pill">{combo.savingsPercent}% OFF</span>
+                </p>
+              ) : null}
+            </div>
+
+            <ul class="bundle-links">
+              {combo.items.map((item) => (
+                <li>
+                  <a href={`/product/${item.slug}`}>{item.name}</a>
+                </li>
+              ))}
+            </ul>
+
+            <button
+              class="btn btn-full"
+              data-add-to-cart
+              data-id={`combo-${combo.id}`}
+              data-name={combo.title}
+              data-price={combo.bundlePrice}
+              data-currency={combo.currency}
+              data-image={combo.image || "/placeholder.svg"}
+            >
+              Agregar conjunto
+            </button>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+) : null}
+
+<style>
+  .bundle-module {
+    margin: 1.2rem 0 1.6rem;
+  }
+
+  .bundle-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(260px, 1fr);
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+    scroll-snap-type: x mandatory;
+  }
+
+  .bundle-card {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid rgba(24, 74, 69, 0.1);
+    box-shadow: 0 12px 30px rgba(24, 74, 69, 0.08);
+    scroll-snap-align: start;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bundle-card img {
+    width: 100%;
+    height: 190px;
+    object-fit: cover;
+    image-orientation: from-image;
+    border-radius: 0;
+  }
+
+  .bundle-body {
+    padding: 0.85rem 1rem 1rem;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .bundle-title {
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  .bundle-note {
+    margin: 0;
+    color: rgba(75, 79, 78, 0.86);
+    font-size: 0.9rem;
+  }
+
+  .bundle-pricing {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .bundle-price {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .bundle-compare {
+    margin: 0;
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: center;
+    font-size: 0.86rem;
+  }
+
+  .compare-line {
+    text-decoration: line-through;
+    color: rgba(75, 79, 78, 0.74);
+  }
+
+  .bundle-links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0.1rem 0 0.35rem;
+    padding: 0;
+  }
+
+  .bundle-links a {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(24, 74, 69, 0.16);
+    background: rgba(245, 232, 215, 0.42);
+    color: rgba(40, 44, 43, 0.92);
+    font-size: 0.84rem;
+    padding: 0.26rem 0.6rem;
+  }
+
+  @media (max-width: 760px) {
+    .bundle-track {
+      grid-auto-columns: minmax(220px, 78vw);
+    }
+  }
+</style>

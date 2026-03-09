@@ -1,0 +1,14 @@
+[
+  {
+    "id": "set-piazza-negro",
+    "title": "Set Piazza Negro",
+    "bundlePrice": 169900,
+    "currency": "ARS",
+    "image": "/images/products/chomba-sprezzata/img-8775-hero.webp",
+    "productIds": [
+      "chomba-sprezzata",
+      "pantalon-sastrero"
+    ],
+    "notes": "Incluye pantalon negro."
+  }
+]

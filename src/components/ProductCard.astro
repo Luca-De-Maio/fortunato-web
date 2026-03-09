@@ -1,4 +1,5 @@
 ---
+import { Image } from "astro:assets";
 const { product } = Astro.props;
 const formatPrice = (value) =>
   value ? `$ ${value.toLocaleString("es-AR")}` : "Precio a confirmar";
@@ -26,15 +27,16 @@ const attributeLine = product.microcopy?.trim()
   : "";
 const defaultColor = product.colors?.[0] ?? "";
 const defaultSize = product.sizes?.[0] ?? "";
+const gridImage = product.gridImage || product.images?.[0] || "/placeholder.svg";
 ---
 <article class="product-card">
   <a href={`/product/${product.slug}`} class="product-media">
-    <img
-      src={product.images?.[0] ?? "/placeholder.svg"}
+    <Image
+      src={gridImage}
       alt={product.name}
       loading="lazy"
-      width="800"
-      height="1000"
+      width={800}
+      height={1000}
       decoding="async"
     />
     {product.badge ? <span class="product-badge">{product.badge}</span> : null}
