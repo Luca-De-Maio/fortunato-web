@@ -28,16 +28,20 @@ const formatPrice = (value: number, currency: string) =>
     <div class="bundle-track">
       {combinations.map((combo) => (
         <article class="bundle-card">
-          <img
-            src={combo.image || "/placeholder.svg"}
-            alt={combo.title}
-            loading="lazy"
-            width="800"
-            height="1000"
-            decoding="async"
-          />
+          <a href={`/conjunto/${combo.slug}`} class="bundle-media" aria-label={`Ver ${combo.title}`}>
+            <img
+              src={combo.image || "/placeholder.svg"}
+              alt={combo.title}
+              loading="lazy"
+              width="800"
+              height="1000"
+              decoding="async"
+            />
+          </a>
           <div class="bundle-body">
-            <p class="bundle-title">{combo.title}</p>
+            <a href={`/conjunto/${combo.slug}`} class="bundle-head">
+              <p class="bundle-title">{combo.title}</p>
+            </a>
             {combo.notes ? <p class="bundle-note">{combo.notes}</p> : null}
 
             <div class="bundle-pricing">
@@ -58,17 +62,20 @@ const formatPrice = (value: number, currency: string) =>
               ))}
             </ul>
 
-            <button
-              class="btn btn-full"
-              data-add-to-cart
-              data-id={`combo-${combo.id}`}
-              data-name={combo.title}
-              data-price={combo.bundlePrice}
-              data-currency={combo.currency}
-              data-image={combo.image || "/placeholder.svg"}
-            >
-              Agregar conjunto
-            </button>
+            <div class="bundle-actions">
+              <a href={`/conjunto/${combo.slug}`} class="btn btn-ghost bundle-link">Ver conjunto</a>
+              <button
+                class="btn btn-full"
+                data-add-to-cart
+                data-id={`combo-${combo.id}`}
+                data-name={combo.title}
+                data-price={combo.bundlePrice}
+                data-currency={combo.currency}
+                data-image={combo.image || "/placeholder.svg"}
+              >
+                Agregar conjunto
+              </button>
+            </div>
           </div>
         </article>
       ))}
@@ -102,6 +109,10 @@ const formatPrice = (value: number, currency: string) =>
     flex-direction: column;
   }
 
+  .bundle-media {
+    display: block;
+  }
+
   .bundle-card img {
     width: 100%;
     height: 190px;
@@ -114,6 +125,11 @@ const formatPrice = (value: number, currency: string) =>
     padding: 0.85rem 1rem 1rem;
     display: grid;
     gap: 0.55rem;
+  }
+
+  .bundle-head {
+    display: inline-flex;
+    width: fit-content;
   }
 
   .bundle-title {
@@ -170,6 +186,16 @@ const formatPrice = (value: number, currency: string) =>
     color: rgba(40, 44, 43, 0.92);
     font-size: 0.84rem;
     padding: 0.26rem 0.6rem;
+  }
+
+  .bundle-actions {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.2rem;
+  }
+
+  .bundle-link {
+    width: 100%;
   }
 
   @media (max-width: 760px) {

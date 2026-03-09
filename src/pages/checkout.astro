@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
 const mpEnabled = Boolean((process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim());
+const mpAlias = (process.env.PUBLIC_MERCADOPAGO_ALIAS || "").trim();
 ---
 
 <Base title="Fortunato | Checkout" description={mpEnabled ? "Finalizá tu compra con Mercado Pago o por WhatsApp." : "Finalizá tu compra por WhatsApp."}>
@@ -38,6 +39,9 @@ const mpEnabled = Boolean((process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim());
               <button class="btn" type="button" data-mp-pay disabled>Pagar con Mercado Pago</button>
             ) : null}
             <button class="btn btn-ghost" type="button" data-wa-pay disabled>Comprar por WhatsApp</button>
+            {mpAlias ? (
+              <button class="btn btn-ghost" type="button" data-copy-alias>Copiar alias Mercado Pago</button>
+            ) : null}
             <p class="muted checkout-status" data-checkout-status></p>
           </div>
 
@@ -50,6 +54,12 @@ const mpEnabled = Boolean((process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim());
               <strong>Pago:</strong> Coordinamos por WhatsApp.
             </div>
           )}
+
+          {mpAlias ? (
+            <div class="notice" style="margin-top: 1rem;">
+              <strong>Alias Mercado Pago:</strong> {mpAlias}
+            </div>
+          ) : null}
         </section>
       </div>
     </div>
@@ -57,13 +67,14 @@ const mpEnabled = Boolean((process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim());
 
   <Footer />
 
-  <script define:vars={{ mpEnabled }}>
+  <script define:vars={{ mpEnabled, mpAlias }}>
     const CART_KEY = "fortunato_cart";
     const listEl = document.querySelector("[data-checkout-list]");
     const subtotalEl = document.querySelector("[data-checkout-subtotal]");
     const statusEl = document.querySelector("[data-checkout-status]");
     const mpBtn = document.querySelector("[data-mp-pay]");
     const waBtn = document.querySelector("[data-wa-pay]");
+    const copyAliasBtn = document.querySelector("[data-copy-alias]");
 
     const getCart = () => {
       try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
@@ -128,7 +139,7 @@ const mpEnabled = Boolean((process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim());
       return res.json();
     };
 
-    const buildWhatsappText = (cart, totalLabel, checkoutUrl) => {
+    const buildWhatsappText = (cart, totalLabel, checkoutUrl, alias) => {
       const lines = cart.map((item) => {
         const qty = Number(item.qty || 0);
         const price = Number(item.price || 0);
@@ -148,7 +159,8 @@ const mpEnabled = Boolean((process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim());
         ...lines,
         "",
         `Total: ${totalLabel}`,
-        checkoutUrl ? `Link de pago (Mercado Pago): ${checkoutUrl}` : ""
+        checkoutUrl ? `Link de pago (Mercado Pago): ${checkoutUrl}` : "",
+        alias ? `Alias Mercado Pago: ${alias}` : ""
       ].filter(Boolean);
 
       return out.join("\n");
@@ -190,10 +202,20 @@ const mpEnabled = Boolean((process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim());
         } catch {}
       }
 
-      const text = buildWhatsappText(cart, totalLabel, checkoutUrl);
+      const text = buildWhatsappText(cart, totalLabel, checkoutUrl, mpAlias);
       const phone = "5491158204344";
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
       window.location.href = url;
+    });
+
+    copyAliasBtn?.addEventListener("click", async () => {
+      if (!mpAlias) return;
+      try {
+        await navigator.clipboard.writeText(mpAlias);
+        setStatus("Alias copiado.", "pending");
+      } catch {
+        setStatus("No se pudo copiar el alias.", "error");
+      }
     });
 
     render();

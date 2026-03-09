@@ -4,7 +4,6 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ProductCard from "../components/ProductCard.astro";
 import ComboCarousel from "../components/ComboCarousel.astro";
-import Benefits from "../components/Benefits.astro";
 import FAQ from "../components/FAQ.astro";
 import { getAllProducts } from "../lib/products";
 import { getAllCombinations } from "../lib/combinations";
@@ -46,7 +45,16 @@ const combinations = await getAllCombinations();
       </div>
     </section>
 
-    <Benefits />
+    <section id="conjuntos" class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Conjuntos</p>
+          <h2>Looks listos para comprar en un solo paso.</h2>
+          <p class="muted">Entrá al conjunto, revisá qué incluye y llevátelo completo desde carrito o checkout.</p>
+        </div>
+        <ComboCarousel combinations={combinations} />
+      </div>
+    </section>
 
     <section class="hero">
       <div class="hero-video is-autoplay">
@@ -62,10 +70,9 @@ const combinations = await getAllCombinations();
           <p class="eyebrow">Cápsula verano 2026</p>
           <h1>{heroTitle}</h1>
           <p>{heroCopy}</p>
-          <ComboCarousel combinations={combinations} />
           <div class="hero-actions">
             <a href="#capsula" class="btn">Ver cápsula</a>
-            <a href="/checkout" class="btn btn-ghost">Comprar ahora</a>
+            <a href="#conjuntos" class="btn btn-ghost">Ver conjuntos</a>
           </div>
         </div>
       </div>

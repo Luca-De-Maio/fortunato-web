@@ -77,6 +77,7 @@ Admin saves now also persist back into `data/products.json`, so DB and catalog f
 
 ## Pages
 - `/` Home
+- `/conjunto/[slug]` Detalle de conjunto/combinación
 - `/product/[slug]` Product detail
 - `/cart` Cart
 - `/checkout` Checkout stub (Tienda Nube / WhatsApp)

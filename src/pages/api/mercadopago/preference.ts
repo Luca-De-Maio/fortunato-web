@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { getAllCombinations } from "../../../lib/combinations";
 import { getAllProducts } from "../../../lib/products";
 
 export const prerender = false;
@@ -27,8 +28,16 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response("Invalid cart", { status: 400 });
   }
 
-  const products = await getAllProducts();
+  const [products, combinations] = await Promise.all([
+    getAllProducts(),
+    getAllCombinations()
+  ]);
   const byId = new Map(products.map((p: any) => [p.id, p]));
+  const comboById = new Map();
+  for (const combo of combinations) {
+    comboById.set(String(combo.id || ""), combo);
+    comboById.set(`combo-${String(combo.id || "")}`, combo);
+  }
 
   const items = cart
     .map((row: any) => {
@@ -38,20 +47,30 @@ export const POST: APIRoute = async ({ request }) => {
       const size = String(row?.size || "").trim();
 
       const product = byId.get(id);
-      if (!product) return null;
+      if (product) {
+        const unitPrice = Number(product.price || 0);
+        const currency = String(product.currency || "ARS");
+        const titleParts = [String(product.name || "Producto")];
+        if (color) titleParts.push(color);
+        if (size) titleParts.push(`Talle ${size}`);
+        const title = titleParts.join(" · ");
 
-      const unitPrice = Number(product.price || 0);
-      const currency = String(product.currency || "ARS");
-      const titleParts = [String(product.name || "Producto")];
-      if (color) titleParts.push(color);
-      if (size) titleParts.push(`Talle ${size}`);
-      const title = titleParts.join(" · ");
+        return {
+          title,
+          quantity: qty,
+          unit_price: unitPrice,
+          currency_id: currency === "ARS" ? "ARS" : currency
+        };
+      }
+
+      const combo = comboById.get(id);
+      if (!combo) return null;
 
       return {
-        title,
+        title: String(combo.title || "Conjunto Fortunato"),
         quantity: qty,
-        unit_price: unitPrice,
-        currency_id: currency === "ARS" ? "ARS" : currency
+        unit_price: Number(combo.bundlePrice || 0),
+        currency_id: String(combo.currency || "ARS") === "ARS" ? "ARS" : String(combo.currency || "ARS")
       };
     })
     .filter(Boolean);
@@ -99,4 +118,3 @@ export const POST: APIRoute = async ({ request }) => {
     headers: { "Content-Type": "application/json" }
   });
 };
-

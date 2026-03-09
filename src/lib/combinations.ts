@@ -17,7 +17,7 @@ const readCombinationSeed = () => {
   }
 };
 
-export const getAllCombinations = async () => {
+const resolveCombinations = async () => {
   const products = await getAllProducts();
   const productById = new Map(products.map((product) => [product.id, product]));
   const seed = readCombinationSeed();
@@ -34,7 +34,9 @@ export const getAllCombinations = async () => {
           name: product.name,
           price: Number(product.price || 0),
           currency: product.currency || "ARS",
-          image: product.gridImage || product.images?.[0] || "/placeholder.svg"
+          image: product.gridImage || product.images?.[0] || "/placeholder.svg",
+          microcopy: String(product.microcopy || ""),
+          materials: toArray(product.materials).map((value) => String(value))
         }));
 
       if (!items.length) return null;
@@ -62,4 +64,15 @@ export const getAllCombinations = async () => {
       };
     })
     .filter(isPresent);
+};
+
+export const getAllCombinations = async () => {
+  return resolveCombinations();
+};
+
+export const getCombinationBySlug = async (slug: string | undefined) => {
+  const key = String(slug || "").trim().toLowerCase();
+  if (!key) return null;
+  const combinations = await resolveCombinations();
+  return combinations.find((combo) => String(combo.slug || "").trim().toLowerCase() === key) || null;
 };
