@@ -13,6 +13,9 @@ const { title = "Fortunato", description = "Moda masculina premium" } = Astro.pr
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/placeholder.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -79,7 +82,7 @@ const { title = "Fortunato", description = "Moda masculina premium" } = Astro.pr
             header.classList.remove("is-scrolled");
             return;
           }
-          header.classList.toggle("is-scrolled", window.scrollY > 56);
+          header.classList.toggle("is-scrolled", window.scrollY > 28);
         };
 
         update();

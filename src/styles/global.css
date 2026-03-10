@@ -71,9 +71,31 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   background: transparent;
   padding: 4px 6px;
 }
+.brand-mark-box {
+  display: none;
+}
+.brand-wordmark-box {
+  display: none;
+}
 .brand-logo {
   width: 160px;
   max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: 0;
+  image-rendering: auto;
+}
+.brand-mark-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: 0;
+  image-rendering: auto;
+}
+.brand-wordmark-image {
+  width: 100%;
   height: auto;
   display: block;
   object-fit: contain;
@@ -925,45 +947,81 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 @media (max-width: 760px) {
   .site-header {
     transition: background-color 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+    border-bottom-color: transparent;
   }
   .header-inner {
-    display: grid;
-    justify-items: center;
-    gap: 0.7rem;
-    padding: 0.9rem 0 0.8rem;
-    min-height: auto;
+    position: relative;
+    display: block;
+    padding: 0.42rem 0 0.18rem;
+    min-height: 5.55rem;
     transition: padding 0.28s ease, gap 0.28s ease, grid-template-columns 0.28s ease;
   }
   .brand {
-    position: static;
-    transform: none;
-    transition: transform 0.28s ease, opacity 0.22s ease;
+    position: absolute;
+    left: 50%;
+    top: 0.22rem;
+    transform: translateX(-50%);
+    width: max-content;
+    display: grid;
+    justify-items: center;
+    gap: 0.08rem;
+    transition: transform 0.28s ease, opacity 0.22s ease, gap 0.28s ease;
   }
   .brand-logo-box {
-    width: 108px;
+    display: none;
+  }
+  .brand-mark-box {
+    width: 66px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    max-height: 66px;
+    overflow: hidden;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transform-origin: center;
+    transition: width 0.28s ease, max-height 0.28s ease, opacity 0.22s ease, transform 0.28s ease;
+  }
+  .brand-wordmark-box {
+    width: 164px;
+    display: grid;
+    place-items: center;
     padding: 0;
     opacity: 1;
     transform: translateY(0) scale(1);
     transform-origin: center;
     transition: width 0.28s ease, opacity 0.22s ease, transform 0.28s ease;
   }
-  .brand-logo { width: 108px; }
   .nav {
     display: flex;
     justify-content: center;
     width: 100%;
-    gap: 1rem;
-    font-size: 0.9rem;
+    gap: 0;
+    font-size: 0.82rem;
+    max-height: 0;
+    opacity: 0;
     overflow-x: auto;
-    padding-bottom: 0.1rem;
+    overflow-y: clip;
+    padding-bottom: 0;
+    pointer-events: none;
+    margin-top: 0;
     -ms-overflow-style: none;
     scrollbar-width: none;
-    transition: gap 0.28s ease, font-size 0.28s ease, width 0.28s ease, transform 0.28s ease;
+    transform: translateY(-0.35rem);
+    transition:
+      gap 0.28s ease,
+      font-size 0.28s ease,
+      width 0.28s ease,
+      margin-top 0.28s ease,
+      transform 0.28s ease,
+      opacity 0.22s ease,
+      max-height 0.28s ease;
   }
   .nav::-webkit-scrollbar { display: none; }
   .nav a { white-space: nowrap; }
-  .nav-link-secondary {
+  .nav-link-faq {
     transition: opacity 0.2s ease, max-width 0.24s ease, margin 0.24s ease, padding 0.24s ease;
+    display: none;
   }
   .site-header.is-scrolled {
     background: rgba(246, 241, 235, 0.97);
@@ -971,34 +1029,37 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
     border-bottom-color: rgba(24, 74, 69, 0.12);
   }
   .site-header.is-scrolled .header-inner {
-    gap: 0;
-    padding: 0.55rem 0;
+    padding: 0.28rem 0 0.32rem;
+    min-height: 4.2rem;
   }
   .site-header.is-scrolled .brand {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-10px);
+    opacity: 1;
+    pointer-events: auto;
+    gap: 0;
+    transform: translateX(-50%) translateY(0);
   }
-  .site-header.is-scrolled .brand-logo-box {
+  .site-header.is-scrolled .brand-mark-box {
     width: 0;
-    height: 0;
-    padding: 0;
+    max-height: 0;
     opacity: 0;
-    overflow: hidden;
-    transform: translateY(-8px) scale(0.84);
+    transform: translateY(-0.35rem) scale(0.82);
   }
-  .site-header.is-scrolled .brand-logo {
-    width: 0;
-    height: 0;
-    opacity: 0;
+  .site-header.is-scrolled .brand-wordmark-box {
+    width: min(230px, 72vw);
   }
   .site-header.is-scrolled .nav {
     justify-content: center;
     width: 100%;
-    gap: 0.85rem;
-    font-size: 0.82rem;
+    max-height: 2.2rem;
+    opacity: 1;
+    pointer-events: auto;
+    margin-top: 1.7rem;
+    gap: 0.72rem;
+    font-size: 0.78rem;
+    padding-bottom: 0.08rem;
+    transform: translateY(0);
   }
-  .site-header.is-scrolled .nav-link-secondary {
+  .site-header.is-scrolled .nav-link-faq {
     opacity: 0;
     max-width: 0;
     margin: 0;
@@ -1008,8 +1069,11 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   }
   .section { padding: 3.5rem 0; }
   .section-capsule {
-    padding-top: 1.35rem;
+    padding-top: 0.5rem;
     padding-bottom: 2.75rem;
+  }
+  .section-capsule .capsule-grid {
+    margin-top: 0;
   }
   .capsule-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1055,12 +1119,12 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
     overflow: hidden;
   }
   .product-attr {
-    font-size: 0.78rem;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    font-size: 0.74rem;
+    line-height: 1.3;
+    display: block;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
   }
   .product-price { font-size: 0.9rem; }
   .product-compare {
@@ -1081,7 +1145,9 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   .cart-item { padding: 0.95rem; }
   .whatsapp-fab {
     right: 0.9rem;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
-    padding: 0.6rem 0.9rem;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+    width: 50px;
+    height: 50px;
   }
+  .whatsapp-fab svg { width: 18px; height: 18px; }
 }
