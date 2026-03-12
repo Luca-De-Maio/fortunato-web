@@ -3,10 +3,13 @@ interface ComboItem {
   id: string;
   slug: string;
   name: string;
+  price: number;
+  currency: string;
 }
 
 interface Combo {
   id: string;
+  slug: string;
   title: string;
   notes: string;
   currency: string;
@@ -22,6 +25,8 @@ const { combinations = [] } = Astro.props as { combinations?: Combo[] };
 
 const formatPrice = (value: number, currency: string) =>
   `${currency} ${value.toLocaleString("es-AR")}`;
+
+const formatCountLabel = (count: number) => `${count} ${count === 1 ? "prenda" : "prendas"}`;
 ---
 {combinations.length ? (
   <div class="bundle-module" aria-label="Conjuntos destacados">
@@ -37,45 +42,55 @@ const formatPrice = (value: number, currency: string) =>
               height="1000"
               decoding="async"
             />
-          </a>
-          <div class="bundle-body">
-            <a href={`/conjunto/${combo.slug}`} class="bundle-head">
+            <div class="bundle-media-copy">
+              <span class="bundle-count">{formatCountLabel(combo.items.length)}</span>
               <p class="bundle-title">{combo.title}</p>
-            </a>
-            {combo.notes ? <p class="bundle-note">{combo.notes}</p> : null}
-
-            <div class="bundle-pricing">
-              <p class="bundle-price">{formatPrice(combo.bundlePrice, combo.currency)}</p>
-              {combo.savingsAmount > 0 ? (
-                <p class="bundle-compare">
-                  <span class="compare-line">{formatPrice(combo.regularPrice, combo.currency)}</span>
-                  <span class="discount-pill">{combo.savingsPercent}% OFF</span>
-                </p>
-              ) : null}
             </div>
+          </a>
 
-            <ul class="bundle-links">
-              {combo.items.map((item) => (
-                <li>
-                  <a href={`/product/${item.slug}`}>{item.name}</a>
-                </li>
-              ))}
-            </ul>
+          <div class="bundle-body">
+            <a href={`/conjunto/${combo.slug}`} class="btn btn-ghost bundle-link">Ver conjunto</a>
 
-            <div class="bundle-actions">
-              <a href={`/conjunto/${combo.slug}`} class="btn btn-ghost bundle-link">Ver conjunto</a>
-              <button
-                class="btn btn-full"
-                data-add-to-cart
-                data-id={`combo-${combo.id}`}
-                data-name={combo.title}
-                data-price={combo.bundlePrice}
-                data-currency={combo.currency}
-                data-image={combo.image || "/placeholder.svg"}
-              >
-                Agregar conjunto
-              </button>
-            </div>
+            <details class="bundle-details">
+              <summary>Ver mas detalles</summary>
+              <div class="bundle-details-body">
+                {combo.notes ? <p class="bundle-note">{combo.notes}</p> : null}
+
+                <div class="bundle-pricing">
+                  <p class="bundle-price-label">Precio del set</p>
+                  <p class="bundle-price">{formatPrice(combo.bundlePrice, combo.currency)}</p>
+                  {combo.savingsAmount > 0 ? (
+                    <p class="bundle-compare">
+                      <span class="compare-line">{formatPrice(combo.regularPrice, combo.currency)}</span>
+                      <span class="discount-pill">{combo.savingsPercent}% OFF</span>
+                    </p>
+                  ) : null}
+                </div>
+
+                <ul class="bundle-links">
+                  {combo.items.map((item) => (
+                    <li>
+                      <a href={`/product/${item.slug}`}>
+                        <span>{item.name}</span>
+                        <span>{formatPrice(item.price, item.currency)}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  class="btn btn-full"
+                  data-add-to-cart
+                  data-id={`combo-${combo.id}`}
+                  data-name={combo.title}
+                  data-price={combo.bundlePrice}
+                  data-currency={combo.currency}
+                  data-image={combo.image || "/placeholder.svg"}
+                >
+                  Agregar conjunto
+                </button>
+              </div>
+            </details>
           </div>
         </article>
       ))}
@@ -85,22 +100,22 @@ const formatPrice = (value: number, currency: string) =>
 
 <style>
   .bundle-module {
-    margin: 1.2rem 0 1.6rem;
+    margin: 0;
   }
 
   .bundle-track {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(260px, 1fr);
+    grid-auto-columns: minmax(300px, 34rem);
     gap: 1rem;
     overflow-x: auto;
-    padding-bottom: 0.4rem;
+    padding-bottom: 0.45rem;
     scroll-snap-type: x mandatory;
   }
 
   .bundle-card {
     background: var(--white);
-    border-radius: 16px;
+    border-radius: 24px;
     border: 1px solid rgba(24, 74, 69, 0.1);
     box-shadow: 0 12px 30px rgba(24, 74, 69, 0.08);
     scroll-snap-align: start;
@@ -111,48 +126,128 @@ const formatPrice = (value: number, currency: string) =>
 
   .bundle-media {
     display: block;
+    position: relative;
   }
 
   .bundle-card img {
     width: 100%;
-    height: 190px;
+    height: 460px;
     object-fit: cover;
     image-orientation: from-image;
     border-radius: 0;
   }
 
-  .bundle-body {
-    padding: 0.85rem 1rem 1rem;
+  .bundle-media-copy {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 1.1rem 1rem 1rem;
     display: grid;
-    gap: 0.55rem;
+    gap: 0.45rem;
+    background: linear-gradient(180deg, rgba(7, 15, 14, 0) 0%, rgba(7, 15, 14, 0.78) 58%, rgba(7, 15, 14, 0.92) 100%);
   }
 
-  .bundle-head {
-    display: inline-flex;
+  .bundle-count {
     width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(247, 239, 229, 0.88);
+    color: var(--green);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   .bundle-title {
-    font-weight: 600;
+    margin: 0;
+    font-family: "Cinzel", "Cormorant Garamond", serif;
+    font-size: clamp(1.4rem, 2vw, 1.85rem);
+    line-height: 1;
+    color: var(--white);
+  }
+
+  .bundle-body {
+    padding: 0.95rem 1rem 1rem;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .bundle-link {
+    width: 100%;
+  }
+
+  .bundle-details {
+    border-top: 1px solid rgba(24, 74, 69, 0.08);
+    padding-top: 0.75rem;
+  }
+
+  .bundle-details summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    cursor: pointer;
     color: var(--green);
+    font-weight: 600;
+  }
+
+  .bundle-details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .bundle-details summary::after {
+    content: "+";
+    width: 1.8rem;
+    height: 1.8rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(24, 74, 69, 0.08);
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .bundle-details[open] summary::after {
+    content: "-";
+  }
+
+  .bundle-details-body {
+    display: grid;
+    gap: 0.75rem;
+    padding-top: 0.85rem;
   }
 
   .bundle-note {
     margin: 0;
     color: rgba(75, 79, 78, 0.86);
-    font-size: 0.9rem;
+    font-size: 0.92rem;
   }
 
   .bundle-pricing {
     display: grid;
-    gap: 0.2rem;
+    gap: 0.15rem;
+    padding: 0.9rem 0.95rem;
+    border-radius: 18px;
+    background: rgba(245, 232, 215, 0.45);
+    border: 1px solid rgba(24, 74, 69, 0.08);
+  }
+
+  .bundle-price-label {
+    margin: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(75, 79, 78, 0.72);
   }
 
   .bundle-price {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1.5rem;
     color: var(--green);
-    font-weight: 700;
+    font-weight: 800;
   }
 
   .bundle-compare {
@@ -170,37 +265,32 @@ const formatPrice = (value: number, currency: string) =>
 
   .bundle-links {
     list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin: 0.1rem 0 0.35rem;
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
     padding: 0;
   }
 
   .bundle-links a {
-    display: inline-flex;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    border-radius: 999px;
+    gap: 1rem;
+    border-radius: 16px;
     border: 1px solid rgba(24, 74, 69, 0.16);
-    background: rgba(245, 232, 215, 0.42);
+    background: rgba(245, 232, 215, 0.34);
     color: rgba(40, 44, 43, 0.92);
-    font-size: 0.84rem;
-    padding: 0.26rem 0.6rem;
-  }
-
-  .bundle-actions {
-    display: grid;
-    gap: 0.55rem;
-    margin-top: 0.2rem;
-  }
-
-  .bundle-link {
-    width: 100%;
+    font-size: 0.88rem;
+    padding: 0.65rem 0.75rem;
   }
 
   @media (max-width: 760px) {
     .bundle-track {
-      grid-auto-columns: minmax(220px, 78vw);
+      grid-auto-columns: minmax(248px, 82vw);
+    }
+
+    .bundle-card img {
+      height: 360px;
     }
   }
 </style>

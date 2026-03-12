@@ -40,6 +40,13 @@ const products = await getAllProducts();
               <input type="text" name="badge" placeholder="Nuevo" />
             </label>
             <label>
+              Formato card
+              <select name="cardVariant">
+                <option value="standard">Standard</option>
+                <option value="double">Doble</option>
+              </select>
+            </label>
+            <label>
               Categoría
               <select name="category">
                 <option value="top">Top</option>
@@ -132,7 +139,14 @@ const products = await getAllProducts();
             <article class="admin-item" data-product={JSON.stringify(product)}>
               <div>
                 <strong>{product.name}</strong>
-                <p class="muted">{product.category} · {product.currency} {product.price}{product.compareAt ? ` · ${product.compareAt}` : ""}</p>
+                <p class="muted">
+                  {product.category}
+                  {" · "}
+                  {product.cardVariant === "double" ? "doble" : "standard"}
+                  {" · "}
+                  {product.currency} {product.price}
+                  {product.compareAt ? ` · ${product.compareAt}` : ""}
+                </p>
               </div>
               <div class="admin-item-actions">
                 <button class="btn btn-ghost edit-btn" type="button">Editar</button>
@@ -184,6 +198,7 @@ const products = await getAllProducts();
       slug,
       name,
       badge: String(data.get("badge") || ""),
+      cardVariant: String(data.get("cardVariant") || "standard"),
       category: String(data.get("category") || "top"),
       price: Number(data.get("price") || 0),
       compareAt: Number(data.get("compareAt") || 0) || null,
@@ -211,6 +226,7 @@ const products = await getAllProducts();
     form.querySelector("[name=slug]").value = product.slug || "";
     form.querySelector("[name=category]").value = product.category || "top";
     form.querySelector("[name=badge]").value = product.badge || "";
+    form.querySelector("[name=cardVariant]").value = product.cardVariant || "standard";
     form.querySelector("[name=price]").value = product.price || 0;
     form.querySelector("[name=compareAt]").value = product.compareAt || "";
     form.querySelector("[name=currency]").value = product.currency || "ARS";

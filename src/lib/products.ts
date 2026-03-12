@@ -16,6 +16,7 @@ const parseJson = (value, fallback = []) => {
 const serialize = (value) => JSON.stringify(value ?? []);
 const normalizeImageKey = (value) => String(value || "").trim().toLowerCase();
 const normalizeList = (value) => (Array.isArray(value) ? value.map((item) => String(item).trim()).filter(Boolean) : []);
+const normalizeCardVariant = (value) => String(value ?? "").trim().toLowerCase() === "double" ? "double" : "standard";
 const readSeedProducts = () => JSON.parse(readFileSync(jsonPath, "utf-8"));
 const writeSeedProducts = (products) => {
   writeFileSync(jsonPath, `${JSON.stringify(products, null, 2)}\n`, "utf-8");
@@ -40,7 +41,8 @@ const toSeedProduct = (payload) => {
     highlights: normalizeList(payload.highlights),
     combinations: Array.isArray(payload.combinations) ? payload.combinations : [],
     badge: String(payload.badge ?? ""),
-    microcopy: String(payload.microcopy ?? "")
+    microcopy: String(payload.microcopy ?? ""),
+    cardVariant: normalizeCardVariant(payload.cardVariant)
   };
 };
 const normalizedImagesEqual = (left, right) => {
@@ -76,7 +78,8 @@ const mapRow = (row) => ({
   highlights: parseJson(row.highlights, []),
   combinations: parseJson(row.combinations, []),
   badge: row.badge || "",
-  microcopy: row.microcopy || ""
+  microcopy: row.microcopy || "",
+  cardVariant: normalizeCardVariant(row.cardVariant)
 });
 
 const normalizeSizes = (category, raw) => {
@@ -102,17 +105,17 @@ const ensureSeeded = async () => {
   if (count > 0) {
     const seed = readSeedProducts();
     const seedById = new Map(seed.map((product) => [String(product.id), product]));
-    const stmt = db.prepare("UPDATE products SET badge = ?, microcopy = ? WHERE id = ? AND ((badge IS NULL OR badge = '') OR (microcopy IS NULL OR microcopy = ''));");
+    const metaStmt = db.prepare("UPDATE products SET badge = ?, microcopy = ?, cardVariant = ? WHERE id = ?;");
     const sizeStmt = db.prepare("UPDATE products SET sizes = ? WHERE id = ?;");
     const gridStmt = db.prepare("UPDATE products SET gridImage = ? WHERE id = ?;");
     const imagesStmt = db.prepare("UPDATE products SET images = ? WHERE id = ?;");
     const insertStmt = db.prepare(`
       INSERT INTO products
-      (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy, cardVariant)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
 
-    const resAll = db.exec("SELECT id, slug, category, sizes, gridImage, images FROM products;");
+    const resAll = db.exec("SELECT id, slug, category, sizes, gridImage, images, badge, microcopy, cardVariant FROM products;");
     const rows = resAll?.[0]?.values ?? [];
     const cols = resAll?.[0]?.columns ?? [];
     const idIndex = cols.indexOf("id");
@@ -121,6 +124,9 @@ const ensureSeeded = async () => {
     const sizesIndex = cols.indexOf("sizes");
     const gridImageIndex = cols.indexOf("gridImage");
     const imagesIndex = cols.indexOf("images");
+    const badgeIndex = cols.indexOf("badge");
+    const microcopyIndex = cols.indexOf("microcopy");
+    const cardVariantIndex = cols.indexOf("cardVariant");
 
     db.run("BEGIN;");
     try {
@@ -145,23 +151,25 @@ const ensureSeeded = async () => {
           serialize(product.highlights),
           serialize(product.combinations),
           product.badge ?? "",
-          product.microcopy ?? ""
+          product.microcopy ?? "",
+          product.cardVariant ?? "standard"
         ]);
-      }
-
-      for (const product of seed) {
-        if (product.badge || product.microcopy) {
-          stmt.run([
-            product.badge ?? "",
-            product.microcopy ?? "",
-            product.id
-          ]);
-        }
       }
 
       // Normalize apparel sizes to S/M and L/XL (keeps calzado numeric sizes intact).
       for (const row of rows) {
         const id = String(row[idIndex] ?? "");
+        const seedProduct = seedById.get(id) ?? {};
+        const currentBadge = String(row[badgeIndex] ?? "");
+        const currentMicrocopy = String(row[microcopyIndex] ?? "");
+        const currentCardVariant = normalizeCardVariant(row[cardVariantIndex]);
+        const nextBadge = String(seedProduct.badge ?? "");
+        const nextMicrocopy = String(seedProduct.microcopy ?? "");
+        const nextCardVariant = normalizeCardVariant(seedProduct.cardVariant);
+        if (currentBadge !== nextBadge || currentMicrocopy !== nextMicrocopy || currentCardVariant !== nextCardVariant) {
+          metaStmt.run([nextBadge, nextMicrocopy, nextCardVariant, id]);
+        }
+
         const category = row[categoryIndex] ?? "";
         const current = parseJson(row[sizesIndex], []);
         const next = normalizeSizes(category, current);
@@ -173,9 +181,9 @@ const ensureSeeded = async () => {
 
         const currentImages = parseJson(row[imagesIndex], []);
         const currentGridImage = String(row[gridImageIndex] ?? "");
-        const slug = String(row[slugIndex] ?? seedById.get(id)?.slug ?? "");
-        const seedImages = seedById.get(id)?.images ?? [];
-        const seedGridImage = seedById.get(id)?.gridImage ?? "";
+        const slug = String(row[slugIndex] ?? seedProduct.slug ?? "");
+        const seedImages = seedProduct.images ?? [];
+        const seedGridImage = seedProduct.gridImage ?? "";
         const currentFirst = normalizeImageKey(currentImages[0]);
         const seedFirst = normalizeImageKey(seedImages[0]);
         const shouldPromoteSeedHero =
@@ -227,8 +235,8 @@ const ensureSeeded = async () => {
   const seed = readSeedProducts();
   const stmt = db.prepare(`
     INSERT INTO products
-    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy, cardVariant)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `);
 
   db.run("BEGIN;");
@@ -252,7 +260,8 @@ const ensureSeeded = async () => {
         serialize(product.highlights),
         serialize(product.combinations),
         product.badge ?? "",
-        product.microcopy ?? ""
+        product.microcopy ?? "",
+        product.cardVariant ?? "standard"
       ]);
     }
     db.run("COMMIT;");
@@ -291,8 +300,8 @@ export const upsertProduct = async (payload) => {
   const nextProduct = toSeedProduct(payload);
   const stmt = db.prepare(`
     INSERT INTO products
-    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy, cardVariant)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       slug=excluded.slug,
       name=excluded.name,
@@ -310,7 +319,8 @@ export const upsertProduct = async (payload) => {
       highlights=excluded.highlights,
       combinations=excluded.combinations,
       badge=excluded.badge,
-      microcopy=excluded.microcopy;
+      microcopy=excluded.microcopy,
+      cardVariant=excluded.cardVariant;
   `);
 
   stmt.run([
@@ -331,7 +341,8 @@ export const upsertProduct = async (payload) => {
     serialize(nextProduct.highlights),
     serialize(nextProduct.combinations),
     nextProduct.badge ?? "",
-    nextProduct.microcopy ?? ""
+    nextProduct.microcopy ?? "",
+    nextProduct.cardVariant ?? "standard"
   ]);
 
   const seed = readSeedProducts();

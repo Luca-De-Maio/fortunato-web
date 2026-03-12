@@ -1,5 +1,42 @@
 [
   {
+    "id": "camisa-riviera",
+    "slug": "camisa-riviera",
+    "name": "Camisa Riviera",
+    "category": "top",
+    "price": 129000,
+    "compareAt": null,
+    "currency": "ARS",
+    "description": "Descubrí la Camisa Riviera, una camisa de verano confeccionada en 100% lino italiano para quienes buscan frescura real y una elegancia sobria. Su textura liviana y respirable deja ver la nobleza del lino sin perder estructura, logrando una caída limpia que funciona igual de bien abierta sobre una remera como cerrada en un look más pulido. El corte relajado y el cuello suave acompañan el cuerpo con naturalidad, mientras su paleta en negro, beige y crudo permite combinarla con pantalones sastreros, bermudas o lino sobre lino sin esfuerzo. Es una prenda pensada para días largos, calor y ocasiones donde la simpleza bien resuelta pesa más que el exceso.",
+    "materials": [
+      "100% lino italiano"
+    ],
+    "fit": "Corte relajado",
+    "colors": [
+      "Negro",
+      "Beige",
+      "Crudo"
+    ],
+    "sizes": [
+      "S/M",
+      "L/XL"
+    ],
+    "gridImage": "/images/products/camisa-riviera/camisa-riviera-look-tabaco.webp",
+    "images": [
+      "/images/products/camisa-riviera/camisa-riviera-look-tabaco.webp",
+      "/images/products/camisa-riviera/camisa-riviera-look-negro.webp",
+      "/images/products/camisa-riviera/camisa-riviera-hero.webp"
+    ],
+    "highlights": [
+      "100% lino italiano con textura fresca, noble y respirable",
+      "Disponible en negro, beige y crudo para una paleta sobria y versatil",
+      "Corte relajado para usar sola o abierta sobre otras capas livianas"
+    ],
+    "badge": "Nuevo",
+    "microcopy": "100% lino italiano",
+    "cardVariant": "double"
+  },
+  {
     "id": "remera-doppio-collo",
     "slug": "remera-doppio-collo",
     "name": "Remera Doppio Collo",
@@ -29,7 +66,7 @@
       "Confeccionada en 100% algodón de tela jersey 16.1, esta remera ofrece una suavidad y transpirabilidad inigualables, ideal para el clima argentino",
       "Su innovador diseño double neck aporta un toque moderno y versátil, permitiendo distintas combinaciones para tus outfits casuales o semi-formales"
     ],
-    "badge": "Nuevo",
+    "badge": "",
     "microcopy": "Cuello doble · Jersey 16.1"
   },
   {
@@ -64,7 +101,7 @@
       "Estas sandalias cuentan con una base de corcho natural que ofrece una amortiguación excepcional y un soporte ergonómico para tus pies, ideal para el uso diario",
       "Las cintas de cuero auténtico aportan un toque sofisticado y duradero, combinando elegancia con resistencia"
     ],
-    "badge": "Nuevo",
+    "badge": "",
     "microcopy": "Corcho · Cuero"
   },
   {
@@ -97,7 +134,7 @@
       "Confeccionada en tela ottoman, esta chomba presenta una mezcla cuidadosamente diseñada de 62% algodón, 33% poliéster y 5% elastano, lo que garantiza una textura suave, resistente y que no pierde forma ni desarrolla bolitas, incluso después de múltiples lavados en lavarropas",
       "Su diseño elegante y atemporal la convierte en una pieza versátil, ideal para cualquier ocasión"
     ],
-    "badge": "Nuevo",
+    "badge": "",
     "microcopy": "Ottoman · Algodón"
   },
   {
@@ -133,7 +170,7 @@
       "Confeccionadas en 100% lino natural, estas bermudas ofrecen una frescura y transpirabilidad excepcionales, perfectas para el verano argentino",
       "Su diseño clásico y versátil permite combinarlas fácilmente con camisetas, camisas o remeras, adaptándose a ocasiones casuales o salidas informales con amigos"
     ],
-    "badge": "Nuevo",
+    "badge": "",
     "microcopy": "Lino · Relaxed fit"
   },
   {
@@ -170,7 +207,7 @@
       "Esta bermuda se destaca por su diseño clásico y elegante, ideal para combinar con distintas prendas y lograr un look cheto y moderno en cualquier ocasión",
       "Confeccionada con materiales de alta calidad, la Bermuda Beige ofrece un ajuste cómodo que se adapta a tu silueta sin perder estilo"
     ],
-    "badge": "Nuevo",
+    "badge": "",
     "microcopy": "Pinzas · Gabardina"
   },
   {
@@ -204,7 +241,7 @@
       "Este pantalón se destaca por su diseño clásico y atemporal, ideal para diversas ocasiones, desde salidas formales hasta encuentros casuales con un toque distinguido",
       "Confeccionado con materiales de alta calidad, el pantalón ofrece un ajuste cómodo y elegante que se adapta perfectamente a tu silueta"
     ],
-    "badge": "Nuevo",
+    "badge": "",
     "microcopy": "Sastrería · Tiro medio"
   }
 ]

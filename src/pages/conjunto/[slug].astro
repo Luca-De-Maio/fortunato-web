@@ -14,8 +14,6 @@ if (!combo) {
 
 const formatPrice = (value: number, currency: string) =>
   `${currency} ${value.toLocaleString("es-AR")}`;
-
-const mpAlias = (process.env.PUBLIC_MERCADOPAGO_ALIAS || "").trim();
 ---
 
 <Base title={`Fortunato | ${combo.title}`} description={combo.notes || `Comprá ${combo.title} completo en Fortunato.`}>
@@ -41,7 +39,7 @@ const mpAlias = (process.env.PUBLIC_MERCADOPAGO_ALIAS || "").trim();
                 <span class="discount-pill">{combo.savingsPercent}% OFF</span>
               </p>
             ) : null}
-            <p class="muted combo-installments">3 cuotas sin interés · 6 cuotas con interés</p>
+            <p class="muted combo-installments">El envío se cotiza al confirmar el pedido.</p>
           </div>
 
           <section class="combo-includes" aria-label="Qué incluye">
@@ -96,38 +94,15 @@ const mpAlias = (process.env.PUBLIC_MERCADOPAGO_ALIAS || "").trim();
             </button>
           </div>
 
-          {mpAlias ? (
-            <div class="notice combo-alias">
-              <div>
-                <strong>Alias Mercado Pago:</strong>
-                <p class="combo-alias-value">{mpAlias}</p>
-              </div>
-              <button type="button" class="btn btn-ghost combo-alias-copy" data-copy-alias>Copiar alias</button>
-            </div>
-          ) : null}
+          <div class="notice">
+            <strong>Pedido y envío:</strong> Cerrá la selección desde el carrito y te confirmamos el total final por WhatsApp antes de transferir.
+          </div>
         </div>
       </div>
     </section>
   </main>
 
   <Footer />
-
-  <script define:vars={{ mpAlias }}>
-    const copyButton = document.querySelector("[data-copy-alias]");
-    copyButton?.addEventListener("click", async () => {
-      if (!mpAlias) return;
-      try {
-        await navigator.clipboard.writeText(mpAlias);
-        const label = copyButton.textContent;
-        copyButton.textContent = "Alias copiado";
-        setTimeout(() => {
-          copyButton.textContent = label || "Copiar alias";
-        }, 1400);
-      } catch {
-        copyButton.textContent = "Copiá manualmente";
-      }
-    });
-  </script>
 </Base>
 
 <style>
@@ -277,24 +252,6 @@ const mpAlias = (process.env.PUBLIC_MERCADOPAGO_ALIAS || "").trim();
     gap: 0.7rem;
   }
 
-  .combo-alias {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
-  }
-
-  .combo-alias-value {
-    margin-top: 0.35rem;
-    font-weight: 700;
-    color: var(--green);
-    overflow-wrap: anywhere;
-  }
-
-  .combo-alias-copy {
-    flex: 0 0 auto;
-  }
-
   @media (max-width: 960px) {
     .combo-layout {
       grid-template-columns: 1fr;
@@ -321,8 +278,5 @@ const mpAlias = (process.env.PUBLIC_MERCADOPAGO_ALIAS || "").trim();
       height: 92px;
     }
 
-    .combo-alias {
-      display: grid;
-    }
   }
 </style>

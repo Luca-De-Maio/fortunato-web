@@ -15,6 +15,7 @@ export const prerender = false;
 
 const products = await getAllProducts();
 const homeOrder = [
+  "camisa-riviera",
   "chomba-sprezzata",
   "remera-doppio-collo",
   "pantalon-sastrero",
@@ -45,18 +46,18 @@ const combinations = await getAllCombinations();
       </div>
     </section>
 
-    <section id="conjuntos" class="section">
+    <section class="section">
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Conjuntos</p>
           <h2>Looks listos para comprar en un solo paso.</h2>
-          <p class="muted">Entrá al conjunto, revisá qué incluye y llevátelo completo desde carrito o checkout.</p>
+          <p class="muted">Entrá al conjunto, revisá qué incluye y cerrá el pedido desde el carrito.</p>
         </div>
         <ComboCarousel combinations={combinations} />
       </div>
     </section>
 
-    <section class="hero">
+    <section id="conjuntos" class="hero">
       <div class="hero-video is-autoplay">
         <iframe
           src="https://www.youtube.com/embed/akSPGeVQixU?autoplay=1&playsinline=1&rel=0&loop=1&playlist=akSPGeVQixU&mute=1&controls=0&modestbranding=1&iv_load_policy=3"

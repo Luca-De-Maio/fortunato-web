@@ -20,6 +20,7 @@ body {
   color: var(--slate);
   line-height: 1.6;
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -61,30 +62,43 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   border-bottom: 1px solid rgba(24, 74, 69, 0.08);
 }
 
-.header-inner { display: flex; align-items: center; justify-content: flex-end; padding: 2.2rem 0 1.8rem; position: relative; min-height: 130px; }
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 2.2rem 0 1.8rem;
+  position: relative;
+  min-height: 130px;
+}
 
-.brand { display: flex; align-items: center; gap: 0.6rem; font-family: "Cinzel", "Cormorant Garamond", serif; font-size: 1.2rem; letter-spacing: 0.12em; text-transform: uppercase; flex-wrap: wrap; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); flex-direction: column; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.08rem;
+  font-family: "Cinzel", "Cormorant Garamond", serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  flex-wrap: wrap;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  z-index: 1;
+}
 .brand-logo-box {
-  width: 160px;
-  display: grid;
-  place-items: center;
-  background: transparent;
-  padding: 4px 6px;
+  display: none;
 }
 .brand-mark-box {
-  display: none;
+  width: 66px;
+  display: grid;
+  place-items: center;
 }
 .brand-wordmark-box {
-  display: none;
-}
-.brand-logo {
-  width: 160px;
-  max-width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
-  border-radius: 0;
-  image-rendering: auto;
+  width: 164px;
+  display: grid;
+  place-items: center;
 }
 .brand-mark-image {
   width: 100%;
@@ -117,7 +131,14 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   background: var(--green); color: var(--beige); border-radius: 12px; font-weight: 600;
 }
 
-.nav { display: flex; gap: 1.4rem; align-items: center; font-size: 0.95rem; }
+.nav {
+  display: flex;
+  gap: 1.4rem;
+  align-items: center;
+  font-size: 0.95rem;
+  position: relative;
+  z-index: 2;
+}
 .nav a { position: relative; padding-bottom: 0.2rem; }
 .nav a.is-active::after,
 .nav a:hover::after {
@@ -128,11 +149,19 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 .cart-badge {
   min-width: 20px; height: 20px; border-radius: 999px; background: var(--green); color: var(--beige);
   display: inline-grid; place-items: center; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 .cart-badge.is-visible { opacity: 1; }
 
 .hero {
-  padding: 4rem 0 3.2rem;
+  padding: 3rem 0 3.4rem;
+}
+
+.hero-shell {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+  align-items: start;
 }
 
 .hero-video {
@@ -146,6 +175,15 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 }
 .hero-video.is-autoplay {
   width: 100%;
+}
+.hero-video-shell {
+  margin-top: 1.35rem;
+}
+.hero-video-shell .hero-video {
+  margin-bottom: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 56px rgba(24, 74, 69, 0.12);
 }
 .hero-video iframe {
   width: 100%;
@@ -198,6 +236,41 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   align-items: center;
 }
 
+.hero-copy-card,
+.hero-rail-card {
+  border-radius: 28px;
+  border: 1px solid rgba(24, 74, 69, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.88) 100%);
+  box-shadow: var(--shadow);
+}
+
+.hero-copy-card {
+  padding: 2rem;
+  position: sticky;
+  top: 9.4rem;
+}
+
+.hero-rail-card {
+  padding: 1rem;
+}
+
+.hero-rail-head {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.45rem 0.2rem 1rem;
+}
+
+.hero-copy-lead,
+.hero-rail-copy {
+  font-size: 1.04rem;
+  color: rgba(64, 67, 66, 0.92);
+}
+
+.hero-copy-lead {
+  margin: 1.1rem 0 0;
+  max-width: 38ch;
+}
+
 .hero h1 {
   font-family: "Cinzel", "Cormorant Garamond", serif;
   font-size: clamp(2.6rem, 4vw, 4rem);
@@ -205,14 +278,16 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   line-height: 1.1;
 }
 
-.hero p { font-size: 1.1rem; margin: 1.2rem 0 2rem; }
+.hero p {
+  font-size: 1.1rem;
+  margin: 1.2rem 0 2rem;
+}
 
-.hero-card {
-  background: rgba(245, 232, 215, 0.6);
-  border: 1px solid rgba(24, 74, 69, 0.1);
-  border-radius: var(--radius);
-  padding: 2rem;
-  box-shadow: var(--shadow);
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.6rem;
 }
 
 .btn {
@@ -254,21 +329,29 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 .capsule-grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  justify-content: center;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  justify-content: stretch;
+  align-items: stretch;
   margin-top: 1rem;
 }
 
 .product-card {
+  grid-column: span 3;
   background: var(--white);
   border: 1px solid rgba(24, 74, 69, 0.08);
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: 0 12px 40px rgba(24, 74, 69, 0.08);
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  max-width: 280px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-width: none;
+  height: 100%;
+}
+.product-card.is-double {
+  grid-column: span 6;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+  grid-template-rows: none;
 }
 .product-media {
   display: block;
@@ -276,6 +359,11 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   aspect-ratio: 4 / 5;
   overflow: hidden;
   position: relative;
+}
+.product-card.is-double .product-media {
+  display: grid;
+  aspect-ratio: auto;
+  height: 100%;
 }
 .product-media img {
   width: 100%;
@@ -303,14 +391,48 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 .product-body {
   padding: 0.85rem 1rem 1rem;
   display: grid;
-  gap: 0.65rem;
-  height: auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: stretch;
+  gap: 0.8rem;
 }
-.product-card-info { display: grid; gap: 0.25rem; }
-.product-attr { font-size: 0.85rem; color: rgba(75, 79, 78, 0.72); }
+.product-card.is-double .product-body {
+  padding: 1rem 1.1rem 1rem;
+}
+.product-card-info {
+  display: grid;
+  gap: 0.3rem;
+  align-content: start;
+  min-height: 9.9rem;
+}
+.product-card.is-double .product-card-info {
+  min-height: 0;
+}
+.product-card-info h3 {
+  color: var(--green);
+  line-height: 1.08;
+  min-height: 2.16em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.product-attr {
+  font-size: 0.85rem;
+  color: rgba(75, 79, 78, 0.72);
+  min-height: 1.35em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .product-price { font-weight: 600; color: var(--green); margin-top: 0.25rem; font-size: 1.05rem; }
-.price-stack { display: grid; gap: 0.2rem; }
+.price-stack {
+  display: grid;
+  gap: 0.2rem;
+  min-height: 4rem;
+  align-content: start;
+}
 .product-compare { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; }
+.product-compare.is-placeholder { visibility: hidden; }
 .compare-price { text-decoration: line-through; color: rgba(75, 79, 78, 0.7); }
 .discount-pill {
   background: rgba(24, 74, 69, 0.15);
@@ -362,13 +484,41 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   width: 100%;
   overflow: visible;
 }
+.pdp-hero.is-contained {
+  padding: 0 16px;
+}
 .pdp-gallery {
+  position: relative;
   display: grid;
   gap: 1rem;
   background: #040404;
   border-radius: 32px;
   padding: 1.75rem 1.5rem 1.4rem;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.pdp-gallery.is-editorial {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.65rem 1.35rem 1.5rem;
+  border-radius: 42px;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 34%),
+    linear-gradient(180deg, #030303 0%, #090909 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.pdp-gallery.is-single {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.2rem;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.12) 28%, transparent 52%),
+    linear-gradient(160deg, #f3ebdf 0%, #ece1d2 48%, #e5d8c8 100%);
+  border: 1px solid rgba(24, 74, 69, 0.08);
+  box-shadow: 0 24px 58px rgba(24, 74, 69, 0.12);
 }
 .pdp-hero__img {
   width: 100%;
@@ -380,6 +530,36 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 
   background: #040404;
+}
+.pdp-gallery.is-single .pdp-hero__img {
+  height: min(82vh, 940px);
+  border-radius: 26px;
+  border: 1px solid rgba(24, 74, 69, 0.05);
+  box-shadow: 0 18px 50px rgba(24, 74, 69, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0) 18%),
+    rgba(252, 248, 242, 0.92);
+}
+
+.pdp-main-stage {
+  position: relative;
+  padding: 0.8rem;
+  border-radius: 32px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%),
+    rgba(9, 10, 12, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 14px 34px rgba(0, 0, 0, 0.28);
+}
+.pdp-gallery.is-editorial .pdp-main-stage {
+  padding: 0.95rem;
+  border-radius: 34px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 22%),
+    linear-gradient(180deg, rgba(23, 24, 27, 0.96) 0%, rgba(5, 5, 7, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .pdp-thumbs {
@@ -421,6 +601,24 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
   transform: translateY(-2px);
 }
+.pdp-gallery.is-editorial .pdp-thumbs {
+  gap: 18px;
+  margin-top: 0.25rem;
+  padding-bottom: 0.2rem;
+}
+.pdp-gallery.is-editorial .pdp-thumb {
+  width: 172px;
+  height: 188px;
+  border-radius: 28px;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+}
+.pdp-gallery.is-editorial .pdp-thumb.is-active {
+  border-color: rgba(245, 232, 215, 0.96);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(245, 232, 215, 0.32);
+}
 .pdp-badge {
   position: absolute;
   top: 12px;
@@ -434,6 +632,13 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   border-radius: 999px;
   border: 1px solid rgba(24, 74, 69, 0.12);
   backdrop-filter: blur(8px);
+}
+.pdp-gallery.is-editorial .pdp-badge {
+  top: 24px;
+  left: 32px;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  padding: 0.58rem 1rem;
 }
 
 .pdp-summary,
@@ -609,10 +814,14 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 .pdp-ctas {
   display: grid;
   gap: 10px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
 }
 .pdp-cta {
   width: 100%;
   justify-content: center;
+}
+.pdp-cta.btn-ghost {
+  background: rgba(255, 255, 255, 0.58);
 }
 
 .pdp-details {
@@ -744,6 +953,10 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   grid-template-columns: 1fr;
   align-items: stretch;
 }
+.cart-summary-status {
+  min-height: 1.25rem;
+  margin: 0;
+}
 
 .checkout-grid {
   display: grid;
@@ -794,9 +1007,12 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   letter-spacing: 0.01em;
 }
 .checkout-actions { margin-top: 1rem; display: grid; gap: 0.7rem; }
-.checkout-status { min-height: 1.25rem; }
-.checkout-status[data-type="pending"] { color: rgba(40, 44, 43, 0.78); }
-.checkout-status[data-type="error"] { color: #7b2f2f; }
+.checkout-status,
+.cart-summary-status { min-height: 1.25rem; }
+.checkout-status[data-type="pending"],
+.cart-summary-status[data-type="pending"] { color: rgba(40, 44, 43, 0.78); }
+.checkout-status[data-type="error"],
+.cart-summary-status[data-type="error"] { color: #7b2f2f; }
 
 .notice {
   padding: 1rem 1.2rem;
@@ -944,6 +1160,16 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 }
 .whatsapp-fab svg { width: 20px; height: 20px; fill: currentColor; }
 
+@media (max-width: 960px) {
+  .hero-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy-card {
+    position: static;
+  }
+}
+
 @media (max-width: 760px) {
   .site-header {
     transition: background-color 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
@@ -1079,17 +1305,42 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
   }
-  .hero { padding: 1.8rem 0 1.2rem; }
-  .hero-video {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    border-radius: 0;
+  .product-card {
+    grid-column: span 1;
+  }
+  .product-card.is-double {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  }
+  .hero {
+    padding: 1.5rem 0 1.2rem;
+  }
+  .hero-copy-card,
+  .hero-rail-card {
+    border-radius: 22px;
+  }
+  .hero-copy-card {
+    padding: 1.35rem;
+  }
+  .hero-rail-card {
+    padding: 0.8rem;
+  }
+  .hero-copy-lead,
+  .hero-rail-copy {
+    font-size: 0.98rem;
+  }
+  .hero-video-shell {
+    margin-top: 1rem;
+  }
+  .hero-video-shell .hero-video {
+    width: 100%;
+    margin-left: 0;
+    border-radius: 18px;
     aspect-ratio: auto;
     height: min(68vh, 520px);
     background: #000;
   }
-  .product-card { max-width: none; }
-  .hero-video iframe {
+  .hero-video-shell .hero-video iframe {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -1098,21 +1349,66 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
     transform: translate(-50%, -50%);
   }
   .pdp-hero {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
+    width: auto;
+    margin-left: 0;
+    padding: 0 16px;
+  }
+  .pdp-hero.is-contained {
+    padding: 0 16px;
+  }
+  .pdp-gallery.is-single {
+    border-radius: 22px;
+    padding: 0.8rem;
+  }
+  .pdp-gallery.is-single .pdp-hero__img {
+    height: min(72vh, 720px);
+    border-radius: 18px;
+  }
+  .pdp-gallery.is-editorial {
+    padding: 1.35rem 1rem 1.15rem;
+    border-radius: 34px;
+  }
+  .pdp-gallery.is-editorial .pdp-main-stage {
+    padding: 0.8rem;
+    border-radius: 28px;
+  }
+  .pdp-gallery.is-editorial .pdp-hero__img {
+    height: min(70vh, 980px);
+    border-radius: 22px;
+  }
+  .pdp-gallery.is-editorial .pdp-badge {
+    top: 18px;
+    left: 18px;
+    font-size: 0.74rem;
+    padding: 0.5rem 0.85rem;
+  }
+  .pdp-gallery.is-editorial .pdp-thumbs {
+    justify-content: flex-start;
+    gap: 12px;
+    padding-inline: 0.1rem;
+  }
+  .pdp-gallery.is-editorial .pdp-thumb {
+    width: 114px;
+    height: 124px;
+    border-radius: 20px;
   }
   .product-card { position: relative; }
   .product-media { aspect-ratio: 4 / 5; }
+  .product-card.is-double .product-media { aspect-ratio: auto; }
   .product-badge {
     top: 0.55rem;
     left: 0.55rem;
     font-size: 0.62rem;
     padding: 0.26rem 0.45rem;
   }
-  .product-body { padding: 0.65rem 0.7rem 0.8rem; gap: 0.45rem; }
+  .product-body { padding: 0.65rem 0.7rem 0.8rem; gap: 0.55rem; }
+  .product-card.is-double .product-body { padding: 0.75rem 0.8rem 0.85rem; }
+  .product-card-info { min-height: 8.7rem; }
+  .product-card.is-double .product-card-info { min-height: 0; }
   .product-card h3 {
     font-size: 0.92rem;
     line-height: 1.18;
+    min-height: 2.36em;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -1127,6 +1423,7 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
     text-overflow: ellipsis;
   }
   .product-price { font-size: 0.9rem; }
+  .price-stack { min-height: 3.65rem; }
   .product-compare {
     gap: 0.3rem;
     align-items: center;
@@ -1136,6 +1433,9 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   .discount-pill {
     font-size: 0.68rem;
     padding: 0.14rem 0.38rem;
+  }
+  .pdp-ctas {
+    grid-template-columns: 1fr;
   }
   .btn-full {
     font-size: 0.74rem;

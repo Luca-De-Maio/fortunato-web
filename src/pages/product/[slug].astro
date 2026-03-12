@@ -31,6 +31,33 @@ const images = (() => {
   if (!hero) return dedupedImages;
   return [hero, ...dedupedImages.filter((src) => src !== hero)];
 })();
+const slugKey = String(product.slug || "").trim().toLowerCase();
+const preferredThumbOrderBySlug = {
+  "camisa-riviera": ["camisa-riviera-hero", "look-negro", "look-tabaco"]
+};
+const preferredMainImageBySlug = {
+  "camisa-riviera": "look-tabaco"
+};
+const reorderImages = (list = [], preferredPatterns = []) => {
+  const pending = [...list];
+  const ordered = [];
+  preferredPatterns.forEach((pattern) => {
+    const nextIndex = pending.findIndex((src) => normalizeImageKey(src).includes(pattern));
+    if (nextIndex === -1) return;
+    ordered.push(pending[nextIndex]);
+    pending.splice(nextIndex, 1);
+  });
+  return [...ordered, ...pending];
+};
+const galleryImages = reorderImages(images, preferredThumbOrderBySlug[slugKey] || []);
+const initialMainImage = (() => {
+  const preferredPattern = preferredMainImageBySlug[slugKey];
+  if (!preferredPattern) return galleryImages[0] || "/placeholder.svg";
+  return galleryImages.find((src) => normalizeImageKey(src).includes(preferredPattern)) || galleryImages[0] || "/placeholder.svg";
+})();
+const isEditorialHero = slugKey === "camisa-riviera";
+const hasSingleImage = galleryImages.length === 1;
+const useContainedHero = hasSingleImage || isEditorialHero;
 const formatPrice = (value) =>
   value ? `${product.currency} ${value.toLocaleString("es-AR")}` : "Precio a confirmar";
 const priceLabel = formatPrice(product.price);
@@ -49,6 +76,7 @@ const categoryLower = (product.category ?? "").toString().toLowerCase();
 const typeLabel =
   nameLower.includes("bermuda") ? "Bermuda" :
   nameLower.includes("pantalon") ? "Pantalón" :
+  nameLower.includes("camisa") ? "Camisa" :
   nameLower.includes("chomba") ? "Chomba" :
   nameLower.includes("remera") ? "Remera" :
   nameLower.includes("sandalia") ? "Sandalia" :
@@ -58,12 +86,18 @@ const typeLabel =
   (product.category ?? "").toString();
 const summaryBullets = (() => {
   const bullets = [];
+  const pushUnique = (value = "") => {
+    const item = String(value).trim();
+    if (!item) return;
+    const exists = bullets.some((entry) => entry.toLowerCase() === item.toLowerCase());
+    if (!exists) bullets.push(item);
+  };
   const micro = product.microcopy?.trim?.();
-  if (micro) bullets.push(micro);
+  pushUnique(micro);
   const fit = product.fit?.trim?.();
-  if (fit) bullets.push(fit);
-  if (product.materials?.length) bullets.push(product.materials.slice(0, 2).join(" · "));
-  if (bullets.length < 2 && product.colors?.length) bullets.push(`Colores: ${product.colors.slice(0, 2).join(" · ")}`);
+  pushUnique(fit);
+  if (product.materials?.length) pushUnique(product.materials.slice(0, 2).join(" · "));
+  if (bullets.length < 3 && product.colors?.length) pushUnique(`Colores: ${product.colors.slice(0, 3).join(" · ")}`);
   return bullets.slice(0, 3);
 })();
 
@@ -73,6 +107,7 @@ const swatchFor = (label = "") => {
     negro: "#111214",
     blanco: "#f6f2ea",
     beige: "#d7c3a4",
+    crudo: "#ece3d3",
     camel: "#c19a6b",
     mostaza: "#b9821e",
     oliva: "#6b6a3a",
@@ -87,28 +122,31 @@ const swatchFor = (label = "") => {
 
   <main class="pdp">
     {/* 1) Imagen full width */}
-    <section class="pdp-hero" aria-label={`Fotos de ${product.name}`}>
-      <div class="pdp-gallery">
-        <Image
-          class="pdp-hero__img"
-          src={images[0]}
-          alt={product.name}
-          priority
-          width={1200}
-          height={1500}
-          decoding="async"
-          data-pdp-main-image
-        />
-        {images.length > 1 ? (
+    <section class:list={{ "pdp-hero": true, "is-contained": useContainedHero }} aria-label={`Fotos de ${product.name}`}>
+      <div class:list={{ "pdp-gallery": true, "is-single": hasSingleImage, "is-editorial": isEditorialHero }}>
+        <div class="pdp-main-stage">
+          <Image
+            class="pdp-hero__img"
+            src={initialMainImage}
+            alt={product.name}
+            priority
+            width={1200}
+            height={1500}
+            decoding="async"
+            data-pdp-main-image
+          />
+        </div>
+        {product.badge ? <span class="pdp-badge">{product.badge}</span> : null}
+        {galleryImages.length > 1 ? (
           <ul class="pdp-thumbs" aria-label="Más fotos">
-            {images.map((src, index) => (
+            {galleryImages.map((src) => (
               <li>
                 <button
                   type="button"
-                  class:list={{ "pdp-thumb": true, "is-active": index === 0 }}
+                  class:list={{ "pdp-thumb": true, "is-active": src === initialMainImage }}
                   data-pdp-thumb={src}
-                  aria-label={`Ver foto ${index + 1}`}
-                  aria-pressed={index === 0 ? "true" : "false"}
+                  aria-label={`Ver foto de ${product.name}`}
+                  aria-pressed={src === initialMainImage ? "true" : "false"}
                 >
                   <Image src={src} alt="" loading="eager" width={160} height={200} decoding="async" />
                 </button>
@@ -117,7 +155,6 @@ const swatchFor = (label = "") => {
           </ul>
         ) : null}
       </div>
-      {product.badge ? <span class="pdp-badge">{product.badge}</span> : null}
     </section>
 
     {/* 2) Resumen: SOLO título + detalles */}
@@ -133,7 +170,7 @@ const swatchFor = (label = "") => {
       ) : null}
     </section>
 
-    {/* 3) Compra: precio + cuotas + talles + CTA */}
+    {/* 3) Compra: precio + envio + talles + CTA */}
     <section class="pdp-buy" aria-label="Compra">
       <div class="pdp-buycard">
         <div class="pdp-price">
@@ -142,7 +179,7 @@ const swatchFor = (label = "") => {
             {compareAt ? <p class="pdp-price__compare">{formatPrice(compareAt)}</p> : null}
             {discount ? <span class="pdp-discount">{discount}% OFF</span> : null}
           </div>
-          <p class="pdp-installments muted">3 cuotas sin interés · 6 cuotas con interés</p>
+          <p class="pdp-installments muted">El envío se cotiza al confirmar el pedido por WhatsApp.</p>
         </div>
 
         {product.colors?.length ? (
@@ -194,7 +231,7 @@ const swatchFor = (label = "") => {
             data-name={product.name}
             data-price={product.price ?? 0}
             data-currency={product.currency}
-            data-image={images[0]}
+            data-image={initialMainImage}
             data-requires-color={product.colors?.length ? "1" : "0"}
             data-requires-size={product.sizes?.length ? "1" : "0"}
             disabled={product.colors?.length || product.sizes?.length ? true : undefined}
@@ -209,7 +246,7 @@ const swatchFor = (label = "") => {
             data-name={product.name}
             data-price={product.price ?? 0}
             data-currency={product.currency}
-            data-image={images[0]}
+            data-image={initialMainImage}
             data-requires-color={product.colors?.length ? "1" : "0"}
             data-requires-size={product.sizes?.length ? "1" : "0"}
             disabled={product.colors?.length || product.sizes?.length ? true : undefined}
@@ -261,6 +298,10 @@ const swatchFor = (label = "") => {
         if (!mainImage || !src) return;
         mainImage.src = src;
         mainImage.removeAttribute("srcset");
+        const cta = root.querySelector("[data-add-to-cart]");
+        const buyNow = root.querySelector("[data-buy-now]");
+        if (cta) cta.dataset.image = src;
+        if (buyNow) buyNow.dataset.image = src;
         thumbs.forEach((btn) => {
           const isActive = btn.dataset.pdpThumb === src;
           btn.classList.toggle("is-active", isActive);
@@ -320,7 +361,7 @@ const swatchFor = (label = "") => {
 
         if (buyNow) {
           buyNow.disabled = disabled;
-          buyNow.textContent = disabled ? label : "Comprar ahora";
+          buyNow.textContent = "Comprar ahora";
         }
       };
 

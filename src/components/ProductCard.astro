@@ -6,6 +6,9 @@ const formatPrice = (value) =>
 const priceLabel = formatPrice(product.price);
 const compareAt = product.compareAt || null;
 const discount = compareAt && product.price ? Math.round(100 - (product.price / compareAt) * 100) : null;
+const hasCompare = Boolean(compareAt);
+const compareLabel = formatPrice(compareAt || product.price || 0);
+const discountLabel = discount ? `${discount}% OFF` : "00% OFF";
 const attributeLine = product.microcopy?.trim()
   ? product.microcopy.trim()
   : product.materials?.length
@@ -16,15 +19,17 @@ const attributeLine = product.microcopy?.trim()
 const defaultColor = product.colors?.[0] ?? "";
 const defaultSize = product.sizes?.[0] ?? "";
 const gridImage = product.gridImage || product.images?.[0] || "/placeholder.svg";
+const cartImage = product.images?.[0] || gridImage || "/placeholder.svg";
+const cardVariant = product.cardVariant === "double" ? "double" : "standard";
 ---
-<article class="product-card">
+<article class:list={{ "product-card": true, "is-double": cardVariant === "double" }}>
   <a href={`/product/${product.slug}`} class="product-media">
     <Image
       src={gridImage}
       alt={product.name}
       loading="lazy"
-      width={800}
-      height={1000}
+      width={cardVariant === "double" ? 960 : 800}
+      height={cardVariant === "double" ? 1200 : 1000}
       decoding="async"
     />
     {product.badge ? <span class="product-badge">{product.badge}</span> : null}
@@ -35,12 +40,10 @@ const gridImage = product.gridImage || product.images?.[0] || "/placeholder.svg"
       {attributeLine ? <p class="product-attr">{attributeLine}</p> : null}
       <div class="price-stack">
         <p class="product-price">{priceLabel}</p>
-        {compareAt ? (
-          <p class="product-compare">
-            <span class="compare-price">{formatPrice(compareAt)}</span>
-            {discount ? <span class="discount-pill">{discount}% OFF</span> : null}
-          </p>
-        ) : null}
+        <p class:list={{ "product-compare": true, "is-placeholder": !hasCompare }} aria-hidden={hasCompare ? undefined : "true"}>
+          <span class="compare-price">{compareLabel}</span>
+          <span class="discount-pill">{discountLabel}</span>
+        </p>
       </div>
     </a>
     <button
@@ -50,7 +53,7 @@ const gridImage = product.gridImage || product.images?.[0] || "/placeholder.svg"
       data-name={product.name}
       data-price={product.price ?? 0}
       data-currency={product.currency}
-      data-image={product.images[0]}
+      data-image={cartImage}
       data-color={defaultColor}
       data-size={defaultSize}
     >

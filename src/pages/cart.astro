@@ -2,9 +2,11 @@
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+
+const whatsappNumber = "5491158204344";
 ---
 
-<Base title="Fortunato | Carrito" description="Revisá tu selección y continuá al checkout.">
+<Base title="Fortunato | Carrito" description="Revisá tu selección y cotizá el envío por WhatsApp.">
   <Header />
 
   <main class="cart-page">
@@ -12,17 +14,20 @@ import Footer from "../components/Footer.astro";
       <div class="section-head">
         <p class="eyebrow">Carrito</p>
         <h2>Tu selección Fortunato</h2>
-        <p class="muted">Revisá los productos antes de continuar.</p>
+        <p class="muted">Revisá cantidades y pedinos el total final con envío por WhatsApp.</p>
       </div>
 
       <div class="cart-list" data-cart-list></div>
 
-      <div class="cart-summary" data-cart-summary>
-        <p><strong>Subtotal</strong>: <span data-cart-subtotal>—</span></p>
-        <p class="muted">Envío e impuestos se calculan en el checkout.</p>
+      <div class="cart-summary" data-cart-summary hidden>
+        <p><strong>Subtotal de productos</strong>: <span data-cart-subtotal>—</span></p>
+        <div class="notice">
+          <strong>Envío a confirmar:</strong> Te pasamos el costo de envío y el total final por WhatsApp. No transfieras hasta recibir esa confirmación.
+        </div>
+        <p class="muted cart-summary-status" data-cart-status></p>
         <div class="cart-summary-actions">
-          <button class="btn btn-ghost" type="button" data-cart-clear>Vaciar carrito</button>
-          <a href="/checkout" class="btn">Continuar al checkout</a>
+          <button class="btn" type="button" data-cart-wa>Cotizar envío por WhatsApp</button>
+          <button class="btn btn-ghost" type="button" data-cart-clear>Vaciar selección</button>
         </div>
       </div>
     </div>
@@ -30,11 +35,14 @@ import Footer from "../components/Footer.astro";
 
   <Footer />
 
-  <script>
+  <script define:vars={{ whatsappNumber }}>
     const CART_KEY = "fortunato_cart";
     const list = document.querySelector("[data-cart-list]");
     const subtotalEl = document.querySelector("[data-cart-subtotal]");
+    const summaryEl = document.querySelector("[data-cart-summary]");
     const clearBtn = document.querySelector("[data-cart-clear]");
+    const waBtn = document.querySelector("[data-cart-wa]");
+    const statusEl = document.querySelector("[data-cart-status]");
 
     const getCart = () => {
       try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
@@ -48,6 +56,12 @@ import Footer from "../components/Footer.astro";
 
     const makeKey = (item) => `${item.id}__${item.color || ""}__${item.size || ""}`;
 
+    const setStatus = (text, type = "") => {
+      if (!statusEl) return;
+      statusEl.textContent = text || "";
+      statusEl.dataset.type = type;
+    };
+
     const updateBadge = () => {
       const badge = document.querySelector("[data-cart-count]");
       if (!badge) return;
@@ -59,11 +73,16 @@ import Footer from "../components/Footer.astro";
     const render = () => {
       const cart = getCart();
       if (!cart.length) {
-        list.innerHTML = "<p class='muted'>Tu carrito está vacío.</p>";
+        list.innerHTML = "<p class='muted'>Tu selección está vacía.</p>";
         subtotalEl.textContent = "—";
+        if (summaryEl) summaryEl.hidden = true;
+        if (waBtn) waBtn.disabled = true;
+        setStatus("");
         updateBadge();
         return;
       }
+      if (summaryEl) summaryEl.hidden = false;
+      if (waBtn) waBtn.disabled = false;
       let subtotal = 0;
       list.innerHTML = cart.map((item) => {
         const qty = Number(item.qty || 0);
@@ -102,6 +121,31 @@ import Footer from "../components/Footer.astro";
       updateBadge();
     };
 
+    const buildWhatsappText = (cart, subtotalLabel) => {
+      const lines = cart.map((item) => {
+        const qty = Number(item.qty || 0);
+        const price = Number(item.price || 0);
+        const lineTotal = price * qty;
+        const parts = [
+          `- ${item.name} x${qty}`,
+          item.color ? `Color: ${item.color}` : "",
+          item.size ? `Talle: ${item.size}` : "",
+          `— ${format(lineTotal, item.currency || "ARS")}`
+        ].filter(Boolean);
+        return parts.join(" · ");
+      });
+
+      return [
+        "Hola! Quiero cotizar envio y confirmar este pedido de Fortunato:",
+        "",
+        ...lines,
+        "",
+        `Subtotal de productos: ${subtotalLabel}`,
+        "",
+        "Pasenme por favor el costo de envio y el total final para transferir."
+      ].filter(Boolean).join("\n");
+    };
+
     list?.addEventListener("click", (event) => {
       const row = event.target.closest("[data-key]");
       if (!row) return;
@@ -136,9 +180,19 @@ import Footer from "../components/Footer.astro";
     clearBtn?.addEventListener("click", () => {
       const cart = getCart();
       if (!cart.length) return;
-      if (!confirm("¿Vaciar carrito?")) return;
+      if (!confirm("¿Vaciar selección?")) return;
       setCart([]);
       render();
+    });
+
+    waBtn?.addEventListener("click", () => {
+      const cart = getCart();
+      if (!cart.length) return;
+      const subtotal = cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0), 0);
+      const subtotalLabel = format(subtotal, cart[0]?.currency || "ARS");
+      const text = buildWhatsappText(cart, subtotalLabel);
+      setStatus("Abriendo WhatsApp...", "pending");
+      window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
     });
 
     render();

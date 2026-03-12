@@ -55,11 +55,12 @@ export const getDb = async () => {
         highlights TEXT,
         combinations TEXT,
         badge TEXT,
-        microcopy TEXT
+        microcopy TEXT,
+        cardVariant TEXT
       );
     `);
 
-    // Lightweight migration for compareAt/badge/microcopy columns
+    // Lightweight migration for compareAt/badge/microcopy/cardVariant columns
     const columns = db.exec("PRAGMA table_info(products);")?.[0]?.values ?? [];
     const hasCompareAt = columns.some((row) => row[1] === "compareAt");
     if (!hasCompareAt) {
@@ -76,6 +77,10 @@ export const getDb = async () => {
     const hasGridImage = columns.some((row) => row[1] === "gridImage");
     if (!hasGridImage) {
       db.run("ALTER TABLE products ADD COLUMN gridImage TEXT;");
+    }
+    const hasCardVariant = columns.some((row) => row[1] === "cardVariant");
+    if (!hasCardVariant) {
+      db.run("ALTER TABLE products ADD COLUMN cardVariant TEXT;");
     }
 
     return { db, dbPath };

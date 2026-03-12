@@ -1,14 +1,56 @@
 [
   {
     "id": "set-piazza-negro",
+    "slug": "set-piazza-negro",
     "title": "Set Piazza Negro",
-    "bundlePrice": 169900,
+    "bundlePrice": 149900,
     "currency": "ARS",
     "image": "/images/products/chomba-sprezzata/img-8775-hero.webp",
     "productIds": [
       "chomba-sprezzata",
+      "bermuda-rilassata"
+    ],
+    "notes": "Chomba mostaza con bermuda negra."
+  },
+  {
+    "id": "set-porto-arena",
+    "slug": "set-porto-arena",
+    "title": "Set Porto Arena",
+    "bundlePrice": 139900,
+    "currency": "ARS",
+    "image": "/images/products/remera-doppio-collo/mesa-de-trabajo-205-copia-11-hero.webp",
+    "productIds": [
+      "remera-doppio-collo",
       "pantalon-sastrero"
     ],
-    "notes": "Incluye pantalon negro."
+    "notes": "Remera negra con pantalon sastrero beige."
+  },
+  {
+    "id": "set-costa-camel",
+    "slug": "set-costa-camel",
+    "title": "Set Costa Camel",
+    "bundlePrice": 179900,
+    "currency": "ARS",
+    "image": "/images/products/bermuda-rilassata/img-9031-hero.webp",
+    "productIds": [
+      "remera-doppio-collo",
+      "bermuda-rilassata",
+      "sandalias-crudem"
+    ],
+    "notes": "Remera negra, bermuda camel y sandalias terracota."
+  },
+  {
+    "id": "set-portico-claro",
+    "slug": "set-portico-claro",
+    "title": "Set Portico Claro",
+    "bundlePrice": 219900,
+    "currency": "ARS",
+    "image": "/images/products/bermuda-sastrera/DRG2378_wrinkle_fixed_2048.webp",
+    "productIds": [
+      "chomba-sprezzata",
+      "bermuda-sastrera",
+      "sandalias-crudem"
+    ],
+    "notes": "Chomba blanca, bermuda beige y sandalias terracota."
   }
 ]

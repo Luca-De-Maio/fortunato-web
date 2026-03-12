@@ -1,0 +1,30 @@
+<svg width="1200" height="1500" viewBox="0 0 1200 1500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1500" fill="#F4EDE3"/>
+  <rect x="84" y="84" width="1032" height="1332" rx="44" fill="#F1E8DC" stroke="#DBCBBA" stroke-width="2"/>
+  <path d="M170 1170C170 1081.63 241.629 1010 330 1010H870C958.37 1010 1030 1081.63 1030 1170V1414H170V1170Z" fill="url(#linen-wash)"/>
+  <rect x="158" y="164" width="884" height="760" rx="34" fill="#E8DDCE"/>
+  <rect x="220" y="226" width="220" height="594" rx="24" fill="#111214"/>
+  <rect x="490" y="226" width="220" height="594" rx="24" fill="#B9A58A"/>
+  <rect x="760" y="226" width="220" height="594" rx="24" fill="#ECE3D3"/>
+  <path d="M598 332C556 332 523 366 523 408V495H673V408C673 366 640 332 598 332Z" fill="#FCF8F1" fill-opacity="0.38"/>
+  <path d="M462 416L548 350L570 427V783H462V416Z" fill="#FCF8F1" fill-opacity="0.2"/>
+  <path d="M734 416L648 350L626 427V783H734V416Z" fill="#FCF8F1" fill-opacity="0.2"/>
+  <path d="M570 427H626V783H570V427Z" fill="#FCF8F1" fill-opacity="0.28"/>
+  <path d="M210 1188C210 1125.04 261.039 1074 324 1074H876C938.961 1074 990 1125.04 990 1188V1414H210V1188Z" fill="url(#shadow-band)" fill-opacity="0.28"/>
+  <text x="182" y="1302" fill="#7E7067" font-family="Georgia, 'Times New Roman', serif" font-size="30" letter-spacing="7">FORTUNATO</text>
+  <circle cx="184" cy="1360" r="18" fill="#111214"/>
+  <circle cx="278" cy="1360" r="18" fill="#B9A58A"/>
+  <circle cx="372" cy="1360" r="18" fill="#ECE3D3" stroke="#D4C2AE" stroke-width="2"/>
+  <path d="M176 232C176 201.072 201.072 176 232 176H968C998.928 176 1024 201.072 1024 232V856C1024 886.928 998.928 912 968 912H232C201.072 912 176 886.928 176 856V232Z" stroke="rgba(255,255,255,0.35)" stroke-width="10"/>
+  <defs>
+    <linearGradient id="linen-wash" x1="170" y1="1010" x2="1030" y2="1414" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EFE5D7"/>
+      <stop offset="0.52" stop-color="#E6DACA"/>
+      <stop offset="1" stop-color="#DDD0C0"/>
+    </linearGradient>
+    <linearGradient id="shadow-band" x1="600" y1="1074" x2="600" y2="1414" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D7C8B5"/>
+    </linearGradient>
+  </defs>
+</svg>
