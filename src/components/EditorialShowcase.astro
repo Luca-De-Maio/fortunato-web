@@ -1,0 +1,398 @@
+---
+import { socialFeed } from "../lib/socialFeed";
+
+const instagramUrl = "https://www.instagram.com/fortunato.arg/";
+const contactUrl = "https://wa.me/5491158204344";
+const signals = [
+  "Capsulas cortas y reposiciones selectivas.",
+  "Atencion directa para talles, combinaciones y disponibilidad.",
+  "Imagen editorial pensada para sostener valor de marca."
+];
+---
+
+<section id="editorial" class="section editorial-section">
+  <div class="container">
+    <div class="editorial-shell">
+      <div class="editorial-copy">
+        <p class="editorial-kicker">Edicion Fortunato</p>
+        <h2>La herencia de una fortuna, llevada al presente.</h2>
+        <p class="editorial-lead">
+          Una capsula pensada para verse sobria de cerca y precisa en movimiento. Lino, algodon
+          y sastreria liviana para dias largos, cenas tardias y una elegancia que no necesita exagerar.
+        </p>
+
+        <div class="editorial-actions">
+          <a href="#capsula" class="btn editorial-btn">Ver catalogo completo</a>
+          <a href={contactUrl} class="btn btn-ghost editorial-btn-ghost">Hablar por WhatsApp</a>
+        </div>
+
+        <ul class="editorial-signals" aria-label="Atributos de la experiencia Fortunato">
+          {signals.map((signal) => <li>{signal}</li>)}
+        </ul>
+      </div>
+
+      <div class="editorial-rail">
+        <a
+          href={instagramUrl}
+          class="editorial-profile"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Abrir Instagram de Fortunato"
+        >
+          <span class="editorial-profile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2.2A2.8 2.8 0 0 0 4.2 7v10A2.8 2.8 0 0 0 7 19.8h10a2.8 2.8 0 0 0 2.8-2.8V7A2.8 2.8 0 0 0 17 4.2zm10.2 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM12 6.6A5.4 5.4 0 1 1 6.6 12 5.4 5.4 0 0 1 12 6.6zm0 2.2A3.2 3.2 0 1 0 15.2 12 3.2 3.2 0 0 0 12 8.8z"></path>
+            </svg>
+          </span>
+
+          <div class="editorial-profile-copy">
+            <p class="editorial-profile-label">Instagram</p>
+            <p class="editorial-profile-handle">@fortunato.arg</p>
+            <p class="editorial-profile-text">
+              Texturas, sets y lanzamientos en un formato editorial listo para convertirse en feed vivo.
+            </p>
+          </div>
+        </a>
+
+        <div class="editorial-feed" aria-label="Seleccion editorial inspirada en Instagram">
+          {socialFeed.map((post) => (
+            <article class:list={["editorial-post", `is-${post.tone}`]}>
+              <img src={post.image} alt={post.alt} loading="lazy" decoding="async" />
+              <div class="editorial-post-copy">
+                <p class="editorial-post-title">{post.title}</p>
+                <p class="editorial-post-caption">{post.caption}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .editorial-section {
+    padding-top: 1.25rem;
+    padding-bottom: 5.5rem;
+  }
+
+  .editorial-shell {
+    position: relative;
+    display: grid;
+    gap: 1.35rem;
+    grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
+    padding: 1.35rem;
+    border-radius: 38px;
+    background:
+      radial-gradient(circle at top right, rgba(231, 217, 198, 0.2) 0%, rgba(231, 217, 198, 0) 32%),
+      linear-gradient(145deg, #184a45 0%, #103c38 56%, #0c302d 100%);
+    border: 1px solid rgba(12, 48, 45, 0.28);
+    box-shadow:
+      0 32px 80px rgba(12, 48, 45, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  .editorial-shell::after {
+    content: "";
+    position: absolute;
+    inset: auto -15% -38% auto;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245, 232, 215, 0.12) 0%, rgba(245, 232, 215, 0) 70%);
+    pointer-events: none;
+  }
+
+  .editorial-copy,
+  .editorial-rail {
+    position: relative;
+    z-index: 1;
+  }
+
+  .editorial-copy {
+    display: grid;
+    align-content: space-between;
+    gap: 1.4rem;
+    padding: 1.8rem;
+    border-radius: 30px;
+    background: linear-gradient(180deg, rgba(12, 35, 33, 0.22) 0%, rgba(12, 35, 33, 0.05) 100%);
+    color: var(--beige);
+  }
+
+  .editorial-kicker {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.34em;
+    font-size: 0.74rem;
+    color: rgba(245, 232, 215, 0.72);
+  }
+
+  .editorial-copy h2 {
+    color: var(--beige);
+    font-size: clamp(2.8rem, 5vw, 4.8rem);
+    line-height: 0.96;
+    max-width: 9ch;
+  }
+
+  .editorial-lead {
+    margin: 0;
+    max-width: 36ch;
+    font-size: 1.02rem;
+    line-height: 1.72;
+    color: rgba(250, 244, 237, 0.88);
+  }
+
+  .editorial-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .editorial-btn {
+    background: var(--beige);
+    color: var(--green);
+    box-shadow: 0 18px 36px rgba(5, 22, 20, 0.22);
+  }
+
+  .editorial-btn-ghost {
+    border-color: rgba(245, 232, 215, 0.26);
+    color: var(--beige);
+  }
+
+  .editorial-signals {
+    list-style: none;
+    display: grid;
+    gap: 0.7rem;
+    padding: 0;
+    margin: 0;
+  }
+
+  .editorial-signals li {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: rgba(250, 244, 237, 0.86);
+    font-size: 0.95rem;
+  }
+
+  .editorial-signals li::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--beige-deep);
+    box-shadow: 0 0 0 6px rgba(245, 232, 215, 0.09);
+    flex: 0 0 auto;
+  }
+
+  .editorial-rail {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .editorial-profile {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: 1.1rem 1.2rem;
+    border-radius: 26px;
+    background: linear-gradient(180deg, rgba(235, 222, 205, 0.95) 0%, rgba(230, 217, 201, 0.92) 100%);
+    color: var(--green);
+    border: 1px solid rgba(24, 74, 69, 0.1);
+    box-shadow: 0 20px 40px rgba(6, 22, 21, 0.16);
+  }
+
+  .editorial-profile-icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: rgba(24, 74, 69, 0.1);
+  }
+
+  .editorial-profile-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: currentColor;
+  }
+
+  .editorial-profile-copy {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .editorial-profile-label,
+  .editorial-profile-handle,
+  .editorial-profile-text {
+    margin: 0;
+  }
+
+  .editorial-profile-label {
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.72rem;
+    color: rgba(24, 74, 69, 0.62);
+  }
+
+  .editorial-profile-handle {
+    font-family: "Cinzel", "Cormorant Garamond", serif;
+    font-size: clamp(2rem, 3vw, 2.7rem);
+    line-height: 1;
+  }
+
+  .editorial-profile-text {
+    color: rgba(24, 74, 69, 0.82);
+    max-width: 38ch;
+  }
+
+  .editorial-feed {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .editorial-post {
+    position: relative;
+    min-height: 0;
+    border-radius: 28px;
+    overflow: hidden;
+    background: rgba(4, 15, 14, 0.28);
+    border: 1px solid rgba(245, 232, 215, 0.08);
+    box-shadow: 0 18px 42px rgba(6, 22, 21, 0.16);
+  }
+
+  .editorial-post img {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+  }
+
+  .editorial-post::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(4, 12, 12, 0) 28%, rgba(4, 12, 12, 0.82) 100%);
+    pointer-events: none;
+  }
+
+  .editorial-post-copy {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 1;
+    display: grid;
+    gap: 0.18rem;
+    padding: 1rem;
+    color: var(--beige);
+  }
+
+  .editorial-post-title,
+  .editorial-post-caption {
+    margin: 0;
+  }
+
+  .editorial-post-title {
+    font-family: "Cinzel", "Cormorant Garamond", serif;
+    font-size: 1.28rem;
+    line-height: 1;
+  }
+
+  .editorial-post-caption {
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: rgba(245, 232, 215, 0.82);
+  }
+
+  .editorial-post.is-feature {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 10;
+  }
+
+  .editorial-post.is-standard {
+    aspect-ratio: 4 / 5;
+  }
+
+  .editorial-post.is-tall {
+    grid-row: span 2;
+    aspect-ratio: 4 / 6;
+  }
+
+  @media (max-width: 980px) {
+    .editorial-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .editorial-copy h2 {
+      max-width: 10ch;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .editorial-section {
+      padding-top: 0.6rem;
+      padding-bottom: 3.5rem;
+    }
+
+    .editorial-shell {
+      padding: 1rem;
+      border-radius: 28px;
+    }
+
+    .editorial-copy {
+      padding: 1.25rem;
+      border-radius: 22px;
+    }
+
+    .editorial-copy h2 {
+      font-size: clamp(2.6rem, 11vw, 4rem);
+      max-width: 9ch;
+    }
+
+    .editorial-lead {
+      font-size: 0.98rem;
+      max-width: none;
+    }
+
+    .editorial-actions {
+      display: grid;
+    }
+
+    .editorial-btn,
+    .editorial-btn-ghost {
+      width: 100%;
+    }
+
+    .editorial-profile {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+      padding: 1rem;
+      border-radius: 20px;
+    }
+
+    .editorial-profile-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+    }
+
+    .editorial-profile-handle {
+      font-size: clamp(1.8rem, 10vw, 2.8rem);
+    }
+
+    .editorial-feed {
+      grid-template-columns: 1fr;
+    }
+
+    .editorial-post.is-feature,
+    .editorial-post.is-standard,
+    .editorial-post.is-tall {
+      grid-column: auto;
+      grid-row: auto;
+      aspect-ratio: 4 / 5;
+    }
+  }
+</style>

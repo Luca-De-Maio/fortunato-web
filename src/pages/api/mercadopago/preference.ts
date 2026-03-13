@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getAllCombinations } from "../../../lib/combinations";
 import { getAllProducts } from "../../../lib/products";
+import { consumeRateLimit, getRequestIdentifier } from "../../../lib/rate-limit";
 
 export const prerender = false;
 
@@ -17,6 +18,19 @@ const getBaseUrl = (requestUrl: string) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const rate = consumeRateLimit({
+    namespace: "mercadopago-preference",
+    key: getRequestIdentifier(request),
+    limit: 30,
+    windowMs: 5 * 60 * 1000
+  });
+  if (!rate.allowed) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": String(rate.retryAfterSeconds) }
+    });
+  }
+
   const token = (process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim();
   if (!token) {
     return new Response("Missing MERCADOPAGO_ACCESS_TOKEN", { status: 500 });

@@ -13,13 +13,14 @@ if (!product) {
   throw new Response(null, { status: 404, statusText: "Not found" });
 }
 const normalizeImageKey = (value = "") => String(value).trim().toLowerCase();
+const isGridVariant = (value = "") => /-grid\.[a-z0-9]+$/i.test(String(value).trim());
 const dedupedImages = (() => {
   const seen = new Set();
   const out = [];
   const list = Array.isArray(product.images) ? product.images : [];
   for (const src of list) {
     const key = normalizeImageKey(src);
-    if (!key || seen.has(key)) continue;
+    if (!key || seen.has(key) || isGridVariant(key)) continue;
     seen.add(key);
     out.push(src);
   }
@@ -179,7 +180,7 @@ const swatchFor = (label = "") => {
             {compareAt ? <p class="pdp-price__compare">{formatPrice(compareAt)}</p> : null}
             {discount ? <span class="pdp-discount">{discount}% OFF</span> : null}
           </div>
-          <p class="pdp-installments muted">El envío se cotiza al confirmar el pedido por WhatsApp.</p>
+          <p class="pdp-installments muted">Pagás el subtotal por Mercado Pago y coordinamos el envío por WhatsApp.</p>
         </div>
 
         {product.colors?.length ? (

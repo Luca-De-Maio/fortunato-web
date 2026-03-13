@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { requireAdmin } from "../../../lib/auth";
-import { getAllProducts, upsertProduct } from "../../../lib/products";
+import { getAllProducts, ProductValidationError, upsertProduct } from "../../../lib/products";
 
 export const prerender = false;
 
@@ -17,7 +17,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   if (!requireAdmin(cookies)) return new Response("Unauthorized", { status: 401 });
   const payload = await request.json().catch(() => null);
   if (!payload) return new Response("Invalid payload", { status: 400 });
-  await upsertProduct(payload);
+  try {
+    await upsertProduct(payload);
+  } catch (error) {
+    if (error instanceof ProductValidationError) {
+      return new Response(error.message, { status: 400 });
+    }
+    throw error;
+  }
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
     headers: { "Content-Type": "application/json" }

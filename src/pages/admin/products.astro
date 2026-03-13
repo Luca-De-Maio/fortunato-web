@@ -106,12 +106,10 @@ const products = await getAllProducts();
             <input type="text" name="gridImage" placeholder="/images/products/...-grid.webp" />
           </label>
           <div class="admin-upload">
-            <div>
-              <p class="muted">Subí imágenes a Cloudinary y se agregan a la lista.</p>
-              <input type="file" id="image-upload" accept="image/*" />
-              <button class="btn btn-ghost" type="button" id="upload-btn">Subir imagen</button>
-              <p class="muted" id="upload-status"></p>
-            </div>
+            <p class="muted">
+              Por seguridad, la carga directa desde el navegador quedó desactivada. Pegá rutas locales o URLs HTTPS ya
+              optimizadas en los campos de imagen.
+            </p>
           </div>
 
           <label>
@@ -165,13 +163,7 @@ const products = await getAllProducts();
   const form = document.querySelector("#product-form");
   const resetBtn = document.querySelector("#reset-btn");
   const logoutBtn = document.querySelector("#logout-btn");
-  const uploadBtn = document.querySelector("#upload-btn");
-  const uploadInput = document.querySelector("#image-upload");
-  const uploadStatus = document.querySelector("#upload-status");
   const saveStatus = document.querySelector("#save-status");
-
-  const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME || "";
-  const uploadPreset = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET || "";
 
   const slugify = (text) =>
     text
@@ -287,51 +279,5 @@ const products = await getAllProducts();
   logoutBtn?.addEventListener("click", async () => {
     await fetch("/api/admin/logout", { method: "POST" });
     window.location.href = "/admin";
-  });
-
-  uploadBtn?.addEventListener("click", async () => {
-    if (!cloudName || !uploadPreset) {
-      uploadStatus.textContent = "Falta configurar Cloudinary (cloud name o upload preset).";
-      uploadStatus.className = "admin-status is-error";
-      return;
-    }
-    const file = uploadInput?.files?.[0];
-    if (!file) {
-      uploadStatus.textContent = "Seleccioná una imagen primero.";
-      uploadStatus.className = "admin-status is-error";
-      return;
-    }
-    uploadBtn.disabled = true;
-    uploadStatus.textContent = "Subiendo...";
-    uploadStatus.className = "admin-status is-pending";
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", uploadPreset);
-
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-      method: "POST",
-      body: formData
-    });
-    if (!res.ok) {
-      let message = "Error al subir la imagen.";
-      try {
-        const err = await res.json();
-        if (err?.error?.message) message = `Error: ${err.error.message}`;
-      } catch {}
-      uploadStatus.textContent = message;
-      uploadStatus.className = "admin-status is-error";
-      uploadBtn.disabled = false;
-      return;
-    }
-    const data = await res.json();
-    const url = data.secure_url;
-    const optimized = url.replace("/upload/", "/upload/f_auto,q_auto,w_1200/");
-    const imagesInput = form.querySelector("[name=images]");
-    const current = (imagesInput.value || "").trim();
-    imagesInput.value = current ? `${current}, ${optimized}` : optimized;
-    uploadStatus.textContent = "Imagen subida correctamente.";
-    uploadStatus.className = "admin-status is-success";
-    uploadInput.value = "";
-    uploadBtn.disabled = false;
   });
 </script>

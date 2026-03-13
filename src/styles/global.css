@@ -463,17 +463,65 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
 }
 
 .site-footer {
-  background: var(--green);
+  background: linear-gradient(180deg, rgba(10, 38, 35, 0.06) 0%, rgba(10, 38, 35, 0) 100%);
   color: var(--beige);
-  padding: 3rem 0 2rem;
+  padding: 0 0 2rem;
 }
-.site-footer .muted { color: rgba(255, 248, 240, 0.85); }
-.footer-logo { height: 36px; width: auto; margin-bottom: 0.8rem; display: block; }
 
-.footer-inner { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-.footer-title { text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.7rem; margin-bottom: 0.6rem; }
-.footer-link { display: block; margin-bottom: 0.4rem; }
-.footer-bottom { margin-top: 2rem; font-size: 0.85rem; opacity: 0.7; }
+.site-footer .muted { color: rgba(245, 232, 215, 0.82); }
+.footer-surface {
+  padding: 2rem;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at top right, rgba(245, 232, 215, 0.12) 0%, rgba(245, 232, 215, 0) 34%),
+    linear-gradient(145deg, #184a45 0%, #103c38 56%, #0c302d 100%);
+  border: 1px solid rgba(12, 48, 45, 0.24);
+  box-shadow:
+    0 24px 60px rgba(12, 48, 45, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.footer-brand-link {
+  display: inline-flex;
+  width: fit-content;
+}
+.footer-wordmark {
+  width: min(220px, 72vw);
+  height: auto;
+  margin-bottom: 0.8rem;
+  display: block;
+  border-radius: 0;
+}
+
+.footer-inner { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 0.8fr)); }
+.footer-column { display: grid; align-content: start; gap: 0.55rem; }
+.footer-brand { max-width: 34ch; }
+.footer-title {
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 0.72rem;
+  margin-bottom: 0.15rem;
+  color: rgba(245, 232, 215, 0.62);
+}
+.footer-link {
+  display: block;
+  width: fit-content;
+  color: rgba(255, 248, 240, 0.96);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.footer-bottom {
+  margin-top: 1.8rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(245, 232, 215, 0.14);
+  font-size: 0.85rem;
+  opacity: 0.74;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-link:hover {
+    transform: translateX(2px);
+    color: var(--white);
+  }
+}
 
 .pdp {
   padding: 0 0 4.5rem;
@@ -946,6 +994,19 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
   margin-top: 2rem;
   display: grid;
   gap: 0.8rem;
+}
+.cart-flow {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(24, 74, 69, 0.08);
+}
+.cart-flow p {
+  margin: 0;
+  color: rgba(40, 44, 43, 0.88);
+  font-size: 0.95rem;
 }
 .cart-summary-actions {
   display: grid;
@@ -1443,6 +1504,18 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.8rem
     border-radius: 999px;
   }
   .cart-item { padding: 0.95rem; }
+  .footer-surface {
+    padding: 1.25rem;
+    border-radius: 24px;
+  }
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+  }
+  .footer-bottom {
+    margin-top: 1.4rem;
+    padding-top: 1rem;
+  }
   .whatsapp-fab {
     right: 0.9rem;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);

@@ -3,6 +3,14 @@ import { join } from "node:path";
 import { getDb, saveDb } from "./db";
 
 const jsonPath = join(process.cwd(), "data", "products.json");
+const MAX_TEXT = 160;
+const MAX_LONG_TEXT = 4000;
+const MAX_URL = 2048;
+const MAX_MONEY = 999999999;
+const SAFE_IMAGE_SRC = /^(\/(?!\/)|https?:\/\/)/i;
+const VALID_CATEGORIES = new Set(["top", "bottom", "calzado"]);
+
+export class ProductValidationError extends Error {}
 
 const parseJson = (value, fallback = []) => {
   if (!value) return fallback;
@@ -15,33 +23,115 @@ const parseJson = (value, fallback = []) => {
 
 const serialize = (value) => JSON.stringify(value ?? []);
 const normalizeImageKey = (value) => String(value || "").trim().toLowerCase();
-const normalizeList = (value) => (Array.isArray(value) ? value.map((item) => String(item).trim()).filter(Boolean) : []);
+const cleanText = (value, max = MAX_TEXT) =>
+  String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .trim()
+    .slice(0, max);
+const normalizeList = (value, maxItems = 12, maxLength = MAX_TEXT) =>
+  Array.isArray(value)
+    ? value
+        .map((item) => cleanText(item, maxLength))
+        .filter(Boolean)
+        .slice(0, maxItems)
+    : [];
 const normalizeCardVariant = (value) => String(value ?? "").trim().toLowerCase() === "double" ? "double" : "standard";
+const isGridVariant = (value) => /-grid\.[a-z0-9]+$/i.test(String(value || "").trim());
+const toSlug = (value) =>
+  cleanText(value, 120)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+const normalizeCurrency = (value) => {
+  const currency = cleanText(value, 8).toUpperCase();
+  return /^[A-Z]{3}$/.test(currency) ? currency : "ARS";
+};
+const normalizeAmount = (value, { allowNull = false } = {}) => {
+  if (allowNull && (value === null || value === undefined || value === "")) return null;
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) {
+    return allowNull ? null : 0;
+  }
+  return Math.max(0, Math.min(MAX_MONEY, Math.round(amount)));
+};
+const normalizeImageSrc = (value) => {
+  const src = cleanText(value, MAX_URL);
+  if (!src) return "";
+  return SAFE_IMAGE_SRC.test(src) ? src : "";
+};
+const normalizeCategory = (value) => {
+  const category = cleanText(value, 24).toLowerCase();
+  return VALID_CATEGORIES.has(category) ? category : "top";
+};
+const normalizeCombinations = (value) => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .slice(0, 12)
+    .map((entry) => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+      const title = cleanText(entry.title, 80);
+      const image = normalizeImageSrc(entry.image);
+      const items = normalizeList(entry.items, 10, 40);
+      if (!title && !image && !items.length) return null;
+      return { title, image, items };
+    })
+    .filter(Boolean);
+};
+const sanitizeProductImages = (images, gridImage = "") => {
+  const list = normalizeList(images, 16, MAX_URL).map((image) => normalizeImageSrc(image)).filter(Boolean);
+  const seen = new Set();
+  const out = [];
+  const normalizedGrid = normalizeImageKey(gridImage);
+  const shouldDropExactGrid = isGridVariant(gridImage);
+  for (const image of list) {
+    const key = normalizeImageKey(image);
+    if (!key || seen.has(key) || isGridVariant(key)) continue;
+    if (shouldDropExactGrid && key === normalizedGrid) continue;
+    seen.add(key);
+    out.push(image);
+  }
+  return out;
+};
 const readSeedProducts = () => JSON.parse(readFileSync(jsonPath, "utf-8"));
 const writeSeedProducts = (products) => {
   writeFileSync(jsonPath, `${JSON.stringify(products, null, 2)}\n`, "utf-8");
 };
 const toSeedProduct = (payload) => {
-  const images = normalizeList(payload.images);
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new ProductValidationError("Invalid product payload.");
+  }
+
+  const name = cleanText(payload.name, 120);
+  const slug = toSlug(payload.slug ?? payload.id ?? name);
+  const id = toSlug(payload.id ?? slug);
+  if (!name) throw new ProductValidationError("Product name is required.");
+  if (!slug || !id) throw new ProductValidationError("Product id and slug are required.");
+
+  const rawGridImage = normalizeImageSrc(payload.gridImage ?? "");
+  const images = sanitizeProductImages(payload.images, rawGridImage);
+  const gridImage = rawGridImage.trim() || images[0] || "";
   return {
-    id: String(payload.id ?? payload.slug ?? ""),
-    slug: String(payload.slug ?? payload.id ?? ""),
-    name: String(payload.name ?? ""),
-    category: String(payload.category ?? ""),
-    price: Number(payload.price ?? 0),
-    compareAt: payload.compareAt ?? null,
-    currency: String(payload.currency ?? "ARS"),
-    description: String(payload.description ?? ""),
-    materials: normalizeList(payload.materials),
-    fit: String(payload.fit ?? ""),
-    colors: normalizeList(payload.colors),
-    sizes: normalizeList(payload.sizes),
-    gridImage: String(payload.gridImage ?? images[0] ?? ""),
+    id,
+    slug,
+    name,
+    category: normalizeCategory(payload.category ?? ""),
+    price: normalizeAmount(payload.price),
+    compareAt: normalizeAmount(payload.compareAt, { allowNull: true }),
+    currency: normalizeCurrency(payload.currency ?? "ARS"),
+    description: cleanText(payload.description, MAX_LONG_TEXT),
+    materials: normalizeList(payload.materials, 12, 80),
+    fit: cleanText(payload.fit, 80),
+    colors: normalizeList(payload.colors, 12, 40),
+    sizes: normalizeList(payload.sizes, 12, 20),
+    gridImage,
     images,
-    highlights: normalizeList(payload.highlights),
-    combinations: Array.isArray(payload.combinations) ? payload.combinations : [],
-    badge: String(payload.badge ?? ""),
-    microcopy: String(payload.microcopy ?? ""),
+    highlights: normalizeList(payload.highlights, 10, 120),
+    combinations: normalizeCombinations(payload.combinations),
+    badge: cleanText(payload.badge, 32),
+    microcopy: cleanText(payload.microcopy, 120),
     cardVariant: normalizeCardVariant(payload.cardVariant)
   };
 };
@@ -74,7 +164,7 @@ const mapRow = (row) => ({
   colors: parseJson(row.colors, []),
   sizes: parseJson(row.sizes, []),
   gridImage: row.gridImage || "",
-  images: parseJson(row.images, []),
+  images: sanitizeProductImages(parseJson(row.images, []), row.gridImage || ""),
   highlights: parseJson(row.highlights, []),
   combinations: parseJson(row.combinations, []),
   badge: row.badge || "",
@@ -179,10 +269,10 @@ const ensureSeeded = async () => {
           sizeStmt.run([nextSerialized, id]);
         }
 
-        const currentImages = parseJson(row[imagesIndex], []);
+        const currentImages = sanitizeProductImages(parseJson(row[imagesIndex], []), row[gridImageIndex] ?? "");
         const currentGridImage = String(row[gridImageIndex] ?? "");
         const slug = String(row[slugIndex] ?? seedProduct.slug ?? "");
-        const seedImages = seedProduct.images ?? [];
+        const seedImages = sanitizeProductImages(seedProduct.images ?? [], seedProduct.gridImage ?? "");
         const seedGridImage = seedProduct.gridImage ?? "";
         const currentFirst = normalizeImageKey(currentImages[0]);
         const seedFirst = normalizeImageKey(seedImages[0]);

@@ -1,24 +1,38 @@
 import bcrypt from "bcryptjs";
-import { createHmac } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
-const getSecret = () => process.env.SESSION_SECRET || "dev-secret";
+const getSecret = () => {
+  const configured = (process.env.SESSION_SECRET || "").trim();
+  if (configured) return configured;
+  return import.meta.env.PROD ? null : "dev-secret";
+};
 const COOKIE_NAME = "admin_session";
 
-const base64Url = (input) =>
-  Buffer.from(input, "utf-8").toString("base64url");
+const safeEqual = (left, right) => {
+  const leftBuffer = Buffer.from(String(left || ""), "utf-8");
+  const rightBuffer = Buffer.from(String(right || ""), "utf-8");
+  if (leftBuffer.length !== rightBuffer.length) return false;
+  return timingSafeEqual(leftBuffer, rightBuffer);
+};
 
 const sign = (value) => {
-  const hmac = createHmac("sha256", getSecret()).update(value).digest("base64url");
+  const secret = getSecret();
+  if (!secret) return null;
+  const hmac = createHmac("sha256", secret).update(value).digest("base64url");
   return `${value}.${hmac}`;
 };
 
 const verify = (token) => {
+  const secret = getSecret();
+  if (!secret) return null;
   const [value, signature] = token.split(".");
   if (!value || !signature) return null;
-  const expected = createHmac("sha256", getSecret()).update(value).digest("base64url");
-  if (expected !== signature) return null;
+  const expected = createHmac("sha256", secret).update(value).digest("base64url");
+  if (!safeEqual(expected, signature)) return null;
   return value;
 };
+
+export const hasSessionSecret = () => Boolean(getSecret());
 
 export const verifyCredentials = async (username, password) => {
   const envUser = (process.env.ADMIN_USER || "").trim();
@@ -28,7 +42,7 @@ export const verifyCredentials = async (username, password) => {
   const user = (username || "").trim();
   const pass = (password || "").trim();
 
-  if (envUser && user !== envUser) return false;
+  if (envUser && !safeEqual(user, envUser)) return false;
 
   // Dev fallback if env vars are missing
   if (!import.meta.env.PROD && !envUser && user === "sofihermosa" && pass === "sofihermosa") {
@@ -36,7 +50,7 @@ export const verifyCredentials = async (username, password) => {
   }
 
   // Always allow plain password match (useful for dev and recovery)
-  if (envPass && pass === envPass) return true;
+  if (envPass && safeEqual(pass, envPass)) return true;
 
   if (envHash) {
     return bcrypt.compare(pass, envHash);
@@ -46,6 +60,9 @@ export const verifyCredentials = async (username, password) => {
 };
 
 export const createSession = (username) => {
+  if (!hasSessionSecret()) {
+    throw new Error("Missing SESSION_SECRET");
+  }
   const expires = Date.now() + 1000 * 60 * 60 * 24 * 7;
   const payload = `${username}:${expires}`;
   return sign(payload);

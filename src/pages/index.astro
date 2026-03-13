@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ProductCard from "../components/ProductCard.astro";
 import ComboCarousel from "../components/ComboCarousel.astro";
+import EditorialShowcase from "../components/EditorialShowcase.astro";
 import FAQ from "../components/FAQ.astro";
 import { getAllProducts } from "../lib/products";
 import { getAllCombinations } from "../lib/combinations";
@@ -46,7 +47,7 @@ const combinations = await getAllCombinations();
       </div>
     </section>
 
-    <section class="section">
+    <section id="conjuntos" class="section">
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Conjuntos</p>
@@ -57,7 +58,7 @@ const combinations = await getAllCombinations();
       </div>
     </section>
 
-    <section id="conjuntos" class="hero">
+    <section class="hero">
       <div class="hero-video is-autoplay">
         <iframe
           src="https://www.youtube.com/embed/akSPGeVQixU?autoplay=1&playsinline=1&rel=0&loop=1&playlist=akSPGeVQixU&mute=1&controls=0&modestbranding=1&iv_load_policy=3"
@@ -73,24 +74,13 @@ const combinations = await getAllCombinations();
           <p>{heroCopy}</p>
           <div class="hero-actions">
             <a href="#capsula" class="btn">Ver cápsula</a>
-            <a href="#conjuntos" class="btn btn-ghost">Ver conjuntos</a>
+            <a href="#editorial" class="btn btn-ghost">Ver editorial</a>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section">
-      <div class="container">
-        <div class="section-head">
-          <p class="eyebrow">Nuestra historia</p>
-          <h2>Herencia italiana, identidad argentina</h2>
-          <p class="muted">Fortunato nace para redefinir la elegancia masculina en Argentina. Diseños atemporales con materiales premium y una experiencia de compra cuidada en cada detalle.</p>
-        </div>
-        <div class="notice">
-          <strong>Compra personalizada:</strong> Atención directa por WhatsApp para asesoramiento, talles y disponibilidad.
-        </div>
-      </div>
-    </section>
+    <EditorialShowcase />
 
     <FAQ />
   </main>
