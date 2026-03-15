@@ -19,8 +19,31 @@ import Footer from "../../components/Footer.astro";
         <a class="btn" href="/cart">Volver al carrito</a>
         <a class="btn btn-ghost" href="https://wa.me/5491158204344">Comprar por WhatsApp</a>
       </div>
+
+      <p class="muted" data-release-status style="margin-top: 1rem;">Si existía una reserva de stock, la estamos liberando.</p>
     </div>
   </main>
 
   <Footer />
+
+  <script>
+    const status = document.querySelector("[data-release-status]");
+    const params = new URLSearchParams(window.location.search);
+    const reservationId = params.get("reservation_id") || params.get("external_reference");
+    if (!reservationId) {
+      if (status) status.textContent = "Podés volver al carrito y reintentar cuando quieras.";
+    } else {
+      fetch("/api/mercadopago/release", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservationId })
+      })
+        .then(() => {
+          if (status) status.textContent = "Reserva liberada. Ya podés reintentar el pago.";
+        })
+        .catch(() => {
+          if (status) status.textContent = "Volvé al carrito y reintentá. Si el problema sigue, escribinos por WhatsApp.";
+        });
+    }
+  </script>
 </Base>

@@ -2,6 +2,7 @@
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
+import { quoteCart } from "../../lib/commerce";
 import { getCombinationBySlug } from "../../lib/combinations";
 
 export const prerender = false;
@@ -11,6 +12,15 @@ const combo = await getCombinationBySlug(slug);
 if (!combo) {
   throw new Response(null, { status: 404, statusText: "Not found" });
 }
+const comboQuote = await quoteCart([{ id: `combo-${combo.id}`, qty: 1 }]);
+const comboAvailability = Number(comboQuote.items?.[0]?.availableQty || 0);
+const comboInStock = comboAvailability > 0;
+const comboStockLabel =
+  !comboInStock
+    ? "Sin stock suficiente para armar este conjunto."
+    : comboAvailability <= 2
+      ? `Últimos ${comboAvailability} conjuntos disponibles.`
+      : "Stock disponible para armar este conjunto.";
 
 const formatPrice = (value: number, currency: string) =>
   `${currency} ${value.toLocaleString("es-AR")}`;
@@ -20,7 +30,7 @@ const formatPrice = (value: number, currency: string) =>
   <Header />
 
   <main class="combo-page">
-    <section class="section combo-section">
+    <section id="combo-detalle" class="section combo-section" data-analytics-section="combo-detalle">
       <div class="container combo-layout">
         <div class="combo-media-card">
           <img src={combo.image || "/placeholder.svg"} alt={combo.title} width="1200" height="1500" decoding="async" />
@@ -39,7 +49,8 @@ const formatPrice = (value: number, currency: string) =>
                 <span class="discount-pill">{combo.savingsPercent}% OFF</span>
               </p>
             ) : null}
-            <p class="muted combo-installments">El envío se cotiza al confirmar el pedido.</p>
+            <p class="muted combo-installments">Pagás dentro de Mercado Pago con subtotal validado desde backend.</p>
+            <p class:list={{ "combo-stock": true, "is-low": comboInStock && comboAvailability <= 2, "is-out": !comboInStock }}>{comboStockLabel}</p>
           </div>
 
           <section class="combo-includes" aria-label="Qué incluye">
@@ -72,30 +83,32 @@ const formatPrice = (value: number, currency: string) =>
             <button
               class="btn"
               data-add-to-cart
+              data-analytics="combo-add-to-cart"
+              data-analytics-kind="button"
               data-id={`combo-${combo.id}`}
               data-name={combo.title}
-              data-price={combo.bundlePrice}
-              data-currency={combo.currency}
               data-image={combo.image || "/placeholder.svg"}
+              disabled={!comboInStock}
             >
-              Agregar conjunto al carrito
+              {comboInStock ? "Agregar conjunto al carrito" : "Sin stock"}
             </button>
             <button
               class="btn btn-ghost"
               type="button"
               data-buy-now
+              data-analytics="combo-buy-now"
+              data-analytics-kind="button"
               data-id={`combo-${combo.id}`}
               data-name={combo.title}
-              data-price={combo.bundlePrice}
-              data-currency={combo.currency}
               data-image={combo.image || "/placeholder.svg"}
+              disabled={!comboInStock}
             >
               Comprar ahora
             </button>
           </div>
 
           <div class="notice">
-            <strong>Pedido y envío:</strong> Cerrá la selección desde el carrito, pagá el subtotal por Mercado Pago y coordinamos el envío por WhatsApp.
+            <strong>Pedido y envío:</strong> Validamos el stock antes del pago y después podés seguir por WhatsApp para coordinar el envío.
           </div>
         </div>
       </div>
@@ -186,6 +199,20 @@ const formatPrice = (value: number, currency: string) =>
 
   .combo-installments {
     margin-top: 0.2rem;
+  }
+
+  .combo-stock {
+    margin-top: 0.3rem;
+    font-size: 0.92rem;
+    color: rgba(40, 44, 43, 0.82);
+  }
+
+  .combo-stock.is-low {
+    color: #8a5f1f;
+  }
+
+  .combo-stock.is-out {
+    color: #8c2f2f;
   }
 
   .combo-includes {

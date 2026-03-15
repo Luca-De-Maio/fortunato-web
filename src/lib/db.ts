@@ -52,6 +52,7 @@ export const getDb = async () => {
         sizes TEXT,
         gridImage TEXT,
         images TEXT,
+        stock TEXT,
         highlights TEXT,
         combinations TEXT,
         badge TEXT,
@@ -59,6 +60,40 @@ export const getDb = async () => {
         cardVariant TEXT
       );
     `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS stock_reservations (
+        id TEXT PRIMARY KEY,
+        status TEXT NOT NULL,
+        cartSnapshot TEXT,
+        locks TEXT NOT NULL,
+        expiresAt INTEGER,
+        paymentId TEXT,
+        preferenceId TEXT,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL
+      );
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS analytics_events (
+        id TEXT PRIMARY KEY,
+        createdAt INTEGER NOT NULL,
+        sessionId TEXT NOT NULL,
+        eventType TEXT NOT NULL,
+        path TEXT NOT NULL,
+        referrerPath TEXT,
+        sectionKey TEXT,
+        targetKind TEXT,
+        targetKey TEXT,
+        dwellMs INTEGER,
+        scrollDepth INTEGER
+      );
+    `);
+
+    db.run("CREATE INDEX IF NOT EXISTS analytics_events_createdAt_idx ON analytics_events(createdAt);");
+    db.run("CREATE INDEX IF NOT EXISTS analytics_events_eventType_idx ON analytics_events(eventType);");
+    db.run("CREATE INDEX IF NOT EXISTS analytics_events_path_idx ON analytics_events(path);");
 
     // Lightweight migration for compareAt/badge/microcopy/cardVariant columns
     const columns = db.exec("PRAGMA table_info(products);")?.[0]?.values ?? [];
@@ -77,6 +112,10 @@ export const getDb = async () => {
     const hasGridImage = columns.some((row) => row[1] === "gridImage");
     if (!hasGridImage) {
       db.run("ALTER TABLE products ADD COLUMN gridImage TEXT;");
+    }
+    const hasStock = columns.some((row) => row[1] === "stock");
+    if (!hasStock) {
+      db.run("ALTER TABLE products ADD COLUMN stock TEXT;");
     }
     const hasCardVariant = columns.some((row) => row[1] === "cardVariant");
     if (!hasCardVariant) {

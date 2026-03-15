@@ -1,0 +1,384 @@
+---
+interface HeroSlide {
+  eyebrow?: string;
+  title: string;
+  copy?: string;
+  image: string;
+  imageAlt?: string;
+  primaryHref: string;
+  primaryLabel: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
+  accent?: string;
+}
+
+const { slides = [] } = Astro.props as { slides?: HeroSlide[] };
+---
+
+{slides.length ? (
+  <section id="giro" class="home-hero section" data-analytics-section="giro">
+    <div class="container home-hero-container">
+      <div class="home-hero-shell" data-hero-carousel>
+        <div class="home-hero-stage" data-hero-stage>
+          {slides.map((slide, index) => (
+            <article
+              class:list={{ "home-hero-slide": true, "is-active": index === 0 }}
+              data-hero-slide
+              aria-hidden={index === 0 ? "false" : "true"}
+            >
+              <img
+                src={slide.image}
+                alt={slide.imageAlt || slide.title}
+                width="1600"
+                height="1200"
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+              />
+              <div class="home-hero-overlay"></div>
+              <div class="home-hero-copy">
+                {slide.eyebrow ? <p class="eyebrow">{slide.eyebrow}</p> : null}
+                <h1>{slide.title}</h1>
+                {slide.copy ? <p>{slide.copy}</p> : null}
+                <div class="home-hero-actions">
+                  <a class="btn" href={slide.primaryHref}>{slide.primaryLabel}</a>
+                  {slide.secondaryHref && slide.secondaryLabel ? (
+                    <a class="btn btn-ghost" href={slide.secondaryHref}>{slide.secondaryLabel}</a>
+                  ) : null}
+                </div>
+                {slide.accent ? <span class="home-hero-accent">{slide.accent}</span> : null}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {slides.length > 1 ? (
+          <div class="home-hero-dots" aria-label="Indicadores del giro">
+            {slides.map((_, index) => (
+              <button
+                type="button"
+                class:list={{ "home-hero-dot": true, "is-active": index === 0 }}
+                data-hero-dot={index}
+                data-analytics={`hero-dot-${index + 1}`}
+                data-analytics-kind="button"
+                aria-label={`Ir a la imagen ${index + 1} del hero`}
+                aria-pressed={index === 0 ? "true" : "false"}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  </section>
+) : null}
+
+<script>
+  document.querySelectorAll("[data-hero-carousel]").forEach((root) => {
+    const slides = Array.from(root.querySelectorAll("[data-hero-slide]"));
+    const dots = Array.from(root.querySelectorAll("[data-hero-dot]"));
+    const stage = root.querySelector("[data-hero-stage]");
+    let index = 0;
+    let timer = null;
+    let touchStartX = null;
+
+    if (!slides.length) return;
+
+    const paint = () => {
+      slides.forEach((slide, slideIndex) => {
+        const isActive = slideIndex === index;
+        slide.classList.toggle("is-active", isActive);
+        slide.setAttribute("aria-hidden", isActive ? "false" : "true");
+      });
+      dots.forEach((dot, dotIndex) => {
+        const isActive = dotIndex === index;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    };
+
+    const goTo = (nextIndex, restart = true) => {
+      index = (nextIndex + slides.length) % slides.length;
+      paint();
+      if (restart) start();
+    };
+
+    const stop = () => {
+      if (!timer) return;
+      window.clearInterval(timer);
+      timer = null;
+    };
+
+    const start = () => {
+      if (slides.length < 2) return;
+      stop();
+      timer = window.setInterval(() => {
+        goTo(index + 1, false);
+      }, 4800);
+    };
+
+    dots.forEach((dot, dotIndex) => {
+      dot.addEventListener("click", () => {
+        goTo(dotIndex);
+      });
+    });
+
+    root.addEventListener("mouseenter", stop);
+    root.addEventListener("mouseleave", start);
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    stage?.addEventListener(
+      "touchstart",
+      (event) => {
+        touchStartX = event.changedTouches[0]?.clientX ?? null;
+        stop();
+      },
+      { passive: true }
+    );
+
+    stage?.addEventListener(
+      "touchend",
+      (event) => {
+        const touchEndX = event.changedTouches[0]?.clientX ?? null;
+        if (touchStartX === null || touchEndX === null) {
+          start();
+          return;
+        }
+        const deltaX = touchStartX - touchEndX;
+        touchStartX = null;
+
+        if (Math.abs(deltaX) < 40) {
+          start();
+          return;
+        }
+
+        goTo(deltaX > 0 ? index + 1 : index - 1);
+      },
+      { passive: true }
+    );
+
+    paint();
+    start();
+  });
+</script>
+
+<style>
+  .home-hero {
+    padding-top: 2.2rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .home-hero-container {
+    width: min(100% - 1.1rem, calc(var(--max) + 1.4rem));
+  }
+
+  .home-hero-shell {
+    position: relative;
+  }
+
+  .home-hero-stage {
+    position: relative;
+    min-height: clamp(31rem, 72vw, 42rem);
+    overflow: hidden;
+    border-radius: 38px;
+    background:
+      radial-gradient(circle at top left, rgba(243, 224, 196, 0.48) 0%, rgba(243, 224, 196, 0) 32%),
+      linear-gradient(135deg, #123f3b 0%, #0f302d 44%, #1b1d1d 100%);
+    box-shadow: 0 30px 90px rgba(15, 48, 45, 0.22);
+    border: 1px solid rgba(24, 74, 69, 0.14);
+  }
+
+  .home-hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.55s ease, visibility 0.55s ease, transform 0.55s ease;
+    transform: scale(1.02);
+  }
+
+  .home-hero-slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+
+  .home-hero-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 22%;
+    border-radius: 0;
+    filter: saturate(0.94) contrast(1.02);
+  }
+
+  .home-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(92deg, rgba(8, 14, 14, 0.72) 0%, rgba(8, 14, 14, 0.56) 30%, rgba(8, 14, 14, 0.18) 58%, rgba(8, 14, 14, 0.22) 100%),
+      linear-gradient(180deg, rgba(8, 14, 14, 0.06) 0%, rgba(8, 14, 14, 0.08) 42%, rgba(8, 14, 14, 0.44) 100%);
+  }
+
+  .home-hero-copy {
+    position: absolute;
+    left: clamp(1.4rem, 4vw, 3.2rem);
+    bottom: clamp(1.4rem, 4vw, 3.2rem);
+    width: min(24rem, calc(100% - 2.8rem));
+    padding: 0;
+    color: rgba(255, 248, 240, 0.98);
+  }
+
+  .home-hero-copy .eyebrow {
+    color: rgba(255, 248, 240, 0.82);
+    margin-bottom: 0.7rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+  }
+
+  .home-hero-copy h1 {
+    margin: 0;
+    font-family: "Cinzel", "Cormorant Garamond", serif;
+    font-size: clamp(2.55rem, 4.2vw, 4.1rem);
+    line-height: 0.96;
+    color: #fff8f0;
+    max-width: 6ch;
+    text-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+  }
+
+  .home-hero-copy p:not(.eyebrow) {
+    margin: 1rem 0 1.45rem;
+    font-size: clamp(0.96rem, 1.45vw, 1.04rem);
+    line-height: 1.45;
+    color: rgba(255, 248, 240, 0.9);
+    max-width: 28ch;
+    text-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  }
+
+  .home-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .home-hero-copy h1 + .home-hero-actions {
+    margin-top: 1rem;
+  }
+
+  .home-hero-accent {
+    margin-top: 1rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.42rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(18, 63, 59, 0.08);
+    color: #123f3b;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .home-hero-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 1rem;
+    z-index: 3;
+    display: flex;
+    gap: 0.55rem;
+    justify-content: center;
+    transform: translateX(-50%);
+  }
+
+  .home-hero-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 248, 240, 0.36);
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+    box-shadow: 0 8px 20px rgba(8, 15, 14, 0.18);
+  }
+
+  .home-hero-dot.is-active {
+    background: rgba(245, 232, 215, 0.96);
+    transform: scale(1.14);
+  }
+
+  @media (max-width: 760px) {
+    .home-hero {
+      padding-top: 1.2rem;
+      padding-bottom: 0.9rem;
+    }
+
+    .home-hero-container {
+      width: min(100% - 0.45rem, var(--max));
+    }
+
+    .home-hero-stage {
+      min-height: 35rem;
+      border-radius: 26px;
+    }
+
+    .home-hero-slide img {
+      object-position: center 18%;
+    }
+
+    .home-hero-copy {
+      left: 1rem;
+      right: auto;
+      width: min(20rem, calc(100% - 2rem));
+      bottom: 1.2rem;
+    }
+
+    .home-hero-copy .eyebrow {
+      margin-bottom: 0.45rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.24em;
+    }
+
+    .home-hero-copy p:not(.eyebrow) {
+      display: none;
+    }
+
+    .home-hero-copy h1 {
+      font-size: clamp(1.74rem, 7.2vw, 2.24rem);
+      max-width: 9.2ch;
+      line-height: 0.99;
+    }
+
+    .home-hero-actions {
+      gap: 0.45rem;
+    }
+
+    .home-hero-actions .btn {
+      padding: 0.8rem 1.08rem;
+      font-size: 0.96rem;
+    }
+
+    .home-hero-dots {
+      bottom: 0.85rem;
+    }
+
+    .home-hero-dot {
+      width: 0.64rem;
+      height: 0.64rem;
+    }
+
+    .home-hero-accent {
+      display: none;
+    }
+  }
+
+  .home-hero-actions .btn {
+    border-color: transparent;
+    background: rgba(245, 232, 215, 0.96);
+    color: #123f3b;
+    box-shadow: 0 16px 36px rgba(8, 15, 14, 0.2);
+  }
+
+  .home-hero-actions .btn:hover {
+    background: #fff8f0;
+  }
+</style>

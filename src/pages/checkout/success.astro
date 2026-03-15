@@ -19,6 +19,8 @@ import Footer from "../../components/Footer.astro";
         <strong>¿Querés confirmar por WhatsApp?</strong> Si necesitás coordinar envío o tenés dudas de talle, escribinos.
       </div>
 
+      <p class="muted" data-payment-sync style="margin-top: 1rem;">Estamos validando el estado final de tu pago.</p>
+
       <div style="margin-top: 1.4rem; display: grid; gap: 0.8rem;">
         <a class="btn" href="/">Volver al inicio</a>
         <a class="btn btn-ghost" href="https://wa.me/5491158204344">Hablar por WhatsApp</a>
@@ -29,6 +31,33 @@ import Footer from "../../components/Footer.astro";
   <Footer />
 
   <script>
-    try { localStorage.setItem("fortunato_cart", "[]"); } catch {}
+    const status = document.querySelector("[data-payment-sync]");
+    const params = new URLSearchParams(window.location.search);
+    const reservationId = params.get("reservation_id") || params.get("external_reference");
+    const paymentId = params.get("payment_id") || params.get("collection_id");
+
+    const clearCart = () => {
+      try { localStorage.setItem("fortunato_cart", "[]"); } catch {}
+    };
+
+    if (!reservationId || !paymentId) {
+      clearCart();
+      if (status) status.textContent = "No recibimos datos completos del pago, pero podés escribirnos si necesitás ayuda.";
+    } else {
+      fetch("/api/mercadopago/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservationId, paymentId })
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error("No pudimos confirmar el pago automáticamente.");
+          clearCart();
+          if (status) status.textContent = "Pago validado. El stock quedó confirmado para tu pedido.";
+        })
+        .catch(() => {
+          clearCart();
+          if (status) status.textContent = "Recibimos el regreso desde Mercado Pago. Si necesitás, confirmá por WhatsApp y lo revisamos manualmente.";
+        });
+    }
   </script>
 </Base>

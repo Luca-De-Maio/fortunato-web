@@ -1,0 +1,256 @@
+---
+import AdminNav from "../../components/AdminNav.astro";
+import Base from "../../layouts/Base.astro";
+import { requireAdmin } from "../../lib/auth";
+import { getAnalyticsDashboard } from "../../lib/analytics";
+
+export const prerender = false;
+
+if (!requireAdmin(Astro.cookies)) {
+  return Astro.redirect("/admin");
+}
+
+const days = Math.max(1, Math.min(Number(Astro.url.searchParams.get("days") || 7), 30));
+const dashboard = await getAnalyticsDashboard({ days });
+
+const formatDuration = (value: number) => {
+  if (!value) return "0s";
+  const seconds = Math.round(value / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return rest ? `${minutes}m ${rest}s` : `${minutes}m`;
+};
+
+const formatDate = (value: number) =>
+  new Date(value).toLocaleString("es-AR", {
+    dateStyle: "short",
+    timeStyle: "short"
+  });
+---
+
+<Base title="Fortunato | Admin Analytics" description="Analítica propia de navegación y clicks" analytics={false}>
+  <main class="admin-page">
+    <div class="container admin-layout">
+      <div class="admin-card admin-card-wide">
+        <div class="admin-head">
+          <div>
+            <h1>Analytics</h1>
+            <p class="muted">Tracking propio, anónimo y agregado. No guardamos texto libre, queries ni PII.</p>
+          </div>
+          <div style="display:flex; gap:0.7rem; flex-wrap:wrap;">
+            <a class="btn btn-ghost" href={`/admin/analytics?days=${dashboard.days}`}>Refrescar</a>
+            <button class="btn btn-ghost" id="logout-btn" type="button">Salir</button>
+          </div>
+        </div>
+
+        <AdminNav current="analytics" />
+
+        <div class="admin-filter-row">
+          <span class="muted">Ventana</span>
+          <div class="admin-chip-row">
+            {[7, 14, 30].map((value) => (
+              <a class:list={["admin-chip", dashboard.days === value && "is-active"]} href={`/admin/analytics?days=${value}`}>
+                {value} días
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div class="admin-metric-grid">
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Pageviews</span>
+            <strong>{dashboard.summary.pageviews.toLocaleString("es-AR")}</strong>
+          </article>
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Sesiones únicas</span>
+            <strong>{dashboard.summary.uniqueSessions.toLocaleString("es-AR")}</strong>
+          </article>
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Clicks trackeados</span>
+            <strong>{dashboard.summary.clickCount.toLocaleString("es-AR")}</strong>
+          </article>
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Permanencia promedio</span>
+            <strong>{formatDuration(dashboard.summary.avgDwellMs)}</strong>
+          </article>
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Scroll promedio</span>
+            <strong>{dashboard.summary.avgScrollDepth}%</strong>
+          </article>
+        </div>
+
+        <div class="admin-analytics-grid">
+          <section class="admin-subcard">
+            <div class="admin-subcard-head">
+              <h2>Páginas</h2>
+              <p class="muted">Qué páginas concentran visitas, clicks y permanencia.</p>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Path</th>
+                    <th>Views</th>
+                    <th>Sesiones</th>
+                    <th>Clicks</th>
+                    <th>Permanencia</th>
+                    <th>Scroll</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboard.topPages.length ? dashboard.topPages.map((row) => (
+                    <tr>
+                      <td>{row.path}</td>
+                      <td>{row.pageviews}</td>
+                      <td>{row.uniqueSessions}</td>
+                      <td>{row.clickCount}</td>
+                      <td>{formatDuration(row.avgDwellMs)}</td>
+                      <td>{row.avgScrollDepth}%</td>
+                    </tr>
+                  )) : (
+                    <tr><td colspan="6">Todavía no hay datos.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-subcard">
+            <div class="admin-subcard-head">
+              <h2>Secciones</h2>
+              <p class="muted">Dónde efectivamente entró la gente dentro de cada página.</p>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Sección</th>
+                    <th>Views</th>
+                    <th>Sesiones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboard.topSections.length ? dashboard.topSections.map((row) => (
+                    <tr>
+                      <td>{row.sectionKey}</td>
+                      <td>{row.views}</td>
+                      <td>{row.uniqueSessions}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colspan="3">Todavía no hay datos.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-subcard">
+            <div class="admin-subcard-head">
+              <h2>Clicks top</h2>
+              <p class="muted">CTA y links que más interacción generan.</p>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Destino</th>
+                    <th>Tipo</th>
+                    <th>Path</th>
+                    <th>Clicks</th>
+                    <th>Sesiones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboard.topClicks.length ? dashboard.topClicks.map((row) => (
+                    <tr>
+                      <td>{row.targetKey}</td>
+                      <td>{row.targetKind}</td>
+                      <td>{row.path}</td>
+                      <td>{row.clicks}</td>
+                      <td>{row.uniqueSessions}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colspan="5">Todavía no hay datos.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="admin-subcard">
+            <div class="admin-subcard-head">
+              <h2>Actividad diaria</h2>
+              <p class="muted">Tendencia simple de tráfico e interacción.</p>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Views</th>
+                    <th>Clicks</th>
+                    <th>Sesiones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboard.daily.length ? dashboard.daily.map((row) => (
+                    <tr>
+                      <td>{row.date}</td>
+                      <td>{row.pageviews}</td>
+                      <td>{row.clicks}</td>
+                      <td>{row.uniqueSessions}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colspan="4">Todavía no hay datos.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <section class="admin-subcard">
+          <div class="admin-subcard-head">
+            <h2>Clicks recientes</h2>
+            <p class="muted">Últimos eventos útiles para lectura operativa rápida.</p>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Path</th>
+                  <th>Sección</th>
+                  <th>Tipo</th>
+                  <th>Destino</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dashboard.recentClicks.length ? dashboard.recentClicks.map((row) => (
+                  <tr>
+                    <td>{formatDate(row.createdAt)}</td>
+                    <td>{row.path}</td>
+                    <td>{row.sectionKey || "—"}</td>
+                    <td>{row.targetKind}</td>
+                    <td>{row.targetKey}</td>
+                  </tr>
+                )) : (
+                  <tr><td colspan="5">Todavía no hay datos.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script>
+  const logoutBtn = document.querySelector("#logout-btn");
+  logoutBtn?.addEventListener("click", async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    window.location.href = "/admin";
+  });
+</script>

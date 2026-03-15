@@ -28,21 +28,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const { username, password } = body;
   const ok = await verifyCredentials(username, password);
   if (!ok) {
-    if (!import.meta.env.PROD) {
-      const envUser = (process.env.ADMIN_USER || "").trim();
-      const envPass = (process.env.ADMIN_PASSWORD || "").trim();
-      const envHash = process.env.ADMIN_PASSWORD_HASH || "";
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          reason: "invalid_credentials",
-          envUserSet: Boolean(envUser),
-          envPassSet: Boolean(envPass),
-          envHashSet: Boolean(envHash)
-        }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
-    }
     return new Response("Unauthorized", { status: 401 });
   }
 

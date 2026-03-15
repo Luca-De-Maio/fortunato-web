@@ -16,10 +16,7 @@ const attributeLine = product.microcopy?.trim()
   : product.colors?.length
   ? product.colors.slice(0, 2).join(" · ")
   : "";
-const defaultColor = product.colors?.[0] ?? "";
-const defaultSize = product.sizes?.[0] ?? "";
 const gridImage = product.gridImage || product.images?.[0] || "/placeholder.svg";
-const cartImage = product.images?.[0] || gridImage || "/placeholder.svg";
 const cardVariant = product.cardVariant === "double" ? "double" : "standard";
 ---
 <article class:list={{ "product-card": true, "is-double": cardVariant === "double" }}>
@@ -46,18 +43,8 @@ const cardVariant = product.cardVariant === "double" ? "double" : "standard";
         </p>
       </div>
     </a>
-    <button
-      class="btn btn-full"
-      data-add-to-cart
-      data-id={product.id}
-      data-name={product.name}
-      data-price={product.price ?? 0}
-      data-currency={product.currency}
-      data-image={cartImage}
-      data-color={defaultColor}
-      data-size={defaultSize}
-    >
-      Agregar al carrito
-    </button>
+    <a class="btn btn-full" href={`/product/${product.slug}`}>
+      Ver producto
+    </a>
   </div>
 </article>

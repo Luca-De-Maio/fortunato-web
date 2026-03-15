@@ -19,6 +19,8 @@ interface Combo {
   savingsAmount: number;
   savingsPercent: number;
   items: ComboItem[];
+  availableQty?: number;
+  inStock?: boolean;
 }
 
 const { combinations = [] } = Astro.props as { combinations?: Combo[] };
@@ -27,6 +29,13 @@ const formatPrice = (value: number, currency: string) =>
   `${currency} ${value.toLocaleString("es-AR")}`;
 
 const formatCountLabel = (count: number) => `${count} ${count === 1 ? "prenda" : "prendas"}`;
+const isLowBundleStock = (combo: Combo) => Number(combo.availableQty || 0) > 0 && Number(combo.availableQty || 0) <= 2;
+const getBundleStockMessage = (combo: Combo) =>
+  !combo.inStock
+    ? "Sin stock suficiente."
+    : isLowBundleStock(combo)
+      ? `Ultimos ${combo.availableQty} sets.`
+      : "Stock disponible.";
 ---
 {combinations.length ? (
   <div class="bundle-module" aria-label="Conjuntos destacados">
@@ -81,14 +90,24 @@ const formatCountLabel = (count: number) => `${count} ${count === 1 ? "prenda" :
                 <button
                   class="btn btn-full"
                   data-add-to-cart
+                  data-analytics="combo-carousel-add"
+                  data-analytics-kind="button"
                   data-id={`combo-${combo.id}`}
                   data-name={combo.title}
-                  data-price={combo.bundlePrice}
-                  data-currency={combo.currency}
                   data-image={combo.image || "/placeholder.svg"}
+                  disabled={!combo.inStock}
                 >
-                  Agregar conjunto
+                  {combo.inStock ? "Agregar conjunto" : "Sin stock"}
                 </button>
+                <p
+                  class:list={[
+                    "bundle-stock",
+                    isLowBundleStock(combo) && "is-low",
+                    !combo.inStock && "is-out"
+                  ]}
+                >
+                  {getBundleStockMessage(combo)}
+                </p>
               </div>
             </details>
           </div>
@@ -218,6 +237,19 @@ const formatCountLabel = (count: number) => `${count} ${count === 1 ? "prenda" :
     display: grid;
     gap: 0.75rem;
     padding-top: 0.85rem;
+  }
+
+  .bundle-stock {
+    font-size: 0.86rem;
+    color: rgba(64, 67, 66, 0.74);
+  }
+
+  .bundle-stock.is-low {
+    color: #8a5f1f;
+  }
+
+  .bundle-stock.is-out {
+    color: #8c2f2f;
   }
 
   .bundle-note {

@@ -2,85 +2,121 @@
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import ProductCard from "../components/ProductCard.astro";
 import ComboCarousel from "../components/ComboCarousel.astro";
 import EditorialShowcase from "../components/EditorialShowcase.astro";
 import FAQ from "../components/FAQ.astro";
+import HeroCarousel from "../components/HeroCarousel.astro";
+import MarqueeBand from "../components/MarqueeBand.astro";
+import { quoteCart } from "../lib/commerce";
 import { getAllProducts } from "../lib/products";
 import { getAllCombinations } from "../lib/combinations";
-
-const heroTitle = "Elegancia moderna para el hombre que honra su destino.";
-const heroCopy = "Fortunato es la herencia del old money guiada por el pulso de lo eterno. Una cápsula limitada, sobria y auténtica, con materiales nobles y cortes precisos.";
 
 export const prerender = false;
 
 const products = await getAllProducts();
-const homeOrder = [
-  "camisa-riviera",
-  "chomba-sprezzata",
-  "remera-doppio-collo",
-  "pantalon-sastrero",
-  "bermuda-rilassata",
-  "bermuda-sastrera",
-  "sandalias-crudem"
+const getVariantCount = (category) =>
+  products
+    .filter((product) => String(product.category || "").toLowerCase() === category)
+    .reduce((sum, product) => sum + Math.max(Array.isArray(product.colors) ? product.colors.length : 0, 1), 0);
+const validOutfitCount = getVariantCount("top") * getVariantCount("bottom");
+const validOutfitLabel = new Intl.NumberFormat("es-AR").format(validOutfitCount);
+const promoBandItems = [
+  "Envíos gratis desde $129.000",
+  "Envíos a todo el país con seguimiento",
+  "Cambios dentro de los 10 días",
+  "Mercado Pago integrado"
 ];
-const orderIndex = new Map(homeOrder.map((id, index) => [id, index]));
-const orderedProducts = [...products].sort((a, b) => {
-  const aIndex = orderIndex.has(a.id) ? orderIndex.get(a.id) : Number.MAX_SAFE_INTEGER;
-  const bIndex = orderIndex.has(b.id) ? orderIndex.get(b.id) : Number.MAX_SAFE_INTEGER;
-  if (aIndex !== bIndex) return aIndex - bIndex;
-  return String(a.name || "").localeCompare(String(b.name || ""), "es");
-});
-const combinations = await getAllCombinations();
+const capsuleBandItems = [
+  `${validOutfitLabel} combinaciones posibles`,
+  "Prendas pensadas para combinarse entre sí",
+  "Menos piezas, más formas de usar la cápsula",
+  "Looks sobrios, simples y bien resueltos"
+];
+const serviceBandItems = [
+  "Atención directa por WhatsApp",
+  "Entrega estimada entre 48 y 96 hs según zona",
+  "Cambios dentro de los 10 días",
+  "Mercado Pago integrado"
+];
+const combinations = await Promise.all(
+  (await getAllCombinations()).map(async (combo) => {
+    const comboQuote = await quoteCart([{ id: `combo-${combo.id}`, qty: 1 }]);
+    const availableQty = Number(comboQuote.items?.[0]?.availableQty || 0);
+    return {
+      ...combo,
+      availableQty,
+      inStock: availableQty > 0
+    };
+  })
+);
+const slides = [
+  {
+    eyebrow: "",
+    title: "Vestite bien, sin esfuerzo.",
+    copy: "",
+    image: "/images/hero/posible-hero-chomba-eze.JPG",
+    imageAlt: "Modelo con chomba mostaza posando en interior claro",
+    primaryHref: "/capsula",
+    primaryLabel: "Explorar cápsula"
+  },
+  {
+    eyebrow: "",
+    title: "Vestite bien, sin esfuerzo.",
+    copy: "",
+    image: "/images/hero/fotoEZEsimilar.JPG",
+    imageAlt: "Modelo con remera negra y bermuda camel en interior claro",
+    primaryHref: "/capsula",
+    primaryLabel: "Explorar cápsula"
+  }
+];
 ---
 
 <Base title="Fortunato | Moda masculina premium" description="Cápsula limitada de prendas premium inspiradas en la herencia italo-argentina.">
   <Header />
   <main>
-    <section id="capsula" class="section section-capsule">
-      <div class="container">
-        <div class="capsule-grid">
-          {orderedProducts.map((product) => (
-            <ProductCard product={product} />
-          ))}
+    <HeroCarousel slides={slides} />
+    <MarqueeBand items={promoBandItems} analyticsSection="promo-band" />
+
+    <section id="direccion" class="section home-overview" data-analytics-section="direccion">
+      <div class="container home-overview-grid">
+        <div class="home-overview-copy">
+          <h2>{validOutfitLabel} formas de usar la cápsula.</h2>
+          <p class="muted">
+            Pocas piezas, más decisiones simples. Cada prenda fue pensada para mezclarse bien con las demás.
+          </p>
+        </div>
+
+        <div class="home-route-grid">
+          <a class="home-route-card" href="/capsula">
+            <span class="home-route-label">Cápsula</span>
+            <strong>Ver toda la cápsula</strong>
+            <p>Entrá por prenda y elegí color y talle en pocos pasos.</p>
+          </a>
+          <a class="home-route-card is-contrast" href="#conjuntos">
+            <span class="home-route-label">Conjuntos</span>
+            <strong>Empezar por un look armado</strong>
+            <p>Resolvé más rápido desde una combinación ya curada.</p>
+          </a>
         </div>
       </div>
     </section>
 
-    <section id="conjuntos" class="section">
+    <MarqueeBand items={capsuleBandItems} tone="contrast" analyticsSection="capsule-band" />
+
+    <section id="conjuntos" class="section home-section-alt">
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Conjuntos</p>
-          <h2>Looks listos para comprar en un solo paso.</h2>
-          <p class="muted">Entrá al conjunto, revisá qué incluye y cerrá el pedido desde el carrito.</p>
+          <h2>Looks armados para decidir más rápido.</h2>
+          <p class="muted">Cada conjunto reúne prendas que ya funcionan entre sí para que resuelvas el outfit con menos pasos.</p>
         </div>
         <ComboCarousel combinations={combinations} />
       </div>
     </section>
 
-    <section class="hero">
-      <div class="hero-video is-autoplay">
-        <iframe
-          src="https://www.youtube.com/embed/akSPGeVQixU?autoplay=1&playsinline=1&rel=0&loop=1&playlist=akSPGeVQixU&mute=1&controls=0&modestbranding=1&iv_load_policy=3"
-          title="Video de presentación Fortunato"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen
-        ></iframe>
-      </div>
-      <div class="container hero-grid">
-        <div>
-          <p class="eyebrow">Cápsula verano 2026</p>
-          <h1>{heroTitle}</h1>
-          <p>{heroCopy}</p>
-          <div class="hero-actions">
-            <a href="#capsula" class="btn">Ver cápsula</a>
-            <a href="#editorial" class="btn btn-ghost">Ver editorial</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <EditorialShowcase />
+
+    <MarqueeBand items={serviceBandItems} analyticsSection="service-band" />
 
     <FAQ />
   </main>

@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-const { title = "Fortunato", description = "Moda masculina premium" } = Astro.props;
+const { title = "Fortunato", description = "Moda masculina premium", analytics = true } = Astro.props;
 ---
 <!doctype html>
 <html lang="es">
@@ -36,7 +36,7 @@ const { title = "Fortunato", description = "Moda masculina premium" } = Astro.pr
       />
     </noscript>
   </head>
-  <body>
+  <body data-analytics-enabled={analytics ? "true" : "false"}>
     <div class="grain"></div>
     <slot />
     <a class="whatsapp-fab" href="https://wa.me/5491158204344" aria-label="WhatsApp Fortunato">
@@ -94,18 +94,17 @@ const { title = "Fortunato", description = "Moda masculina premium" } = Astro.pr
       document.addEventListener("click", (event) => {
         const addButton = event.target.closest("[data-add-to-cart]");
         if (addButton) {
+          const previousLabel = addButton.textContent;
           const payload = {
             id: addButton.dataset.id,
             name: addButton.dataset.name,
-            price: Number(addButton.dataset.price || 0),
-            currency: addButton.dataset.currency || "ARS",
             image: addButton.dataset.image || "/placeholder.svg",
             size: addButton.dataset.size || "",
             color: addButton.dataset.color || ""
           };
           addToCart(payload);
           addButton.textContent = "Agregado";
-          setTimeout(() => (addButton.textContent = "Agregar al carrito"), 1200);
+          setTimeout(() => (addButton.textContent = previousLabel), 1200);
           return;
         }
 
@@ -115,8 +114,6 @@ const { title = "Fortunato", description = "Moda masculina premium" } = Astro.pr
         const payload = {
           id: buyButton.dataset.id,
           name: buyButton.dataset.name,
-          price: Number(buyButton.dataset.price || 0),
-          currency: buyButton.dataset.currency || "ARS",
           image: buyButton.dataset.image || "/placeholder.svg",
           size: buyButton.dataset.size || "",
           color: buyButton.dataset.color || ""
@@ -128,5 +125,205 @@ const { title = "Fortunato", description = "Moda masculina premium" } = Astro.pr
       updateBadge();
       setupHeaderScroll();
     </script>
+    {analytics ? (
+      <script>
+        (() => {
+          if (window.location.pathname.startsWith("/admin")) return;
+
+          const ENDPOINT = "/api/analytics/collect";
+          const SESSION_KEY = "fortunato_analytics_sid";
+          const now = () => Math.round(performance.now());
+          const normalizePath = (value) => {
+            try {
+              const url = new URL(value, window.location.origin);
+              return (url.pathname || "/").replace(/\/+$/, "") || "/";
+            } catch {
+              return "/";
+            }
+          };
+          const toToken = (value, max = 120) =>
+            String(value || "")
+              .trim()
+              .toLowerCase()
+              .replace(/[^a-z0-9/_:.-]+/g, "-")
+              .replace(/-+/g, "-")
+              .replace(/(^[-./:]+|[-./:]+$)/g, "")
+              .slice(0, max);
+          const ensureSessionId = () => {
+            try {
+              const current = localStorage.getItem(SESSION_KEY);
+              if (current && /^[a-zA-Z0-9_-]{16,80}$/.test(current)) return current;
+              const next = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`)
+                .replace(/[^a-zA-Z0-9_-]/g, "")
+                .slice(0, 48);
+              localStorage.setItem(SESSION_KEY, next);
+              return next;
+            } catch {
+              return `${Date.now()}${Math.random().toString(36).slice(2, 18)}`.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 48);
+            }
+          };
+          const sessionId = ensureSessionId();
+          const pagePath = normalizePath(window.location.pathname);
+          const referrerPath = (() => {
+            if (!document.referrer) return "";
+            try {
+              const ref = new URL(document.referrer);
+              if (ref.origin !== window.location.origin) return "";
+              return normalizePath(ref.pathname);
+            } catch {
+              return "";
+            }
+          })();
+
+          const queue = [];
+          const seenSections = new Set();
+          const pageStart = now();
+          let maxScrollDepth = 0;
+          let flushTimer = null;
+          let engagementSent = false;
+
+          const flush = (useBeacon = false) => {
+            if (!queue.length) return;
+            const payload = JSON.stringify({
+              sessionId,
+              events: queue.splice(0, 20)
+            });
+            if (useBeacon && navigator.sendBeacon) {
+              const blob = new Blob([payload], { type: "application/json" });
+              if (navigator.sendBeacon(ENDPOINT, blob)) {
+                if (queue.length) scheduleFlush(false);
+                return;
+              }
+            }
+            fetch(ENDPOINT, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: payload,
+              keepalive: useBeacon
+            }).catch(() => {}).finally(() => {
+              if (queue.length) scheduleFlush(false);
+            });
+          };
+
+          const scheduleFlush = (urgent = false) => {
+            if (urgent) {
+              if (flushTimer) {
+                window.clearTimeout(flushTimer);
+                flushTimer = null;
+              }
+              flush(true);
+              return;
+            }
+            if (flushTimer) return;
+            flushTimer = window.setTimeout(() => {
+              flushTimer = null;
+              flush(false);
+            }, 1200);
+          };
+
+          const pushEvent = (event, { urgent = false } = {}) => {
+            queue.push({
+              path: pagePath,
+              ...event
+            });
+            scheduleFlush(urgent || queue.length >= 12);
+          };
+
+          const getSectionKey = (node) => {
+            const section = node?.closest?.("[data-analytics-section], section[id]");
+            if (!section) return "";
+            return toToken(section.dataset.analyticsSection || section.id || "", 80);
+          };
+
+          const getClickDetail = (node) => {
+            if (!node) return null;
+            const explicit = toToken(node.dataset.analytics || "", 140);
+            if (explicit) {
+              return {
+                targetKind: toToken(node.dataset.analyticsKind || node.tagName || "button", 24) || "button",
+                targetKey: explicit
+              };
+            }
+            if (node.tagName === "A" && node.href) {
+              try {
+                const url = new URL(node.href, window.location.origin);
+                if (url.origin === window.location.origin) {
+                  return {
+                    targetKind: node.closest(".nav") ? "nav" : "link",
+                    targetKey: normalizePath(url.pathname)
+                  };
+                }
+                return {
+                  targetKind: "external",
+                  targetKey: `external:${toToken(url.host, 120)}`
+                };
+              } catch {
+                return null;
+              }
+            }
+            return null;
+          };
+
+          const updateScrollDepth = () => {
+            const doc = document.documentElement;
+            const scrollable = Math.max(doc.scrollHeight - window.innerHeight, 1);
+            const depth = Math.round((window.scrollY / scrollable) * 100);
+            maxScrollDepth = Math.max(maxScrollDepth, Math.min(depth, 100));
+          };
+
+          const sendEngagement = () => {
+            if (engagementSent) return;
+            engagementSent = true;
+            updateScrollDepth();
+            pushEvent({
+              type: "page_engagement",
+              dwellMs: now() - pageStart,
+              scrollDepth: maxScrollDepth
+            }, { urgent: true });
+          };
+
+          pushEvent({
+            type: "pageview",
+            referrerPath
+          });
+
+          document.addEventListener("click", (event) => {
+            const target = event.target?.closest?.("a[href], button[data-analytics], [data-analytics]");
+            if (!target) return;
+            const detail = getClickDetail(target);
+            if (!detail) return;
+            pushEvent({
+              type: "cta_click",
+              sectionKey: getSectionKey(target),
+              targetKind: detail.targetKind,
+              targetKey: detail.targetKey
+            }, { urgent: target.tagName === "A" });
+          }, { passive: true, capture: true });
+
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting || entry.intersectionRatio < 0.55) return;
+              const sectionKey = getSectionKey(entry.target);
+              if (!sectionKey || seenSections.has(sectionKey)) return;
+              seenSections.add(sectionKey);
+              pushEvent({
+                type: "section_view",
+                sectionKey
+              });
+            });
+          }, { threshold: [0.55] });
+
+          document.querySelectorAll("section[id], [data-analytics-section]").forEach((node) => {
+            observer.observe(node);
+          });
+
+          window.addEventListener("scroll", updateScrollDepth, { passive: true });
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") sendEngagement();
+          });
+          window.addEventListener("pagehide", sendEngagement);
+        })();
+      </script>
+    ) : null}
   </body>
 </html>

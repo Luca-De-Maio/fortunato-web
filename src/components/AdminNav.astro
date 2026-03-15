@@ -1,0 +1,8 @@
+---
+const { current = "" } = Astro.props;
+---
+
+<nav class="admin-nav" aria-label="Secciones del admin">
+  <a href="/admin/products" class:list={["admin-nav-link", current === "products" && "is-active"]}>Productos</a>
+  <a href="/admin/analytics" class:list={["admin-nav-link", current === "analytics" && "is-active"]}>Analytics</a>
+</nav>

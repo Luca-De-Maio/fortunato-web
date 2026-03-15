@@ -9,11 +9,11 @@ if (requireAdmin(Astro.cookies)) {
 }
 ---
 
-<Base title="Fortunato | Admin" description="Acceso al backoffice">
+<Base title="Fortunato | Admin" description="Acceso al backoffice" analytics={false}>
   <main class="admin-page">
     <div class="container admin-card">
       <h1>Backoffice</h1>
-      <p class="muted">Ingresá para gestionar productos, talles y combinaciones.</p>
+      <p class="muted">Ingresá para gestionar productos, stock y analytics propios.</p>
       <form class="admin-form" id="admin-login">
         <label>
           Usuario

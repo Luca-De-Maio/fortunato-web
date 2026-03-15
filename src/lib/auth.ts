@@ -6,6 +6,8 @@ const getSecret = () => {
   if (configured) return configured;
   return import.meta.env.PROD ? null : "dev-secret";
 };
+const allowDevAdminFallback = () =>
+  !import.meta.env.PROD && /^(1|true|yes)$/i.test((process.env.ALLOW_DEV_ADMIN_FALLBACK || "").trim());
 const COOKIE_NAME = "admin_session";
 
 const safeEqual = (left, right) => {
@@ -44,8 +46,8 @@ export const verifyCredentials = async (username, password) => {
 
   if (envUser && !safeEqual(user, envUser)) return false;
 
-  // Dev fallback if env vars are missing
-  if (!import.meta.env.PROD && !envUser && user === "sofihermosa" && pass === "sofihermosa") {
+  // Explicit opt-in fallback for local-only recovery.
+  if (allowDevAdminFallback() && !envUser && user === "sofihermosa" && pass === "sofihermosa") {
     return true;
   }
 

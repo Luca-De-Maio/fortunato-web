@@ -5,7 +5,7 @@ Standalone storefront for Fortunato. Built with Astro and a performance‑first,
 ## Stack
 - Astro 5
 - Vanilla CSS
-- JSON data source
+- JSON seed + local SQLite (`sql.js`) para catálogo y reservas
 
 ## Scripts
 ```bash
@@ -77,14 +77,16 @@ Admin saves now also persist back into `data/products.json`, so DB and catalog f
 
 ## Pages
 - `/` Home
+- `/capsula` Catálogo completo
 - `/conjunto/[slug]` Detalle de conjunto/combinación
 - `/product/[slug]` Product detail
 - `/cart` Cart
-- `/checkout` Checkout stub (Tienda Nube / WhatsApp)
+- `/checkout/*` Estados de retorno de Mercado Pago
 
 ## Notes
-- Images are placeholders until real assets are added.
-- Checkout is intentionally minimal for validation speed.
+- El carrito revalida precios y stock desde backend antes de abrir Mercado Pago.
+- Se crean reservas cortas de stock al generar la `preference`.
+- Las imágenes y el stock inicial todavía necesitan curado/carga final desde operación.
 
 ## License
 All rights reserved.

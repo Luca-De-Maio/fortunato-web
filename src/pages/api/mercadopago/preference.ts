@@ -1,6 +1,10 @@
 import type { APIRoute } from "astro";
-import { getAllCombinations } from "../../../lib/combinations";
-import { getAllProducts } from "../../../lib/products";
+import {
+  createStockReservation,
+  quoteCart,
+  releaseStockReservation,
+  setReservationPreferenceId
+} from "../../../lib/commerce";
 import { consumeRateLimit, getRequestIdentifier } from "../../../lib/rate-limit";
 
 export const prerender = false;
@@ -42,79 +46,69 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response("Invalid cart", { status: 400 });
   }
 
-  const [products, combinations] = await Promise.all([
-    getAllProducts(),
-    getAllCombinations()
-  ]);
-  const byId = new Map(products.map((p: any) => [p.id, p]));
-  const comboById = new Map();
-  for (const combo of combinations) {
-    comboById.set(String(combo.id || ""), combo);
-    comboById.set(`combo-${String(combo.id || "")}`, combo);
-  }
-
-  const items = cart
-    .map((row: any) => {
-      const id = String(row?.id || "");
-      const qty = Math.max(1, Math.min(99, Number(row?.qty || 1)));
-      const color = String(row?.color || "").trim();
-      const size = String(row?.size || "").trim();
-
-      const product = byId.get(id);
-      if (product) {
-        const unitPrice = Number(product.price || 0);
-        const currency = String(product.currency || "ARS");
-        const titleParts = [String(product.name || "Producto")];
-        if (color) titleParts.push(color);
-        if (size) titleParts.push(`Talle ${size}`);
-        const title = titleParts.join(" · ");
-
-        return {
-          title,
-          quantity: qty,
-          unit_price: unitPrice,
-          currency_id: currency === "ARS" ? "ARS" : currency
-        };
-      }
-
-      const combo = comboById.get(id);
-      if (!combo) return null;
-
-      return {
-        title: String(combo.title || "Conjunto Fortunato"),
-        quantity: qty,
-        unit_price: Number(combo.bundlePrice || 0),
-        currency_id: String(combo.currency || "ARS") === "ARS" ? "ARS" : String(combo.currency || "ARS")
-      };
-    })
-    .filter(Boolean);
-
-  if (!items.length) {
+  const quote = await quoteCart(cart);
+  if (!quote.items.length) {
     return new Response("No valid items", { status: 400 });
+  }
+  if (quote.issues.length) {
+    return new Response(JSON.stringify({
+      error: "Cart requires review",
+      quote
+    }), {
+      status: 409,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   const baseUrl = getBaseUrl(request.url);
+  const reservation = await createStockReservation({
+    cart: quote.cart,
+    locks: quote.reservationLocks
+  });
+  const withReservationParam = (path: string) => {
+    const url = new URL(path, `${baseUrl}/`);
+    url.searchParams.set("reservation_id", reservation.id);
+    return url.toString();
+  };
   const preference = {
-    items,
+    items: quote.items.map((item: any) => ({
+      title: String(item.title || item.name || "Producto Fortunato"),
+      quantity: Number(item.qty || 1),
+      unit_price: Number(item.unitPrice || 0),
+      currency_id: String(item.currency || "ARS") === "ARS" ? "ARS" : String(item.currency || "ARS")
+    })),
     back_urls: {
-      success: `${baseUrl}/checkout/success`,
-      pending: `${baseUrl}/checkout/pending`,
-      failure: `${baseUrl}/checkout/failure`
+      success: withReservationParam("/checkout/success"),
+      pending: withReservationParam("/checkout/pending"),
+      failure: withReservationParam("/checkout/failure")
     },
-    auto_return: "approved"
+    auto_return: "approved",
+    external_reference: reservation.id,
+    metadata: {
+      reservation_id: reservation.id
+    },
+    expires: true,
+    expiration_date_to: new Date(reservation.expiresAt).toISOString()
   };
 
-  const mpRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(preference)
-  });
+  let mpRes: Response;
+  try {
+    mpRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(preference)
+    });
+  } catch (error) {
+    await releaseStockReservation(reservation.id);
+    throw error;
+  }
 
   if (!mpRes.ok) {
     const text = await mpRes.text().catch(() => "");
+    await releaseStockReservation(reservation.id);
     return new Response(text || "Mercado Pago error", { status: 502 });
   }
 
@@ -124,10 +118,19 @@ export const POST: APIRoute = async ({ request }) => {
     mode === "sandbox" ? data.sandbox_init_point : data.init_point;
 
   if (!checkoutUrl) {
+    await releaseStockReservation(reservation.id);
     return new Response("Mercado Pago response missing init_point", { status: 502 });
   }
 
-  return new Response(JSON.stringify({ checkoutUrl }), {
+  if (data.id) {
+    await setReservationPreferenceId(reservation.id, String(data.id));
+  }
+
+  return new Response(JSON.stringify({
+    checkoutUrl,
+    reservationId: reservation.id,
+    expiresAt: reservation.expiresAt
+  }), {
     status: 200,
     headers: { "Content-Type": "application/json" }
   });

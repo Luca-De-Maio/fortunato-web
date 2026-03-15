@@ -9,6 +9,7 @@ const MAX_URL = 2048;
 const MAX_MONEY = 999999999;
 const SAFE_IMAGE_SRC = /^(\/(?!\/)|https?:\/\/)/i;
 const VALID_CATEGORIES = new Set(["top", "bottom", "calzado"]);
+const PLACEHOLDER_STOCK_PER_VARIANT = 4;
 
 export class ProductValidationError extends Error {}
 
@@ -80,6 +81,51 @@ const normalizeCombinations = (value) => {
     })
     .filter(Boolean);
 };
+const buildStockMatrix = (colors = [], sizes = []) => {
+  const normalizedColors = Array.isArray(colors) && colors.length ? colors : [""];
+  const normalizedSizes = Array.isArray(sizes) && sizes.length ? sizes : [""];
+  const stock = [];
+  for (const color of normalizedColors) {
+    for (const size of normalizedSizes) {
+      stock.push({
+        color: cleanText(color, 40),
+        size: cleanText(size, 20),
+        quantity: PLACEHOLDER_STOCK_PER_VARIANT
+      });
+    }
+  }
+  return stock;
+};
+const normalizeStock = (value, { colors = [], sizes = [] } = {}) => {
+  const colorList = Array.isArray(colors) ? colors.map((entry) => cleanText(entry, 40)) : [];
+  const sizeList = Array.isArray(sizes) ? sizes.map((entry) => cleanText(entry, 20)) : [];
+  const colorSet = new Set(colorList.map((entry) => entry.toLowerCase()));
+  const sizeSet = new Set(sizeList.map((entry) => entry.toLowerCase()));
+  if (!Array.isArray(value) || !value.length) {
+    return buildStockMatrix(colorList, sizeList);
+  }
+
+  const seen = new Set();
+  const out = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    let color = cleanText(entry.color, 40);
+    let size = cleanText(entry.size, 20);
+    if (!colorSet.size) color = "";
+    if (!sizeSet.size) size = "";
+    if (colorSet.size && !colorSet.has(color.toLowerCase())) continue;
+    if (sizeSet.size && !sizeSet.has(size.toLowerCase())) continue;
+    const key = `${color.toLowerCase()}__${size.toLowerCase()}`;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      color,
+      size,
+      quantity: normalizeAmount(entry.quantity)
+    });
+  }
+  return out;
+};
 const sanitizeProductImages = (images, gridImage = "") => {
   const list = normalizeList(images, 16, MAX_URL).map((image) => normalizeImageSrc(image)).filter(Boolean);
   const seen = new Set();
@@ -113,6 +159,8 @@ const toSeedProduct = (payload) => {
   const rawGridImage = normalizeImageSrc(payload.gridImage ?? "");
   const images = sanitizeProductImages(payload.images, rawGridImage);
   const gridImage = rawGridImage.trim() || images[0] || "";
+  const colors = normalizeList(payload.colors, 12, 40);
+  const sizes = normalizeList(payload.sizes, 12, 20);
   return {
     id,
     slug,
@@ -124,10 +172,11 @@ const toSeedProduct = (payload) => {
     description: cleanText(payload.description, MAX_LONG_TEXT),
     materials: normalizeList(payload.materials, 12, 80),
     fit: cleanText(payload.fit, 80),
-    colors: normalizeList(payload.colors, 12, 40),
-    sizes: normalizeList(payload.sizes, 12, 20),
+    colors,
+    sizes,
     gridImage,
     images,
+    stock: normalizeStock(payload.stock, { colors, sizes }),
     highlights: normalizeList(payload.highlights, 10, 120),
     combinations: normalizeCombinations(payload.combinations),
     badge: cleanText(payload.badge, 32),
@@ -165,6 +214,10 @@ const mapRow = (row) => ({
   sizes: parseJson(row.sizes, []),
   gridImage: row.gridImage || "",
   images: sanitizeProductImages(parseJson(row.images, []), row.gridImage || ""),
+  stock: normalizeStock(parseJson(row.stock, []), {
+    colors: parseJson(row.colors, []),
+    sizes: parseJson(row.sizes, [])
+  }),
   highlights: parseJson(row.highlights, []),
   combinations: parseJson(row.combinations, []),
   badge: row.badge || "",
@@ -199,21 +252,24 @@ const ensureSeeded = async () => {
     const sizeStmt = db.prepare("UPDATE products SET sizes = ? WHERE id = ?;");
     const gridStmt = db.prepare("UPDATE products SET gridImage = ? WHERE id = ?;");
     const imagesStmt = db.prepare("UPDATE products SET images = ? WHERE id = ?;");
+    const stockStmt = db.prepare("UPDATE products SET stock = ? WHERE id = ?;");
     const insertStmt = db.prepare(`
       INSERT INTO products
-      (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy, cardVariant)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, stock, highlights, combinations, badge, microcopy, cardVariant)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
 
-    const resAll = db.exec("SELECT id, slug, category, sizes, gridImage, images, badge, microcopy, cardVariant FROM products;");
+    const resAll = db.exec("SELECT id, slug, category, colors, sizes, gridImage, images, stock, badge, microcopy, cardVariant FROM products;");
     const rows = resAll?.[0]?.values ?? [];
     const cols = resAll?.[0]?.columns ?? [];
     const idIndex = cols.indexOf("id");
     const slugIndex = cols.indexOf("slug");
     const categoryIndex = cols.indexOf("category");
+    const colorsIndex = cols.indexOf("colors");
     const sizesIndex = cols.indexOf("sizes");
     const gridImageIndex = cols.indexOf("gridImage");
     const imagesIndex = cols.indexOf("images");
+    const stockIndex = cols.indexOf("stock");
     const badgeIndex = cols.indexOf("badge");
     const microcopyIndex = cols.indexOf("microcopy");
     const cardVariantIndex = cols.indexOf("cardVariant");
@@ -238,6 +294,7 @@ const ensureSeeded = async () => {
           serialize(product.sizes),
           product.gridImage ?? "",
           serialize(product.images),
+          serialize(normalizeStock(product.stock, { colors: product.colors ?? [], sizes: product.sizes ?? [] })),
           serialize(product.highlights),
           serialize(product.combinations),
           product.badge ?? "",
@@ -267,6 +324,20 @@ const ensureSeeded = async () => {
         const currentSerialized = serialize(current);
         if (nextSerialized !== currentSerialized) {
           sizeStmt.run([nextSerialized, id]);
+        }
+
+        const nextColors = parseJson(row[colorsIndex], []);
+        const nextSizes = next;
+        const currentStock = normalizeStock(parseJson(row[stockIndex], []), {
+          colors: nextColors,
+          sizes: nextSizes
+        });
+        const seedStock = normalizeStock(seedProduct.stock, {
+          colors: seedProduct.colors ?? nextColors,
+          sizes: seedProduct.sizes ?? nextSizes
+        });
+        if (!currentStock.length || serialize(currentStock) !== serialize(seedStock)) {
+          stockStmt.run([serialize(seedStock), id]);
         }
 
         const currentImages = sanitizeProductImages(parseJson(row[imagesIndex], []), row[gridImageIndex] ?? "");
@@ -325,8 +396,8 @@ const ensureSeeded = async () => {
   const seed = readSeedProducts();
   const stmt = db.prepare(`
     INSERT INTO products
-    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy, cardVariant)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, stock, highlights, combinations, badge, microcopy, cardVariant)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `);
 
   db.run("BEGIN;");
@@ -347,6 +418,7 @@ const ensureSeeded = async () => {
         serialize(product.sizes),
         product.gridImage ?? "",
         serialize(product.images),
+        serialize(normalizeStock(product.stock, { colors: product.colors ?? [], sizes: product.sizes ?? [] })),
         serialize(product.highlights),
         serialize(product.combinations),
         product.badge ?? "",
@@ -390,8 +462,8 @@ export const upsertProduct = async (payload) => {
   const nextProduct = toSeedProduct(payload);
   const stmt = db.prepare(`
     INSERT INTO products
-    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, highlights, combinations, badge, microcopy, cardVariant)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, stock, highlights, combinations, badge, microcopy, cardVariant)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       slug=excluded.slug,
       name=excluded.name,
@@ -406,6 +478,7 @@ export const upsertProduct = async (payload) => {
       sizes=excluded.sizes,
       gridImage=excluded.gridImage,
       images=excluded.images,
+      stock=excluded.stock,
       highlights=excluded.highlights,
       combinations=excluded.combinations,
       badge=excluded.badge,
@@ -428,6 +501,7 @@ export const upsertProduct = async (payload) => {
     serialize(nextProduct.sizes),
     nextProduct.gridImage,
     serialize(nextProduct.images),
+    serialize(nextProduct.stock),
     serialize(nextProduct.highlights),
     serialize(nextProduct.combinations),
     nextProduct.badge ?? "",

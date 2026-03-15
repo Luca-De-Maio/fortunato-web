@@ -1,0 +1,51 @@
+---
+import Base from "../layouts/Base.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { getAllProducts } from "../lib/products";
+
+export const prerender = false;
+
+const products = await getAllProducts();
+const homeOrder = [
+  "camisa-riviera",
+  "chomba-sprezzata",
+  "remera-doppio-collo",
+  "pantalon-sastrero",
+  "bermuda-rilassata",
+  "bermuda-sastrera",
+  "sandalias-crudem"
+];
+const orderIndex = new Map(homeOrder.map((id, index) => [id, index]));
+const orderedProducts = [...products].sort((a, b) => {
+  const aIndex = orderIndex.has(a.id) ? orderIndex.get(a.id) : Number.MAX_SAFE_INTEGER;
+  const bIndex = orderIndex.has(b.id) ? orderIndex.get(b.id) : Number.MAX_SAFE_INTEGER;
+  if (aIndex !== bIndex) return aIndex - bIndex;
+  return String(a.name || "").localeCompare(String(b.name || ""), "es");
+});
+---
+
+<Base title="Fortunato | Cápsula" description="Explorá la cápsula completa de Fortunato con stock y precios validados desde backend.">
+  <Header current="capsula" />
+
+  <main>
+    <section id="capsula" class="section section-capsule">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Cápsula</p>
+          <h2>Piezas pensadas para combinar entre sí, sin ruido y con stock validado.</h2>
+          <p class="muted">Entrá a cada prenda para elegir color y talle. El carrito revalida precios y disponibilidad antes del pago.</p>
+        </div>
+
+        <div class="capsule-grid">
+          {orderedProducts.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Base>

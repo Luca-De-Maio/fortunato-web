@@ -3,6 +3,7 @@ import { Image } from "astro:assets";
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
+import { getProductAvailabilitySnapshot } from "../../lib/commerce";
 import { getProductBySlug } from "../../lib/products";
 
 export const prerender = false;
@@ -12,6 +13,10 @@ const product = await getProductBySlug(slug);
 if (!product) {
   throw new Response(null, { status: 404, statusText: "Not found" });
 }
+const availability = await getProductAvailabilitySnapshot(product);
+const stockEntries = availability.stock;
+const totalAvailable = availability.totalAvailable;
+const isOutOfStock = totalAvailable <= 0;
 const normalizeImageKey = (value = "") => String(value).trim().toLowerCase();
 const isGridVariant = (value = "") => /-grid\.[a-z0-9]+$/i.test(String(value).trim());
 const dedupedImages = (() => {
@@ -65,6 +70,9 @@ const priceLabel = formatPrice(product.price);
 const compareAt = product.compareAt || null;
 const discount = compareAt && product.price ? Math.round(100 - (product.price / compareAt) * 100) : null;
 const initialCtaLabel =
+  isOutOfStock
+    ? "Sin stock"
+    :
   product.colors?.length && product.sizes?.length
     ? "Elegí color y talle"
     : product.colors?.length
@@ -101,6 +109,12 @@ const summaryBullets = (() => {
   if (bullets.length < 3 && product.colors?.length) pushUnique(`Colores: ${product.colors.slice(0, 3).join(" · ")}`);
   return bullets.slice(0, 3);
 })();
+const stockMessage =
+  isOutOfStock
+    ? "Sin stock por ahora. Podés escribirnos por WhatsApp para consultar reposición."
+    : totalAvailable <= 3
+      ? `Últimas ${totalAvailable} unidades disponibles entre variantes.`
+      : "Stock disponible para compra inmediata.";
 
 const swatchFor = (label = "") => {
   const key = label.trim().toLowerCase();
@@ -123,7 +137,12 @@ const swatchFor = (label = "") => {
 
   <main class="pdp">
     {/* 1) Imagen full width */}
-    <section class:list={{ "pdp-hero": true, "is-contained": useContainedHero }} aria-label={`Fotos de ${product.name}`}>
+    <section
+      id="pdp-galeria"
+      class:list={{ "pdp-hero": true, "is-contained": useContainedHero }}
+      aria-label={`Fotos de ${product.name}`}
+      data-analytics-section="pdp-galeria"
+    >
       <div class:list={{ "pdp-gallery": true, "is-single": hasSingleImage, "is-editorial": isEditorialHero }}>
         <div class="pdp-main-stage">
           <Image
@@ -159,7 +178,7 @@ const swatchFor = (label = "") => {
     </section>
 
     {/* 2) Resumen: SOLO título + detalles */}
-    <section class="pdp-summary" aria-label="Resumen">
+    <section id="pdp-resumen" class="pdp-summary" aria-label="Resumen" data-analytics-section="pdp-resumen">
       <p class="pdp-kicker">{typeLabel}</p>
       <h1 class="pdp-title">{product.name}</h1>
       {summaryBullets.length ? (
@@ -172,15 +191,16 @@ const swatchFor = (label = "") => {
     </section>
 
     {/* 3) Compra: precio + envio + talles + CTA */}
-    <section class="pdp-buy" aria-label="Compra">
+    <section id="pdp-compra" class="pdp-buy" aria-label="Compra" data-analytics-section="pdp-compra">
       <div class="pdp-buycard">
-        <div class="pdp-price">
-          <div class="pdp-price-row">
-            <p class="pdp-price__current">{priceLabel}</p>
-            {compareAt ? <p class="pdp-price__compare">{formatPrice(compareAt)}</p> : null}
-            {discount ? <span class="pdp-discount">{discount}% OFF</span> : null}
-          </div>
-          <p class="pdp-installments muted">Pagás el subtotal por Mercado Pago y coordinamos el envío por WhatsApp.</p>
+          <div class="pdp-price">
+            <div class="pdp-price-row">
+              <p class="pdp-price__current">{priceLabel}</p>
+              {compareAt ? <p class="pdp-price__compare">{formatPrice(compareAt)}</p> : null}
+              {discount ? <span class="pdp-discount">{discount}% OFF</span> : null}
+            </div>
+          <p class="pdp-installments muted">Pagás dentro de Mercado Pago con total validado desde backend.</p>
+          <p class:list={{ "pdp-stock-note": true, "is-low": totalAvailable > 0 && totalAvailable <= 3, "is-out": isOutOfStock }}>{stockMessage}</p>
         </div>
 
         {product.colors?.length ? (
@@ -195,6 +215,7 @@ const swatchFor = (label = "") => {
                     data-color-option={color}
                     style={`--swatch:${swatchFor(color)};`}
                     aria-pressed="false"
+                    disabled={!stockEntries.some((entry) => normalizeImageKey(entry.color) === normalizeImageKey(color) && Number(entry.available || 0) > 0)}
                   >
                     <span class="pdp-swatch" aria-hidden="true"></span>
                     <span>{color}</span>
@@ -213,7 +234,13 @@ const swatchFor = (label = "") => {
             <ul class="pdp-size-grid" aria-label="Opciones de talle">
               {product.sizes.map((size) => (
                 <li>
-                  <button type="button" class="pdp-size" data-size-option={size} aria-pressed="false">
+                  <button
+                    type="button"
+                    class="pdp-size"
+                    data-size-option={size}
+                    aria-pressed="false"
+                    disabled={!stockEntries.some((entry) => normalizeImageKey(entry.size) === normalizeImageKey(size) && Number(entry.available || 0) > 0)}
+                  >
                     {size}
                   </button>
                 </li>
@@ -228,14 +255,14 @@ const swatchFor = (label = "") => {
           <button
             class="btn pdp-cta"
             data-add-to-cart
+            data-analytics="pdp-add-to-cart"
+            data-analytics-kind="button"
             data-id={product.id}
             data-name={product.name}
-            data-price={product.price ?? 0}
-            data-currency={product.currency}
             data-image={initialMainImage}
             data-requires-color={product.colors?.length ? "1" : "0"}
             data-requires-size={product.sizes?.length ? "1" : "0"}
-            disabled={product.colors?.length || product.sizes?.length ? true : undefined}
+            disabled={isOutOfStock || product.colors?.length || product.sizes?.length ? true : undefined}
           >
             {initialCtaLabel}
           </button>
@@ -243,14 +270,14 @@ const swatchFor = (label = "") => {
             class="btn btn-ghost pdp-cta"
             type="button"
             data-buy-now
+            data-analytics="pdp-buy-now"
+            data-analytics-kind="button"
             data-id={product.id}
             data-name={product.name}
-            data-price={product.price ?? 0}
-            data-currency={product.currency}
             data-image={initialMainImage}
             data-requires-color={product.colors?.length ? "1" : "0"}
             data-requires-size={product.sizes?.length ? "1" : "0"}
-            disabled={product.colors?.length || product.sizes?.length ? true : undefined}
+            disabled={isOutOfStock || product.colors?.length || product.sizes?.length ? true : undefined}
           >
             Comprar ahora
           </button>
@@ -259,7 +286,7 @@ const swatchFor = (label = "") => {
     </section>
 
     {/* 4) Detalles extendidos */}
-    <section class="pdp-details" aria-label="Detalles">
+    <section id="pdp-detalles" class="pdp-details" aria-label="Detalles" data-analytics-section="pdp-detalles">
       <h2>Descripción</h2>
       <p class="muted pdp-description">{product.description}</p>
 
@@ -289,7 +316,7 @@ const swatchFor = (label = "") => {
 
   <Footer />
 
-  <script>
+  <script define:vars={{ stockEntries, isOutOfStock, stockMessage }}>
     const root = document.querySelector(".pdp");
     if (root) {
       const mainImage = root.querySelector("[data-pdp-main-image]");
@@ -322,19 +349,64 @@ const swatchFor = (label = "") => {
       const sizeButtons = Array.from(root.querySelectorAll("[data-size-option]"));
       const cta = root.querySelector("[data-add-to-cart]");
       const buyNow = root.querySelector("[data-buy-now]");
+      const stockHint = root.querySelector(".pdp-stock-note");
 
       const requiresColor = cta?.dataset.requiresColor === "1";
       const requiresSize = cta?.dataset.requiresSize === "1";
+      const normalize = (value) => String(value || "").trim().toLowerCase();
+      const availableFor = (color, size) => {
+        const match = (stockEntries || []).find((entry) =>
+          normalize(entry.color) === normalize(color) && normalize(entry.size) === normalize(size)
+        );
+        return Number(match?.available || 0);
+      };
+      const colorHasStock = (color, selectedSize = "") => {
+        return (stockEntries || []).some((entry) => {
+          if (normalize(entry.color) !== normalize(color)) return false;
+          if (selectedSize && normalize(entry.size) !== normalize(selectedSize)) return false;
+          return Number(entry.available || 0) > 0;
+        });
+      };
+      const sizeHasStock = (size, selectedColor = "") => {
+        return (stockEntries || []).some((entry) => {
+          if (normalize(entry.size) !== normalize(size)) return false;
+          if (selectedColor && normalize(entry.color) !== normalize(selectedColor)) return false;
+          return Number(entry.available || 0) > 0;
+        });
+      };
+      const updateOptionAvailability = () => {
+        const selectedColor = cta?.dataset.color || "";
+        const selectedSize = cta?.dataset.size || "";
+
+        colorButtons.forEach((btn) => {
+          const available = colorHasStock(btn.dataset.colorOption || "", selectedSize);
+          btn.disabled = !available;
+          btn.classList.toggle("is-unavailable", !available);
+          if (!available && btn.classList.contains("is-selected")) btn.classList.remove("is-selected");
+        });
+
+        sizeButtons.forEach((btn) => {
+          const available = sizeHasStock(btn.dataset.sizeOption || "", selectedColor);
+          btn.disabled = !available;
+          btn.classList.toggle("is-unavailable", !available);
+          if (!available && btn.classList.contains("is-selected")) btn.classList.remove("is-selected");
+        });
+      };
 
       const updateCta = () => {
         if (!cta) return;
         const hasColor = Boolean(cta.dataset.color);
         const hasSize = Boolean(cta.dataset.size);
+        const selectedAvailable = hasColor || hasSize
+          ? availableFor(cta.dataset.color || "", cta.dataset.size || "")
+          : 0;
 
         let label = "Agregar al carrito";
-        let disabled = false;
+        let disabled = isOutOfStock;
 
-        if (requiresColor && requiresSize) {
+        if (isOutOfStock) {
+          label = "Sin stock";
+        } else if (requiresColor && requiresSize) {
           if (!hasColor && !hasSize) {
             label = "Elegí color y talle";
             disabled = true;
@@ -357,12 +429,35 @@ const swatchFor = (label = "") => {
           }
         }
 
+        if (!disabled && (requiresColor || requiresSize) && selectedAvailable <= 0) {
+          label = "Sin stock";
+          disabled = true;
+        }
+
         cta.disabled = disabled;
         cta.textContent = label;
 
         if (buyNow) {
           buyNow.disabled = disabled;
           buyNow.textContent = "Comprar ahora";
+        }
+
+        if (stockHint && !isOutOfStock) {
+          if (selectedAvailable > 0) {
+            stockHint.textContent = selectedAvailable <= 2
+              ? `Últimas ${selectedAvailable} unidades disponibles para esta variante.`
+              : "Variante disponible.";
+            stockHint.classList.toggle("is-low", selectedAvailable <= 2);
+            stockHint.classList.remove("is-out");
+          } else if ((!requiresColor || hasColor) && (!requiresSize || hasSize)) {
+            stockHint.textContent = "La combinación elegida está sin stock.";
+            stockHint.classList.add("is-out");
+            stockHint.classList.remove("is-low");
+          } else {
+            stockHint.textContent = stockMessage;
+            stockHint.classList.toggle("is-low", stockMessage.includes("Últimas"));
+            stockHint.classList.remove("is-out");
+          }
         }
       };
 
@@ -383,9 +478,10 @@ const swatchFor = (label = "") => {
           sizeButtons.forEach((btn) => btn.classList.remove("is-selected"));
           if (hint) hint.textContent = "Seleccioná tu talle para continuar.";
           if (cta) cta.dataset.size = "";
-          if (buyNow) buyNow.dataset.size = "";
+        if (buyNow) buyNow.dataset.size = "";
         }
 
+        updateOptionAvailability();
         updateCta();
       };
 
@@ -399,6 +495,7 @@ const swatchFor = (label = "") => {
         if (hint) hint.textContent = value ? `Talle seleccionado: ${value}` : "Seleccioná tu talle para continuar.";
         if (cta) cta.dataset.size = value || "";
         if (buyNow) buyNow.dataset.size = value || "";
+        updateOptionAvailability();
         updateCta();
       };
 
@@ -410,6 +507,7 @@ const swatchFor = (label = "") => {
         btn.addEventListener("click", () => setSize(btn.dataset.sizeOption || ""));
       });
 
+      updateOptionAvailability();
       updateCta();
     }
   </script>

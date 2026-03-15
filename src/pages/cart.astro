@@ -4,22 +4,20 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
 const whatsappNumber = "5491158204344";
-const mercadopagoPaymentLink =
-  (import.meta.env.PUBLIC_MERCADOPAGO_PAYMENT_LINK || "https://link.mercadopago.com.ar/tiendafortunato").trim();
 ---
 
 <Base
   title="Fortunato | Carrito"
-  description="Revisá tu selección, pagá el subtotal por Mercado Pago y coordiná el envío por WhatsApp."
+  description="Revisá tu selección, validá stock en tiempo real y pagá con Mercado Pago."
 >
   <Header />
 
-  <main class="cart-page">
+  <main class="cart-page" id="cart-main" data-analytics-section="cart-main">
     <div class="container">
       <div class="section-head">
         <p class="eyebrow">Carrito</p>
         <h2>Tu selección Fortunato</h2>
-        <p class="muted">Revisá cantidades, pagá el subtotal por Mercado Pago y seguí por WhatsApp para coordinar el envío.</p>
+        <p class="muted">El total y el stock se validan desde backend antes de abrir Mercado Pago. Después podés seguir por WhatsApp para coordinar el envío.</p>
       </div>
 
       <div class="cart-list" data-cart-list></div>
@@ -27,19 +25,18 @@ const mercadopagoPaymentLink =
       <div class="cart-summary" data-cart-summary hidden>
         <p><strong>Subtotal de productos</strong>: <span data-cart-subtotal>—</span></p>
         <div class="notice">
-          <strong>Pagá primero el subtotal de productos:</strong> Ingresá exactamente ese monto en Mercado Pago.
-          Después seguís por WhatsApp para validar el pago y coordinar envío.
+          <strong>Checkout seguro:</strong> Al hacer click en pagar, Fortunato vuelve a cotizar tu carrito, reserva stock por unos minutos y abre Mercado Pago con la preference generada desde backend.
         </div>
         <div class="cart-flow" aria-label="Cómo funciona el pago">
-          <p><strong>1.</strong> Abrís el link oficial de Mercado Pago.</p>
-          <p><strong>2.</strong> Pagás el subtotal exacto del carrito.</p>
-          <p><strong>3.</strong> Confirmás por WhatsApp y coordinamos el envío.</p>
+          <p><strong>1.</strong> Validamos stock y subtotal en tiempo real.</p>
+          <p><strong>2.</strong> Abrís Mercado Pago con el monto exacto del pedido.</p>
+          <p><strong>3.</strong> Si querés, seguís por WhatsApp para coordinar envío o cambios.</p>
         </div>
         <p class="muted cart-summary-status" data-cart-status></p>
         <div class="cart-summary-actions">
-          <button class="btn" type="button" data-cart-pay>Pagar subtotal con Mercado Pago</button>
-          <button class="btn btn-ghost" type="button" data-cart-wa>Ya pagué, seguir por WhatsApp</button>
-          <button class="btn btn-ghost" type="button" data-cart-clear>Vaciar selección</button>
+          <button class="btn" type="button" data-cart-pay data-analytics="cart-pay" data-analytics-kind="button">Ir a pagar con Mercado Pago</button>
+          <button class="btn btn-ghost" type="button" data-cart-wa data-analytics="cart-whatsapp" data-analytics-kind="button">Consultar por WhatsApp</button>
+          <button class="btn btn-ghost" type="button" data-cart-clear data-analytics="cart-clear" data-analytics-kind="button">Vaciar selección</button>
         </div>
       </div>
     </div>
@@ -47,7 +44,7 @@ const mercadopagoPaymentLink =
 
   <Footer />
 
-  <script define:vars={{ whatsappNumber, mercadopagoPaymentLink }}>
+  <script define:vars={{ whatsappNumber }}>
     const CART_KEY = "fortunato_cart";
     const list = document.querySelector("[data-cart-list]");
     const subtotalEl = document.querySelector("[data-cart-subtotal]");
@@ -56,6 +53,12 @@ const mercadopagoPaymentLink =
     const payBtn = document.querySelector("[data-cart-pay]");
     const waBtn = document.querySelector("[data-cart-wa]");
     const statusEl = document.querySelector("[data-cart-status]");
+
+    let state = {
+      cart: [],
+      quote: null,
+      loading: false
+    };
 
     const getCart = () => {
       try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
@@ -67,13 +70,30 @@ const mercadopagoPaymentLink =
       if (src.startsWith("/") || /^https?:\/\//i.test(src)) return src;
       return "/placeholder.svg";
     };
-
+    const getMessage = (error, fallback) => {
+      if (!error) return fallback;
+      if (typeof error === "string") return error;
+      if (error instanceof Error && error.message) return error.message;
+      return fallback;
+    };
     const format = (amount, currency) =>
       typeof amount === "number" && !Number.isNaN(amount)
         ? `${currency} ${amount.toLocaleString("es-AR")}`
         : "Precio a confirmar";
 
     const makeKey = (item) => `${item.id}__${item.color || ""}__${item.size || ""}`;
+    const syncBadge = (cart) => {
+      const badge = document.querySelector("[data-cart-count]");
+      if (!badge) return;
+      const count = (Array.isArray(cart) ? cart : []).reduce((sum, item) => sum + Number(item.qty || 0), 0);
+      badge.textContent = count ? String(count) : "";
+      badge.classList.toggle("is-visible", count > 0);
+    };
+    const persistCart = (cart) => {
+      state.cart = Array.isArray(cart) ? cart : [];
+      setCart(state.cart);
+      syncBadge(state.cart);
+    };
 
     const setStatus = (text, type = "") => {
       if (!statusEl) return;
@@ -86,7 +106,7 @@ const mercadopagoPaymentLink =
       if (typeof text === "string") node.textContent = text;
       return node;
     };
-    const createCartItem = (item, qty, line) => {
+    const createCartItem = (item) => {
       const article = createNode("article", "cart-item");
       article.dataset.key = makeKey(item);
 
@@ -111,6 +131,9 @@ const mercadopagoPaymentLink =
       if (item.size) {
         main.append(createNode("p", "muted", `Talle: ${String(item.size)}`));
       }
+      if (item.stockLabel) {
+        main.append(createNode("p", item.isLowStock ? "cart-stock cart-stock-low" : "cart-stock", String(item.stockLabel)));
+      }
 
       const bottom = createNode("div", "cart-item-bottom");
       const qtyWrap = createNode("div", "cart-qty");
@@ -119,7 +142,7 @@ const mercadopagoPaymentLink =
       dec.type = "button";
       dec.setAttribute("data-cart-dec", "");
       dec.setAttribute("aria-label", "Disminuir");
-      const qtyValue = createNode("span", "cart-qty-value", String(qty));
+      const qtyValue = createNode("span", "cart-qty-value", String(item.qty || 1));
       qtyValue.setAttribute("aria-live", "polite");
       const inc = createNode("button", "cart-qty-btn", "+");
       inc.type = "button";
@@ -128,10 +151,10 @@ const mercadopagoPaymentLink =
       qtyWrap.append(dec, qtyValue, inc);
 
       const priceBlock = createNode("div", "cart-price-block");
-      priceBlock.append(createNode("strong", "cart-line-total", format(line, item.currency || "ARS")));
-      if (qty > 1) {
+      priceBlock.append(createNode("strong", "cart-line-total", format(Number(item.lineTotal || 0), item.currency || "ARS")));
+      if (Number(item.qty || 0) > 1) {
         priceBlock.append(
-          createNode("span", "muted cart-each", `(c/u ${format(Number(item.price || 0), item.currency || "ARS")})`)
+          createNode("span", "muted cart-each", `(c/u ${format(Number(item.unitPrice || 0), item.currency || "ARS")})`)
         );
       }
 
@@ -141,16 +164,8 @@ const mercadopagoPaymentLink =
       return article;
     };
 
-    const updateBadge = () => {
-      const badge = document.querySelector("[data-cart-count]");
-      if (!badge) return;
-      const count = getCart().reduce((sum, item) => sum + (item.qty || 0), 0);
-      badge.textContent = count ? String(count) : "";
-      badge.classList.toggle("is-visible", count > 0);
-    };
-
     const render = () => {
-      const cart = getCart();
+      const cart = Array.isArray(state.cart) ? state.cart : [];
       if (!cart.length) {
         list.replaceChildren(createNode("p", "muted", "Tu selección está vacía."));
         subtotalEl.textContent = "—";
@@ -158,35 +173,38 @@ const mercadopagoPaymentLink =
         if (payBtn) payBtn.disabled = true;
         if (waBtn) waBtn.disabled = true;
         setStatus("");
-        updateBadge();
         return;
       }
       if (summaryEl) summaryEl.hidden = false;
+      if (state.loading) {
+        list.replaceChildren(createNode("p", "muted", "Validando stock y precios..."));
+        if (payBtn) payBtn.disabled = true;
+        if (waBtn) waBtn.disabled = true;
+        return;
+      }
+      const quoteItems = Array.isArray(state.quote?.items) ? state.quote.items : [];
+      if (!quoteItems.length) {
+        list.replaceChildren(createNode("p", "muted", "No pudimos validar tu selección. Probá de nuevo en unos segundos."));
+        subtotalEl.textContent = "—";
+        if (payBtn) payBtn.disabled = true;
+        if (waBtn) waBtn.disabled = true;
+        return;
+      }
       if (payBtn) payBtn.disabled = false;
       if (waBtn) waBtn.disabled = false;
-      let subtotal = 0;
-      const rows = cart.map((item) => {
-        const qty = Number(item.qty || 0);
-        const price = Number(item.price || 0);
-        const line = price * qty;
-        subtotal += line;
-        return createCartItem(item, qty, line);
-      });
+      const rows = quoteItems.map((item) => createCartItem(item));
       list.replaceChildren(...rows);
-      subtotalEl.textContent = format(subtotal, cart[0]?.currency || "ARS");
-      updateBadge();
+      subtotalEl.textContent = format(Number(state.quote?.subtotal || 0), state.quote?.currency || "ARS");
     };
 
-    const buildWhatsappText = (cart, subtotalLabel) => {
-      const lines = cart.map((item) => {
+    const buildWhatsappText = (quote, subtotalLabel) => {
+      const lines = (quote?.items || []).map((item) => {
         const qty = Number(item.qty || 0);
-        const price = Number(item.price || 0);
-        const lineTotal = price * qty;
         const parts = [
           `- ${item.name} x${qty}`,
           item.color ? `Color: ${item.color}` : "",
           item.size ? `Talle: ${item.size}` : "",
-          `— ${format(lineTotal, item.currency || "ARS")}`
+          `— ${format(Number(item.lineTotal || 0), item.currency || "ARS")}`
         ].filter(Boolean);
         return parts.join(" · ");
       });
@@ -196,10 +214,56 @@ const mercadopagoPaymentLink =
         "",
         ...lines,
         "",
-        `Subtotal pagado o a pagar por Mercado Pago: ${subtotalLabel}`,
+        `Subtotal validado por la web: ${subtotalLabel}`,
         "",
-        "Voy a usar o ya use el link de Mercado Pago de Fortunato. Necesito validar el pago y coordinar el envio."
+        "Necesito validar el pago y coordinar el envio."
       ].filter(Boolean).join("\n");
+    };
+
+    const requestQuote = async (cart) => {
+      const response = await fetch("/api/cart/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart })
+      });
+      if (!response.ok) {
+        throw new Error("No pudimos validar el carrito.");
+      }
+      return response.json();
+    };
+
+    const syncQuote = async ({ silent = false } = {}) => {
+      const cart = getCart();
+      persistCart(cart);
+      if (!cart.length) {
+        state.quote = null;
+        state.loading = false;
+        render();
+        return null;
+      }
+
+      state.loading = true;
+      render();
+      try {
+        const quote = await requestQuote(cart);
+        state.quote = quote;
+        persistCart(Array.isArray(quote?.cart) ? quote.cart : []);
+        state.loading = false;
+        render();
+        const issues = Array.isArray(quote?.issues) ? quote.issues : [];
+        if (issues.length) {
+          setStatus(issues.map((issue) => issue.message).slice(0, 2).join(" "), "error");
+        } else if (!silent) {
+          setStatus("");
+        }
+        return quote;
+      } catch (error) {
+        state.loading = false;
+        state.quote = null;
+        render();
+        setStatus(getMessage(error, "No pudimos validar el carrito."), "error");
+        return null;
+      }
     };
 
     list?.addEventListener("click", (event) => {
@@ -212,15 +276,15 @@ const mercadopagoPaymentLink =
 
       if (event.target.closest("[data-cart-remove]")) {
         cart.splice(index, 1);
-        setCart(cart);
-        render();
+        persistCart(cart);
+        syncQuote({ silent: true });
         return;
       }
 
       if (event.target.closest("[data-cart-inc]")) {
         cart[index].qty = Number(cart[index].qty || 0) + 1;
-        setCart(cart);
-        render();
+        persistCart(cart);
+        syncQuote({ silent: true });
         return;
       }
 
@@ -228,8 +292,8 @@ const mercadopagoPaymentLink =
         const next = Number(cart[index].qty || 0) - 1;
         if (next <= 0) cart.splice(index, 1);
         else cart[index].qty = next;
-        setCart(cart);
-        render();
+        persistCart(cart);
+        syncQuote({ silent: true });
       }
     });
 
@@ -237,28 +301,54 @@ const mercadopagoPaymentLink =
       const cart = getCart();
       if (!cart.length) return;
       if (!confirm("¿Vaciar selección?")) return;
-      setCart([]);
+      persistCart([]);
+      state.quote = null;
       render();
     });
 
-    payBtn?.addEventListener("click", () => {
-      const cart = getCart();
-      if (!cart.length) return;
-      const next = window.open(mercadopagoPaymentLink, "_blank", "noopener,noreferrer");
-      if (!next) window.location.href = mercadopagoPaymentLink;
-      setStatus("Mercado Pago abierto. Pagá el subtotal exacto y después volvé para seguir por WhatsApp.", "pending");
+    payBtn?.addEventListener("click", async () => {
+      const quote = await syncQuote({ silent: true });
+      if (!quote || !Array.isArray(quote.items) || !quote.items.length) return;
+      if (Array.isArray(quote.issues) && quote.issues.length) {
+        setStatus("Actualizamos el carrito según el stock disponible. Revisalo antes de pagar.", "error");
+        return;
+      }
+
+      setStatus("Generando checkout seguro con Mercado Pago...", "pending");
+      try {
+        const response = await fetch("/api/mercadopago/preference", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cart: state.cart })
+        });
+        const payload = await response.json().catch(() => null);
+        if (response.status === 409 && payload?.quote) {
+          state.quote = payload.quote;
+          persistCart(Array.isArray(payload.quote.cart) ? payload.quote.cart : []);
+          render();
+          setStatus("El stock cambió mientras preparábamos el pago. Ya actualizamos tu carrito.", "error");
+          return;
+        }
+        if (!response.ok || !payload?.checkoutUrl) {
+          throw new Error(payload?.error || "No pudimos abrir Mercado Pago.");
+        }
+        const next = window.open(payload.checkoutUrl, "_blank", "noopener,noreferrer");
+        if (!next) window.location.href = payload.checkoutUrl;
+        setStatus("Mercado Pago abierto. Tenés unos minutos de reserva sobre este stock.", "pending");
+      } catch (error) {
+        setStatus(getMessage(error, "No pudimos abrir Mercado Pago."), "error");
+      }
     });
 
     waBtn?.addEventListener("click", () => {
-      const cart = getCart();
-      if (!cart.length) return;
-      const subtotal = cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0), 0);
-      const subtotalLabel = format(subtotal, cart[0]?.currency || "ARS");
-      const text = buildWhatsappText(cart, subtotalLabel);
+      if (!state.quote?.items?.length) return;
+      const subtotalLabel = format(Number(state.quote.subtotal || 0), state.quote.currency || "ARS");
+      const text = buildWhatsappText(state.quote, subtotalLabel);
       setStatus("Abriendo WhatsApp...", "pending");
       window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
     });
 
-    render();
+    persistCart(getCart());
+    syncQuote();
   </script>
 </Base>

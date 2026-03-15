@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import AdminNav from "../../components/AdminNav.astro";
 import { requireAdmin } from "../../lib/auth";
 import { getAllProducts } from "../../lib/products";
 
@@ -12,7 +13,7 @@ if (!requireAdmin(Astro.cookies)) {
 const products = await getAllProducts();
 ---
 
-<Base title="Fortunato | Admin Productos" description="Gestión de productos">
+<Base title="Fortunato | Admin Productos" description="Gestión de productos" analytics={false}>
   <main class="admin-page">
     <div class="container admin-layout">
       <div class="admin-card">
@@ -23,6 +24,7 @@ const products = await getAllProducts();
           </div>
           <button class="btn btn-ghost" id="logout-btn" type="button">Salir</button>
         </div>
+        <AdminNav current="products" />
 
         <form class="admin-form" id="product-form">
           <input type="hidden" name="id" />
@@ -77,10 +79,10 @@ const products = await getAllProducts();
             <textarea name="description" rows="5"></textarea>
           </label>
 
-          <div class="admin-grid">
-            <label>
-              Materiales (separados por coma)
-              <input type="text" name="materials" />
+        <div class="admin-grid">
+          <label>
+            Materiales (separados por coma)
+            <input type="text" name="materials" />
             </label>
             <label>
               Colores (separados por coma)
@@ -88,14 +90,23 @@ const products = await getAllProducts();
             </label>
             <label>
               Talles (separados por coma)
-              <input type="text" name="sizes" />
-            </label>
-          </div>
-
-          <label>
-            Microcopy (1 línea)
-            <input type="text" name="microcopy" placeholder="Pinzas · Gabardina" />
+            <input type="text" name="sizes" />
           </label>
+        </div>
+
+        <label>
+          Stock por variante (JSON)
+          <textarea
+            name="stock"
+            rows="5"
+            placeholder='[{"color":"Negro","size":"S/M","quantity":4},{"color":"Negro","size":"L/XL","quantity":2}]'
+          ></textarea>
+        </label>
+
+        <label>
+          Microcopy (1 línea)
+          <input type="text" name="microcopy" placeholder="Pinzas · Gabardina" />
+        </label>
 
           <label>
             Imágenes (URLs separadas por coma)
@@ -144,6 +155,10 @@ const products = await getAllProducts();
                   {" · "}
                   {product.currency} {product.price}
                   {product.compareAt ? ` · ${product.compareAt}` : ""}
+                  {" · "}
+                  {Array.isArray(product.stock)
+                    ? `${product.stock.reduce((sum, entry) => sum + Number(entry.quantity || 0), 0)} u.`
+                    : "sin stock"}
                 </p>
               </div>
               <div class="admin-item-actions">
@@ -200,6 +215,11 @@ const products = await getAllProducts();
       materials: parseList(String(data.get("materials") || "")),
       colors: parseList(String(data.get("colors") || "")),
       sizes: parseList(String(data.get("sizes") || "")),
+      stock: (() => {
+        const raw = String(data.get("stock") || "").trim();
+        if (!raw) return [];
+        try { return JSON.parse(raw); } catch { return []; }
+      })(),
       microcopy: String(data.get("microcopy") || ""),
       images,
       gridImage,
@@ -227,6 +247,7 @@ const products = await getAllProducts();
     form.querySelector("[name=materials]").value = (product.materials || []).join(", ");
     form.querySelector("[name=colors]").value = (product.colors || []).join(", ");
     form.querySelector("[name=sizes]").value = (product.sizes || []).join(", ");
+    form.querySelector("[name=stock]").value = JSON.stringify(product.stock || [], null, 2);
     form.querySelector("[name=microcopy]").value = product.microcopy || "";
     form.querySelector("[name=images]").value = (product.images || []).join(", ");
     form.querySelector("[name=gridImage]").value = product.gridImage || product.images?.[0] || "";
