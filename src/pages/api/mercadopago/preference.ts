@@ -10,15 +10,17 @@ import {
   normalizeCheckoutDetails,
   splitFullName
 } from "../../../lib/checkout";
-import { getMercadoPagoAccessToken } from "../../../lib/mercadopago";
+import {
+  getMercadoPagoAccessToken,
+  getMercadoPagoMode,
+  getPublicSiteUrl
+} from "../../../lib/mercadopago";
 import { consumeRateLimit, getRequestIdentifier } from "../../../lib/rate-limit";
 
 export const prerender = false;
 
 const getBaseUrl = (requestUrl: string) => {
-  const env =
-    (import.meta.env.PUBLIC_SITE_URL || "").trim() ||
-    (import.meta.env.SITE_URL || "").trim();
+  const env = getPublicSiteUrl();
   if (env) return env.replace(/\/+$/, "");
   try {
     return new URL(requestUrl).origin;
@@ -200,7 +202,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const data = await mpRes.json().catch(() => ({} as any));
   const preferenceId = String(data?.id || "").trim();
-  const mode = (import.meta.env.MERCADOPAGO_ENV || "prod").toLowerCase();
+  const mode = getMercadoPagoMode();
   const checkoutUrl =
     mode === "sandbox" ? data.sandbox_init_point : data.init_point;
 

@@ -7,6 +7,12 @@ const cleanText = (value: unknown, max = 240) =>
     .trim()
     .slice(0, max);
 
+const readServerEnv = (key: string, max = 400) => {
+  const runtimeValue = typeof process !== "undefined" ? process.env?.[key] : "";
+  if (runtimeValue) return cleanText(runtimeValue, max);
+  return cleanText(import.meta.env?.[key], max);
+};
+
 const parseSignatureHeader = (value: string) => {
   const parsed = new Map<string, string>();
   for (const part of String(value || "").split(",")) {
@@ -21,7 +27,7 @@ const parseSignatureHeader = (value: string) => {
 };
 
 export const getMercadoPagoAccessToken = () => {
-  const token = cleanText(import.meta.env.MERCADOPAGO_ACCESS_TOKEN, 400);
+  const token = readServerEnv("MERCADOPAGO_ACCESS_TOKEN", 400);
   if (!token) {
     throw new Error("Missing MERCADOPAGO_ACCESS_TOKEN");
   }
@@ -29,11 +35,21 @@ export const getMercadoPagoAccessToken = () => {
 };
 
 export const getMercadoPagoWebhookSecret = () => {
-  const secret = cleanText(import.meta.env.MERCADOPAGO_WEBHOOK_SECRET, 400);
+  const secret = readServerEnv("MERCADOPAGO_WEBHOOK_SECRET", 400);
   if (!secret) {
     throw new Error("Missing MERCADOPAGO_WEBHOOK_SECRET");
   }
   return secret;
+};
+
+export const getMercadoPagoMode = () => {
+  const mode = readServerEnv("MERCADOPAGO_ENV", 20).toLowerCase();
+  return mode === "sandbox" ? "sandbox" : "prod";
+};
+
+export const getPublicSiteUrl = () => {
+  const env = readServerEnv("PUBLIC_SITE_URL", 240) || readServerEnv("SITE_URL", 240);
+  return env ? env.replace(/\/+$/, "") : "";
 };
 
 export const fetchMercadoPagoPayment = async (paymentId: string) => {
