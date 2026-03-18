@@ -273,6 +273,11 @@ const ensureSeeded = async () => {
   if (count > 0) {
     const seed = readSeedProducts();
     const seedById = new Map(seed.map((product) => [String(product.id), product]));
+    const coreStmt = db.prepare(`
+      UPDATE products
+      SET slug = ?, name = ?, category = ?, price = ?, compareAt = ?, currency = ?, description = ?, materials = ?, fit = ?, colors = ?, sizes = ?, highlights = ?, combinations = ?, badge = ?, microcopy = ?, cardVariant = ?
+      WHERE id = ?;
+    `);
     const metaStmt = db.prepare("UPDATE products SET badge = ?, microcopy = ?, cardVariant = ? WHERE id = ?;");
     const sizeStmt = db.prepare("UPDATE products SET sizes = ? WHERE id = ?;");
     const gridStmt = db.prepare("UPDATE products SET gridImage = ? WHERE id = ?;");
@@ -335,6 +340,27 @@ const ensureSeeded = async () => {
       for (const row of rows) {
         const id = String(row[idIndex] ?? "");
         const seedProduct = seedById.get(id) ?? {};
+        if (seedProduct?.id) {
+          coreStmt.run([
+            seedProduct.slug,
+            seedProduct.name,
+            seedProduct.category,
+            seedProduct.price,
+            seedProduct.compareAt ?? null,
+            seedProduct.currency,
+            seedProduct.description,
+            serialize(seedProduct.materials),
+            seedProduct.fit ?? "",
+            serialize(seedProduct.colors),
+            serialize(seedProduct.sizes),
+            serialize(seedProduct.highlights),
+            serialize(seedProduct.combinations),
+            seedProduct.badge ?? "",
+            seedProduct.microcopy ?? "",
+            seedProduct.cardVariant ?? "standard",
+            id
+          ]);
+        }
         const currentBadge = String(row[badgeIndex] ?? "");
         const currentMicrocopy = String(row[microcopyIndex] ?? "");
         const currentCardVariant = normalizeCardVariant(row[cardVariantIndex]);
@@ -345,16 +371,16 @@ const ensureSeeded = async () => {
           metaStmt.run([nextBadge, nextMicrocopy, nextCardVariant, id]);
         }
 
-        const category = row[categoryIndex] ?? "";
+        const category = seedProduct.category ?? row[categoryIndex] ?? "";
         const current = parseJson(row[sizesIndex], []);
-        const next = normalizeSizes(category, current);
+        const next = normalizeSizes(category, seedProduct.sizes ?? current);
         const nextSerialized = serialize(next);
         const currentSerialized = serialize(current);
         if (nextSerialized !== currentSerialized) {
           sizeStmt.run([nextSerialized, id]);
         }
 
-        const nextColors = parseJson(row[colorsIndex], []);
+        const nextColors = Array.isArray(seedProduct.colors) ? seedProduct.colors : parseJson(row[colorsIndex], []);
         const nextSizes = next;
         const currentStock = normalizeStock(parseJson(row[stockIndex], []), {
           colors: nextColors,
