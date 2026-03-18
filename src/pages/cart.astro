@@ -307,8 +307,14 @@ const checkoutConfig = {
         message = "Ingresá un email válido.";
       } else if (field.name === "phone" && value && !isValidArgentinaPhone(value)) {
         message = "Ingresá un teléfono válido de Argentina, solo con números.";
+      } else if (field.name === "city" && value && value.length < 2) {
+        message = "Ingresá una ciudad válida.";
       } else if (field.name === "postalCode" && value && !isValidPostalCode(value)) {
         message = "Usá un código postal argentino válido.";
+      } else if (field.name === "street" && value && value.length < 3) {
+        message = "Ingresá una calle válida.";
+      } else if (field.name === "streetNumber" && value && !/^[A-Za-z0-9/-]{1,10}$/.test(value)) {
+        message = "Ingresá una altura válida.";
       }
       field.setCustomValidity(message);
       return !message;
@@ -503,6 +509,27 @@ const checkoutConfig = {
         ? `Usaremos la dirección de ${destination} para confirmarte el costo de envío después de la compra.`
         : "Después de la compra te confirmamos el costo de envío según tu dirección.";
     };
+    const getCheckoutIssueMessage = (quote) => {
+      const checkoutIssues = Array.isArray(quote?.checkoutIssues) ? quote.checkoutIssues : [];
+      if (checkoutIssues.length) return checkoutIssues[0];
+      const issues = Array.isArray(quote?.issues) ? quote.issues : [];
+      if (issues.length) {
+        return issues
+          .map((issue) => issue?.message)
+          .filter(Boolean)
+          .slice(0, 1)
+          .join(" ");
+      }
+      return "";
+    };
+    const syncCheckoutStatus = (quote, { silent = false } = {}) => {
+      const issueMessage = getCheckoutIssueMessage(quote);
+      if (issueMessage) {
+        setStatus(issueMessage, "error");
+        return;
+      }
+      if (!silent) setStatus("");
+    };
 
     const render = () => {
       const cart = Array.isArray(state.cart) ? state.cart : [];
@@ -635,13 +662,7 @@ const checkoutConfig = {
         persistCart(Array.isArray(quote?.cart) ? quote.cart : []);
         state.loading = false;
         render();
-
-        const issues = Array.isArray(quote?.issues) ? quote.issues : [];
-        if (issues.length) {
-          setStatus(issues.map((issue) => issue.message).slice(0, 2).join(" "), "error");
-        } else if (!silent) {
-          setStatus("");
-        }
+        syncCheckoutStatus(quote, { silent });
         return quote;
       } catch (error) {
         state.loading = false;
@@ -738,14 +759,23 @@ const checkoutConfig = {
     checkoutForm?.addEventListener("input", (event) => {
       const field = event.target;
       if (field && checkoutForm.contains(field)) validateField(field);
-      persistCheckout();
-      if (statusEl?.dataset.type === "error") setStatus("");
+      const checkout = persistCheckout();
+      if (!isCheckoutComplete(checkout)) {
+        const message = field?.validationMessage || "Completá los datos de contacto y envío para continuar.";
+        setStatus(message, "error");
+      } else if (statusEl?.dataset.type === "error") {
+        setStatus("");
+      }
       scheduleQuoteSync();
     });
     checkoutForm?.addEventListener("change", (event) => {
       const field = event.target;
       if (field && checkoutForm.contains(field)) validateField(field);
-      persistCheckout();
+      const checkout = persistCheckout();
+      if (!isCheckoutComplete(checkout)) {
+        const message = field?.validationMessage || "Completá los datos de contacto y envío para continuar.";
+        setStatus(message, "error");
+      }
       scheduleQuoteSync();
     });
 
