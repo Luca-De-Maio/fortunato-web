@@ -4,23 +4,36 @@ import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 ---
 
-<Base title="Fortunato | Pago rechazado" description="No se pudo completar el pago.">
+<Base title="Fortunato | Pago no confirmado" description="No pudimos acreditar el pago.">
   <Header />
 
   <main class="checkout-page">
     <div class="container">
       <div class="section-head">
-        <p class="eyebrow">Estado del pago</p>
-        <h2>No se pudo completar el pago</h2>
-        <p class="muted">Tu pago fue rechazado o cancelado. Podés intentar de nuevo o escribirnos por WhatsApp.</p>
+        <p class="eyebrow">Pago no confirmado</p>
+        <h2>No pudimos acreditar el pago</h2>
+        <p class="muted">La compra no llegó a confirmarse. Podés volver a intentarlo con Mercado Pago o escribirnos y te ayudamos a seguir.</p>
       </div>
 
-      <div style="margin-top: 1.4rem; display: grid; gap: 0.8rem;">
-        <a class="btn" href="/cart">Volver al carrito</a>
-        <a class="btn btn-ghost" href="https://wa.me/5491158204344">Comprar por WhatsApp</a>
+      <div class="notice">
+        <strong>Tu selección sigue disponible para reintentar.</strong> Estamos dejando todo listo para que puedas volver a pagar cuando quieras.
       </div>
 
-      <p class="muted" data-release-status style="margin-top: 1rem;">Si existía una reserva de stock, la estamos liberando.</p>
+      <div class="checkout-card" style="margin-top: 1rem;">
+        <p class="eyebrow" style="margin-bottom: 0.35rem;">Cómo seguir</p>
+        <ul class="checkout-note-list">
+          <li>Volvé a tu selección y revisá el medio de pago.</li>
+          <li>Podés intentar otra vez con Mercado Pago en unos segundos.</li>
+          <li>Si preferís, te ayudamos por WhatsApp.</li>
+        </ul>
+      </div>
+
+      <div class="checkout-actions">
+        <a class="btn" href="/cart">Volver a mi selección</a>
+        <a class="btn btn-ghost" href="https://wa.me/5491158204344">Hablar por WhatsApp</a>
+      </div>
+
+      <p class="muted" data-release-status style="margin-top: 1rem;">Estamos preparando tu selección para que puedas volver a intentarlo.</p>
     </div>
   </main>
 
@@ -31,7 +44,7 @@ import Footer from "../../components/Footer.astro";
     const params = new URLSearchParams(window.location.search);
     const reservationId = params.get("reservation_id") || params.get("external_reference");
     if (!reservationId) {
-      if (status) status.textContent = "Podés volver al carrito y reintentar cuando quieras.";
+      if (status) status.textContent = "Podés volver a tu selección e intentarlo otra vez cuando quieras.";
     } else {
       fetch("/api/mercadopago/release", {
         method: "POST",
@@ -39,10 +52,10 @@ import Footer from "../../components/Footer.astro";
         body: JSON.stringify({ reservationId })
       })
         .then(() => {
-          if (status) status.textContent = "Reserva liberada. Ya podés reintentar el pago.";
+          if (status) status.textContent = "Tu selección ya está lista para que vuelvas a intentar el pago.";
         })
         .catch(() => {
-          if (status) status.textContent = "Volvé al carrito y reintentá. Si el problema sigue, escribinos por WhatsApp.";
+          if (status) status.textContent = "Podés volver a tu selección e intentarlo otra vez. Si necesitás ayuda, escribinos por WhatsApp.";
         });
     }
   </script>

@@ -85,8 +85,37 @@ Admin saves now also persist back into `data/products.json`, so DB and catalog f
 
 ## Notes
 - El carrito revalida precios y stock desde backend antes de abrir Mercado Pago.
+- El `Wallet Brick` usa `PUBLIC_MERCADOPAGO_PUBLIC_KEY`, mientras `MERCADOPAGO_ACCESS_TOKEN` queda solo en backend.
 - Se crean reservas cortas de stock al generar la `preference`.
+- Para confirmación server-to-server, configurá el webhook de Mercado Pago en `/api/mercadopago/webhook` y cargá `MERCADOPAGO_WEBHOOK_SECRET`.
 - Las imágenes y el stock inicial todavía necesitan curado/carga final desde operación.
+
+## Railway Prod
+- Variables mínimas: `PUBLIC_MERCADOPAGO_PUBLIC_KEY`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_ENV=prod`, `PUBLIC_SITE_URL=https://www.tiendafortunato.ar`, `SESSION_SECRET`, `DB_PATH=/data/fortunato.db`.
+- Opcional por ahora: `MERCADOPAGO_WEBHOOK_SECRET` cuando Mercado Pago muestre la firma del webhook en el panel.
+- SKU interna para smoke test real: `/product/sku-prueba-fortunato`. Está fuera del catálogo público, pero disponible por URL directa.
+
+Pegá esto en Railway y reemplazá solo los placeholders de Mercado Pago, admin y sesión:
+
+```env
+ADMIN_USER=REEMPLAZAR_USUARIO_ADMIN
+ADMIN_PASSWORD_HASH=REEMPLAZAR_HASH_BCRYPT
+ALLOW_DEV_ADMIN_FALLBACK=false
+SESSION_SECRET=REEMPLAZAR_STRING_LARGO_ALEATORIO
+DB_PATH=/data/fortunato.db
+PUBLIC_MERCADOPAGO_PUBLIC_KEY=REEMPLAZAR_PUBLIC_KEY_PROD
+MERCADOPAGO_ACCESS_TOKEN=REEMPLAZAR_ACCESS_TOKEN_PROD
+MERCADOPAGO_ENV=prod
+MERCADOPAGO_WEBHOOK_SECRET=
+PUBLIC_MERCADOPAGO_PAYMENT_LINK=https://link.mercadopago.com.ar/tiendafortunato
+PUBLIC_MERCADOPAGO_ALIAS=
+PUBLIC_SITE_URL=https://www.tiendafortunato.ar
+```
+
+Notas rápidas:
+- Si todavía no rotaste las credenciales de producción, hacelo antes de cargarlas en Railway.
+- Si Railway no tiene volume montado, agregá uno para que `DB_PATH=/data/fortunato.db` no se pierda en cada deploy.
+- La prueba real de punta a punta la podés hacer con `https://www.tiendafortunato.ar/product/sku-prueba-fortunato`.
 
 ## License
 All rights reserved.

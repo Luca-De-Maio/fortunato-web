@@ -4,26 +4,41 @@ import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 ---
 
-<Base title="Fortunato | Pago aprobado" description="Tu pago fue aprobado.">
+<Base title="Fortunato | Compra confirmada" description="Tu compra ya quedó confirmada.">
   <Header />
 
   <main class="checkout-page">
     <div class="container">
       <div class="section-head">
-        <p class="eyebrow">Estado del pago</p>
-        <h2>Pago aprobado</h2>
-        <p class="muted">Gracias. Recibimos tu pago y estamos preparando tu pedido.</p>
+        <p class="eyebrow">Compra confirmada</p>
+        <h2>Tu pago fue aprobado</h2>
+        <p class="muted">Gracias por elegir Fortunato. Tu compra ya quedó registrada y vamos a continuar con la coordinación del envío según los datos que cargaste.</p>
       </div>
 
       <div class="notice">
-        <strong>¿Querés confirmar por WhatsApp?</strong> Si necesitás coordinar envío o tenés dudas de talle, escribinos.
+        <strong>Seguimos con tu pedido.</strong> Si querés adelantar la coordinación del envío o consultar cualquier detalle, te respondemos por WhatsApp.
       </div>
 
-      <p class="muted" data-payment-sync style="margin-top: 1rem;">Estamos validando el estado final de tu pago.</p>
+      <p class="muted" data-payment-sync style="margin-top: 1rem;">Estamos terminando de registrar los últimos datos de tu compra.</p>
 
-      <div style="margin-top: 1.4rem; display: grid; gap: 0.8rem;">
+      <div class="checkout-card" data-order-card hidden style="margin-top: 1rem;">
+        <p class="eyebrow" style="margin-bottom: 0.35rem;">Pedido confirmado</p>
+        <h3 data-order-id style="margin: 0 0 0.35rem; font-size: 1.35rem;">—</h3>
+        <p class="muted" data-order-shipping style="margin: 0;">—</p>
+      </div>
+
+      <div class="checkout-card" style="margin-top: 1rem;">
+        <p class="eyebrow" style="margin-bottom: 0.35rem;">Qué sigue ahora</p>
+        <ul class="checkout-note-list">
+          <li>Tu pago ya fue recibido correctamente.</li>
+          <li>Vamos a confirmar el costo y la coordinación del envío por separado.</li>
+          <li>Si querés avanzar más rápido, podés escribirnos por WhatsApp.</li>
+        </ul>
+      </div>
+
+      <div class="checkout-actions">
         <a class="btn" href="/">Volver al inicio</a>
-        <a class="btn btn-ghost" href="https://wa.me/5491158204344">Hablar por WhatsApp</a>
+        <a class="btn btn-ghost" href="https://wa.me/5491158204344">Coordinar por WhatsApp</a>
       </div>
     </div>
   </main>
@@ -32,6 +47,9 @@ import Footer from "../../components/Footer.astro";
 
   <script>
     const status = document.querySelector("[data-payment-sync]");
+    const orderCard = document.querySelector("[data-order-card]");
+    const orderId = document.querySelector("[data-order-id]");
+    const orderShipping = document.querySelector("[data-order-shipping]");
     const params = new URLSearchParams(window.location.search);
     const reservationId = params.get("reservation_id") || params.get("external_reference");
     const paymentId = params.get("payment_id") || params.get("collection_id");
@@ -42,7 +60,7 @@ import Footer from "../../components/Footer.astro";
 
     if (!reservationId || !paymentId) {
       clearCart();
-      if (status) status.textContent = "No recibimos datos completos del pago, pero podés escribirnos si necesitás ayuda.";
+      if (status) status.textContent = "No recibimos todos los datos del pago en esta pantalla, pero si necesitás ayuda podemos revisarlo enseguida por WhatsApp.";
     } else {
       fetch("/api/mercadopago/confirm", {
         method: "POST",
@@ -51,12 +69,26 @@ import Footer from "../../components/Footer.astro";
       })
         .then(async (response) => {
           if (!response.ok) throw new Error("No pudimos confirmar el pago automáticamente.");
+          const payload = await response.json().catch(() => null);
           clearCart();
-          if (status) status.textContent = "Pago validado. El stock quedó confirmado para tu pedido.";
+          if (payload?.order?.id) {
+            if (orderCard) orderCard.hidden = false;
+            if (orderId) orderId.textContent = payload.order.id;
+            const address = payload.order?.checkoutSnapshot?.shippingAddress || {};
+            const city = [address.city, address.province].filter(Boolean).join(", ");
+            if (orderShipping) {
+              orderShipping.textContent = city
+                ? `Dirección registrada en ${city}. Te confirmaremos el envío y la coordinación por separado.`
+                : "Tu dirección quedó registrada. Te confirmaremos el envío por separado.";
+            }
+            if (status) status.textContent = `Pago confirmado. Tu pedido ${payload.order.id} ya quedó registrado.`;
+            return;
+          }
+          if (status) status.textContent = "Pago confirmado. Tu pedido ya quedó registrado.";
         })
         .catch(() => {
           clearCart();
-          if (status) status.textContent = "Recibimos el regreso desde Mercado Pago. Si necesitás, confirmá por WhatsApp y lo revisamos manualmente.";
+          if (status) status.textContent = "Recibimos tu confirmación desde Mercado Pago. Si querés, escribinos por WhatsApp y lo revisamos con vos.";
         });
     }
   </script>

@@ -53,6 +53,7 @@ export const getDb = async () => {
         gridImage TEXT,
         images TEXT,
         stock TEXT,
+        shippingProfile TEXT,
         highlights TEXT,
         combinations TEXT,
         badge TEXT,
@@ -67,9 +68,26 @@ export const getDb = async () => {
         status TEXT NOT NULL,
         cartSnapshot TEXT,
         locks TEXT NOT NULL,
+        checkoutSnapshot TEXT,
         expiresAt INTEGER,
         paymentId TEXT,
         preferenceId TEXT,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL
+      );
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        reservationId TEXT UNIQUE NOT NULL,
+        paymentId TEXT,
+        status TEXT NOT NULL,
+        checkoutSnapshot TEXT NOT NULL,
+        subtotalAmount INTEGER NOT NULL,
+        shippingAmount INTEGER NOT NULL,
+        totalAmount INTEGER NOT NULL,
+        currency TEXT NOT NULL,
         createdAt INTEGER NOT NULL,
         updatedAt INTEGER NOT NULL
       );
@@ -117,9 +135,19 @@ export const getDb = async () => {
     if (!hasStock) {
       db.run("ALTER TABLE products ADD COLUMN stock TEXT;");
     }
+    const hasShippingProfile = columns.some((row) => row[1] === "shippingProfile");
+    if (!hasShippingProfile) {
+      db.run("ALTER TABLE products ADD COLUMN shippingProfile TEXT;");
+    }
     const hasCardVariant = columns.some((row) => row[1] === "cardVariant");
     if (!hasCardVariant) {
       db.run("ALTER TABLE products ADD COLUMN cardVariant TEXT;");
+    }
+
+    const reservationColumns = db.exec("PRAGMA table_info(stock_reservations);")?.[0]?.values ?? [];
+    const hasCheckoutSnapshot = reservationColumns.some((row) => row[1] === "checkoutSnapshot");
+    if (!hasCheckoutSnapshot) {
+      db.run("ALTER TABLE stock_reservations ADD COLUMN checkoutSnapshot TEXT;");
     }
 
     return { db, dbPath };

@@ -55,9 +55,24 @@ type ReservationRecord = {
   status: string;
   cartSnapshot: NormalizedCartItem[];
   locks: StockLock[];
+  checkoutSnapshot: Record<string, unknown> | null;
   expiresAt: number | null;
   paymentId: string;
   preferenceId: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+type OrderRecord = {
+  id: string;
+  reservationId: string;
+  paymentId: string;
+  status: string;
+  checkoutSnapshot: Record<string, unknown> | null;
+  subtotalAmount: number;
+  shippingAmount: number;
+  totalAmount: number;
+  currency: string;
   createdAt: number;
   updatedAt: number;
 };
@@ -140,9 +155,24 @@ const toReservationRecord = (row: Record<string, unknown>): ReservationRecord =>
     size: entry.size,
     qty: entry.qty
   })),
+  checkoutSnapshot: parseJson<Record<string, unknown> | null>(row.checkoutSnapshot, null),
   expiresAt: Number.isFinite(Number(row.expiresAt)) ? Number(row.expiresAt) : null,
   paymentId: cleanText(row.paymentId, 120),
   preferenceId: cleanText(row.preferenceId, 120),
+  createdAt: Number(row.createdAt || 0),
+  updatedAt: Number(row.updatedAt || 0)
+});
+
+const toOrderRecord = (row: Record<string, unknown>): OrderRecord => ({
+  id: cleanText(row.id, 120),
+  reservationId: cleanText(row.reservationId, 120),
+  paymentId: cleanText(row.paymentId, 120),
+  status: cleanText(row.status, 32),
+  checkoutSnapshot: parseJson<Record<string, unknown> | null>(row.checkoutSnapshot, null),
+  subtotalAmount: Number(row.subtotalAmount || 0),
+  shippingAmount: Number(row.shippingAmount || 0),
+  totalAmount: Number(row.totalAmount || 0),
+  currency: cleanText(row.currency, 12) || "ARS",
   createdAt: Number(row.createdAt || 0),
   updatedAt: Number(row.updatedAt || 0)
 });
@@ -153,6 +183,24 @@ const readReservations = async () => {
   const rows = res?.[0]?.values ?? [];
   const columns = res?.[0]?.columns ?? [];
   return rows.map((row) => toReservationRecord(Object.fromEntries(columns.map((column, index) => [column, row[index]]))));
+};
+
+const readOrders = async () => {
+  const { db } = await getDb();
+  const res = db.exec("SELECT * FROM orders ORDER BY createdAt DESC;");
+  const rows = res?.[0]?.values ?? [];
+  const columns = res?.[0]?.columns ?? [];
+  return rows.map((row) => toOrderRecord(Object.fromEntries(columns.map((column, index) => [column, row[index]]))));
+};
+
+const getSnapshotNumber = (snapshot: Record<string, unknown> | null, key: string) => {
+  const value = snapshot?.[key];
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+};
+
+const getSnapshotCurrency = (snapshot: Record<string, unknown> | null) => {
+  const currency = cleanText(snapshot?.currency, 12);
+  return currency || "ARS";
 };
 
 export const cleanupExpiredReservations = async () => {
@@ -423,10 +471,12 @@ export const quoteCart = async (value: unknown) => {
 
 export const createStockReservation = async ({
   cart,
-  locks
+  locks,
+  checkoutSnapshot = null
 }: {
   cart: NormalizedCartItem[];
   locks: StockLock[];
+  checkoutSnapshot?: Record<string, unknown> | null;
 }) => {
   const { db } = await getDb();
   const id = randomUUID();
@@ -434,14 +484,15 @@ export const createStockReservation = async ({
   const expiresAt = now + RESERVATION_TTL_MS;
   const stmt = db.prepare(`
     INSERT INTO stock_reservations
-    (id, status, cartSnapshot, locks, expiresAt, paymentId, preferenceId, createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    (id, status, cartSnapshot, locks, checkoutSnapshot, expiresAt, paymentId, preferenceId, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `);
   stmt.run([
     id,
     "pending",
     JSON.stringify(cart),
     JSON.stringify(locks),
+    checkoutSnapshot ? JSON.stringify(checkoutSnapshot) : "",
     expiresAt,
     "",
     "",
@@ -458,6 +509,71 @@ export const getStockReservation = async (id: string) => {
   const row = stmt.getAsObject([id]);
   if (!row || !row.id) return null;
   return toReservationRecord(row as Record<string, unknown>);
+};
+
+export const getOrderByReservationId = async (reservationId: string) => {
+  const { db } = await getDb();
+  const stmt = db.prepare("SELECT * FROM orders WHERE reservationId = ? LIMIT 1;");
+  const row = stmt.getAsObject([cleanText(reservationId, 120)]);
+  if (!row || !row.id) return null;
+  return toOrderRecord(row as Record<string, unknown>);
+};
+
+const createOrUpdateOrderFromReservation = async (reservation: ReservationRecord) => {
+  const snapshot = reservation.checkoutSnapshot;
+  if (!snapshot) return null;
+
+  const existingOrder = await getOrderByReservationId(reservation.id);
+  const now = Date.now();
+  const subtotalAmount = getSnapshotNumber(snapshot, "subtotal");
+  const shippingAmount = getSnapshotNumber(snapshot, "shippingAmount");
+  const totalAmount = getSnapshotNumber(snapshot, "total");
+  const currency = getSnapshotCurrency(snapshot);
+
+  if (existingOrder) {
+    const { db } = await getDb();
+    const stmt = db.prepare(`
+      UPDATE orders
+      SET paymentId = ?, status = ?, checkoutSnapshot = ?, subtotalAmount = ?, shippingAmount = ?, totalAmount = ?, currency = ?, updatedAt = ?
+      WHERE reservationId = ?;
+    `);
+    stmt.run([
+      cleanText(reservation.paymentId, 120),
+      "paid",
+      JSON.stringify(snapshot),
+      subtotalAmount,
+      shippingAmount,
+      totalAmount,
+      currency,
+      now,
+      reservation.id
+    ]);
+    await saveDb();
+    return getOrderByReservationId(reservation.id);
+  }
+
+  const orderId = `FT-${reservation.id.slice(0, 8).toUpperCase()}`;
+  const { db } = await getDb();
+  const stmt = db.prepare(`
+    INSERT INTO orders
+    (id, reservationId, paymentId, status, checkoutSnapshot, subtotalAmount, shippingAmount, totalAmount, currency, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  `);
+  stmt.run([
+    orderId,
+    reservation.id,
+    cleanText(reservation.paymentId, 120),
+    "paid",
+    JSON.stringify(snapshot),
+    subtotalAmount,
+    shippingAmount,
+    totalAmount,
+    currency,
+    now,
+    now
+  ]);
+  await saveDb();
+  return getOrderByReservationId(reservation.id);
 };
 
 export const setReservationPreferenceId = async (id: string, preferenceId: string) => {
@@ -486,11 +602,21 @@ export const confirmStockReservation = async ({
 }) => {
   const reservation = await getStockReservation(id);
   if (!reservation) return null;
-  if (reservation.status === "confirmed") return reservation;
+  if (reservation.status === "confirmed") {
+    await createOrUpdateOrderFromReservation({
+      ...reservation,
+      paymentId: cleanText(paymentId || reservation.paymentId, 120)
+    });
+    return reservation;
+  }
   if (reservation.status !== "pending") return reservation;
   const { db } = await getDb();
   const stmt = db.prepare("UPDATE stock_reservations SET status = ?, paymentId = ?, updatedAt = ? WHERE id = ?;");
   stmt.run(["confirmed", cleanText(paymentId, 120), Date.now(), reservation.id]);
   await saveDb();
-  return getStockReservation(reservation.id);
+  const updated = await getStockReservation(reservation.id);
+  if (updated) {
+    await createOrUpdateOrderFromReservation(updated);
+  }
+  return updated;
 };

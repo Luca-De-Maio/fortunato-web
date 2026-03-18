@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
-import { confirmStockReservation, getStockReservation } from "../../../lib/commerce";
+import { confirmStockReservation, getOrderByReservationId, getStockReservation } from "../../../lib/commerce";
+import { fetchMercadoPagoPayment, getMercadoPagoAccessToken } from "../../../lib/mercadopago";
 
 export const prerender = false;
 
@@ -23,23 +24,23 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const token = (process.env.MERCADOPAGO_ACCESS_TOKEN || "").trim();
-  if (!token) {
-    return new Response("Missing MERCADOPAGO_ACCESS_TOKEN", { status: 500 });
+  try {
+    getMercadoPagoAccessToken();
+  } catch (error) {
+    return new Response(error instanceof Error ? error.message : "Missing MERCADOPAGO_ACCESS_TOKEN", {
+      status: 500
+    });
   }
 
-  const paymentRes = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-
-  if (!paymentRes.ok) {
-    const text = await paymentRes.text().catch(() => "");
-    return new Response(text || "Mercado Pago payment lookup failed", { status: 502 });
+  let payment: any;
+  try {
+    payment = await fetchMercadoPagoPayment(paymentId);
+  } catch (error) {
+    return new Response(error instanceof Error ? error.message : "Mercado Pago payment lookup failed", {
+      status: 502
+    });
   }
 
-  const payment = await paymentRes.json().catch(() => ({} as any));
   if (String(payment?.status || "").toLowerCase() !== "approved") {
     return new Response("Payment is not approved", { status: 409 });
   }
@@ -48,7 +49,8 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const updated = await confirmStockReservation({ id: reservationId, paymentId });
-  return new Response(JSON.stringify({ ok: true, reservation: updated }), {
+  const order = await getOrderByReservationId(reservationId);
+  return new Response(JSON.stringify({ ok: true, reservation: updated, order }), {
     status: 200,
     headers: { "Content-Type": "application/json" }
   });

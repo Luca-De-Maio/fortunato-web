@@ -4,20 +4,33 @@ import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 ---
 
-<Base title="Fortunato | Pago pendiente" description="Tu pago está pendiente.">
+<Base title="Fortunato | Pago en revisión" description="Estamos esperando la confirmación de tu pago.">
   <Header />
 
   <main class="checkout-page">
     <div class="container">
       <div class="section-head">
-        <p class="eyebrow">Estado del pago</p>
-        <h2>Pago pendiente</h2>
-        <p class="muted">Tu pago está en proceso. Si se acredita, seguimos con el pedido. Mientras tanto, la reserva de stock queda retenida por unos minutos.</p>
+        <p class="eyebrow">Pago en revisión</p>
+        <h2>Estamos esperando la confirmación</h2>
+        <p class="muted">Mercado Pago todavía está revisando tu pago. Apenas se confirme, seguimos con tu compra y después coordinamos el envío con vos.</p>
       </div>
 
-      <div style="margin-top: 1.4rem; display: grid; gap: 0.8rem;">
-        <a class="btn" href="/cart">Volver al carrito</a>
-        <a class="btn btn-ghost" href="https://wa.me/5491158204344">Consultar por WhatsApp</a>
+      <div class="notice">
+        <strong>No hace falta volver a pagar por ahora.</strong> Si querés, podés esperar la confirmación o escribirnos y te ayudamos a seguir el estado.
+      </div>
+
+      <div class="checkout-card" style="margin-top: 1rem;">
+        <p class="eyebrow" style="margin-bottom: 0.35rem;">Qué puede pasar ahora</p>
+        <ul class="checkout-note-list">
+          <li>Mercado Pago puede confirmar el pago en unos minutos.</li>
+          <li>Si se acredita, seguimos con tu compra y después coordinamos el envío.</li>
+          <li>Si preferís, podés escribirnos por WhatsApp y lo revisamos con vos.</li>
+        </ul>
+      </div>
+
+      <div class="checkout-actions">
+        <a class="btn" href="/cart">Volver a mi selección</a>
+        <a class="btn btn-ghost" href="https://wa.me/5491158204344">Hablar por WhatsApp</a>
       </div>
     </div>
   </main>

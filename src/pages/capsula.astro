@@ -3,11 +3,11 @@ import Base from "../layouts/Base.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import ProductCard from "../components/ProductCard.astro";
-import { getAllProducts } from "../lib/products";
+import { getAllProducts, isPublicProduct } from "../lib/products";
 
 export const prerender = false;
 
-const products = await getAllProducts();
+const products = (await getAllProducts()).filter(isPublicProduct);
 const homeOrder = [
   "camisa-riviera",
   "chomba-sprezzata",

@@ -103,10 +103,29 @@ const products = await getAllProducts();
           ></textarea>
         </label>
 
-        <label>
-          Microcopy (1 línea)
-          <input type="text" name="microcopy" placeholder="Pinzas · Gabardina" />
-        </label>
+          <label>
+            Microcopy (1 línea)
+            <input type="text" name="microcopy" placeholder="Pinzas · Gabardina" />
+          </label>
+
+          <div class="admin-grid">
+            <label>
+              Peso (gramos)
+              <input type="number" name="shippingWeightGrams" min="0" step="1" placeholder="700" />
+            </label>
+            <label>
+              Ancho (cm)
+              <input type="number" name="shippingWidthCm" min="0" step="1" placeholder="30" />
+            </label>
+            <label>
+              Alto (cm)
+              <input type="number" name="shippingHeightCm" min="0" step="1" placeholder="6" />
+            </label>
+            <label>
+              Profundidad (cm)
+              <input type="number" name="shippingDepthCm" min="0" step="1" placeholder="24" />
+            </label>
+          </div>
 
           <label>
             Imágenes (URLs separadas por coma)
@@ -220,6 +239,13 @@ const products = await getAllProducts();
         if (!raw) return [];
         try { return JSON.parse(raw); } catch { return []; }
       })(),
+      shippingProfile: {
+        weightGrams: Number(data.get("shippingWeightGrams") || 0),
+        widthCm: Number(data.get("shippingWidthCm") || 0),
+        heightCm: Number(data.get("shippingHeightCm") || 0),
+        depthCm: Number(data.get("shippingDepthCm") || 0),
+        carrierCategory: String(data.get("category") || "top")
+      },
       microcopy: String(data.get("microcopy") || ""),
       images,
       gridImage,
@@ -248,6 +274,10 @@ const products = await getAllProducts();
     form.querySelector("[name=colors]").value = (product.colors || []).join(", ");
     form.querySelector("[name=sizes]").value = (product.sizes || []).join(", ");
     form.querySelector("[name=stock]").value = JSON.stringify(product.stock || [], null, 2);
+    form.querySelector("[name=shippingWeightGrams]").value = product.shippingProfile?.weightGrams || "";
+    form.querySelector("[name=shippingWidthCm]").value = product.shippingProfile?.widthCm || "";
+    form.querySelector("[name=shippingHeightCm]").value = product.shippingProfile?.heightCm || "";
+    form.querySelector("[name=shippingDepthCm]").value = product.shippingProfile?.depthCm || "";
     form.querySelector("[name=microcopy]").value = product.microcopy || "";
     form.querySelector("[name=images]").value = (product.images || []).join(", ");
     form.querySelector("[name=gridImage]").value = product.gridImage || product.images?.[0] || "";

@@ -244,5 +244,52 @@
     ],
     "badge": "",
     "microcopy": "Sastrería · Tiro medio"
+  },
+  {
+    "id": "sku-prueba-fortunato",
+    "slug": "sku-prueba-fortunato",
+    "name": "SKU Prueba Fortunato",
+    "category": "top",
+    "price": 10,
+    "compareAt": null,
+    "currency": "ARS",
+    "description": "Producto interno para validar el flujo completo de compra, pago y confirmación en producción. No forma parte de la cápsula pública.",
+    "materials": [
+      "Uso interno"
+    ],
+    "fit": "Regular",
+    "colors": [
+      "Negro"
+    ],
+    "sizes": [
+      "S/M"
+    ],
+    "gridImage": "/images/products/remera-doppio-collo/mesa-de-trabajo-205-copia-11-grid-zoomout.webp",
+    "images": [
+      "/images/products/remera-doppio-collo/mesa-de-trabajo-205-copia-11-hero.webp",
+      "/images/products/remera-doppio-collo/mesa-de-trabajo-205-copia-11.webp"
+    ],
+    "stock": [
+      {
+        "color": "Negro",
+        "size": "S/M",
+        "quantity": 5
+      }
+    ],
+    "shippingProfile": {
+      "weightGrams": 400,
+      "widthCm": 28,
+      "heightCm": 36,
+      "depthCm": 3,
+      "carrierCategory": "top"
+    },
+    "highlights": [
+      "SKU de prueba para validar el checkout",
+      "Precio simbólico para smoke tests controlados",
+      "Oculto del catálogo público"
+    ],
+    "badge": "Interno",
+    "microcopy": "Solo para pruebas",
+    "cardVariant": "standard"
   }
 ]

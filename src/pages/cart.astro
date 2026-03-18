@@ -1,14 +1,24 @@
 ---
-import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import Base from "../layouts/Base.astro";
+import { ARGENTINA_PROVINCES, CHECKOUT_LIMITS } from "../lib/checkout";
 
 const whatsappNumber = "5491158204344";
+const mercadoPagoPublicKey = import.meta.env.PUBLIC_MERCADOPAGO_PUBLIC_KEY || "";
+const checkoutConfig = {
+  limits: CHECKOUT_LIMITS,
+  patterns: {
+    fullName: "[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:[ '.-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)+",
+    postalCode: "(?:\\d{4}|[A-Z]\\d{4}[A-Z]{3})",
+    streetNumber: "[A-Za-z0-9/-]{1,10}"
+  }
+};
 ---
 
 <Base
   title="Fortunato | Carrito"
-  description="Revisá tu selección, validá stock en tiempo real y pagá con Mercado Pago."
+  description="Revisá tu selección, completá tus datos de entrega y pagá de forma segura con Mercado Pago."
 >
   <Header />
 
@@ -17,26 +27,116 @@ const whatsappNumber = "5491158204344";
       <div class="section-head">
         <p class="eyebrow">Carrito</p>
         <h2>Tu selección Fortunato</h2>
-        <p class="muted">El total y el stock se validan desde backend antes de abrir Mercado Pago. Después podés seguir por WhatsApp para coordinar el envío.</p>
+        <p class="muted">Completá tus datos de entrega y pagá las prendas. El costo de envío te lo confirmamos después.</p>
       </div>
 
-      <div class="cart-list" data-cart-list></div>
+      <div class="cart-layout">
+        <div class="cart-list-wrap">
+          <div class="cart-list" data-cart-list></div>
+        </div>
 
-      <div class="cart-summary" data-cart-summary hidden>
-        <p><strong>Subtotal de productos</strong>: <span data-cart-subtotal>—</span></p>
-        <div class="notice">
-          <strong>Checkout seguro:</strong> Al hacer click en pagar, Fortunato vuelve a cotizar tu carrito, reserva stock por unos minutos y abre Mercado Pago con la preference generada desde backend.
-        </div>
-        <div class="cart-flow" aria-label="Cómo funciona el pago">
-          <p><strong>1.</strong> Validamos stock y subtotal en tiempo real.</p>
-          <p><strong>2.</strong> Abrís Mercado Pago con el monto exacto del pedido.</p>
-          <p><strong>3.</strong> Si querés, seguís por WhatsApp para coordinar envío o cambios.</p>
-        </div>
-        <p class="muted cart-summary-status" data-cart-status></p>
-        <div class="cart-summary-actions">
-          <button class="btn" type="button" data-cart-pay data-analytics="cart-pay" data-analytics-kind="button">Ir a pagar con Mercado Pago</button>
-          <button class="btn btn-ghost" type="button" data-cart-wa data-analytics="cart-whatsapp" data-analytics-kind="button">Consultar por WhatsApp</button>
-          <button class="btn btn-ghost" type="button" data-cart-clear data-analytics="cart-clear" data-analytics-kind="button">Vaciar selección</button>
+        <div class="cart-summary-wrap">
+          <div class="cart-summary" data-cart-summary hidden>
+            <div class="cart-summary-top">
+              <p class="cart-summary-eyebrow">Resumen de compra</p>
+              <div class="cart-summary-price">
+                <p class="cart-summary-total-label">Pagás ahora</p>
+                <p class="cart-summary-total-amount" data-cart-total>—</p>
+              </div>
+              <div class="cart-summary-breakdown" aria-label="Resumen del pedido">
+                <p><span>Prendas</span><strong data-cart-subtotal>—</strong></p>
+                <p><span>Envío</span><strong data-cart-shipping>A confirmar</strong></p>
+              </div>
+              <div class="cart-summary-hint" data-cart-shipping-copy>
+                Completá tus datos de entrega. El costo de envío se confirma después de la compra.
+              </div>
+            </div>
+
+            <form class="cart-checkout-form" data-cart-checkout-form>
+              <section class="cart-form-section">
+                <div class="cart-form-head">
+                  <p class="cart-form-eyebrow">Contacto</p>
+                  <h3>Datos para tu compra</h3>
+                </div>
+                <div class="cart-form-grid">
+                  <label class="cart-field cart-field-full">
+                    <span>Nombre y apellido</span>
+                    <input type="text" name="fullName" autocomplete="name" minlength="5" maxlength={CHECKOUT_LIMITS.customer.fullName} pattern={checkoutConfig.patterns.fullName} title="Ingresá nombre y apellido reales." required />
+                  </label>
+                  <label class="cart-field">
+                    <span>Email</span>
+                    <input type="email" name="email" autocomplete="email" inputmode="email" maxlength={CHECKOUT_LIMITS.customer.email} required />
+                  </label>
+                  <label class="cart-field">
+                    <span>Teléfono</span>
+                    <input type="tel" name="phone" autocomplete="tel" inputmode="numeric" minlength="10" maxlength={CHECKOUT_LIMITS.customer.phone} pattern="\\d{10,13}" title="Ingresá un teléfono válido de Argentina, solo con números." required />
+                  </label>
+                </div>
+              </section>
+
+              <section class="cart-form-section">
+                <div class="cart-form-head">
+                  <p class="cart-form-eyebrow">Envío</p>
+                  <h3>Dirección de entrega</h3>
+                </div>
+                <div class="cart-form-grid">
+                  <label class="cart-field">
+                    <span>Provincia</span>
+                    <select name="province" autocomplete="address-level1" required>
+                      <option value="">Seleccionar</option>
+                      {ARGENTINA_PROVINCES.map((province) => (
+                        <option value={province}>{province}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label class="cart-field">
+                    <span>Ciudad</span>
+                    <input type="text" name="city" autocomplete="address-level2" minlength="2" maxlength={CHECKOUT_LIMITS.shippingAddress.city} required />
+                  </label>
+                  <label class="cart-field">
+                    <span>Código postal</span>
+                    <input type="text" name="postalCode" autocomplete="postal-code" inputmode="text" minlength="4" maxlength={CHECKOUT_LIMITS.shippingAddress.postalCode} pattern={checkoutConfig.patterns.postalCode} title="Usá un código postal argentino válido, por ejemplo 1425 o C1425ABC." required />
+                  </label>
+                  <label class="cart-field">
+                    <span>Calle</span>
+                    <input type="text" name="street" autocomplete="address-line1" minlength="3" maxlength={CHECKOUT_LIMITS.shippingAddress.street} required />
+                  </label>
+                  <label class="cart-field">
+                    <span>Altura</span>
+                    <input type="text" name="streetNumber" inputmode="text" maxlength={CHECKOUT_LIMITS.shippingAddress.streetNumber} pattern={checkoutConfig.patterns.streetNumber} title="Ingresá una altura válida." required />
+                  </label>
+                  <label class="cart-field">
+                    <span>Piso / depto</span>
+                    <input type="text" name="apartment" autocomplete="address-line2" maxlength={CHECKOUT_LIMITS.shippingAddress.apartment} />
+                  </label>
+                  <label class="cart-field cart-field-full">
+                    <span>Indicaciones para la entrega</span>
+                    <textarea name="notes" rows="3" placeholder="Opcional" maxlength={CHECKOUT_LIMITS.shippingAddress.notes}></textarea>
+                  </label>
+                </div>
+              </section>
+            </form>
+
+            <p class="muted cart-summary-status" data-cart-status></p>
+
+            <div class="cart-summary-actions">
+              <button class="btn" type="button" data-cart-pay data-analytics="cart-pay" data-analytics-kind="button">Pagar ahora con Mercado Pago</button>
+              <div class="cart-wallet-shell" data-cart-wallet-shell hidden>
+                <div class="cart-wallet-head">
+                  <p class="cart-wallet-title">Continuar con el pago</p>
+                  <p class="cart-wallet-copy">Si el botón tarda en cargar, podés abrir Mercado Pago directamente.</p>
+                </div>
+                <div class="cart-wallet" id="cart-wallet-brick"></div>
+                <button class="btn btn-ghost cart-wallet-fallback" type="button" data-cart-open-checkout>
+                  Abrir Mercado Pago
+                </button>
+              </div>
+              <div class="cart-secondary-actions">
+                <button class="btn btn-ghost" type="button" data-cart-wa data-analytics="cart-whatsapp" data-analytics-kind="button">Consultar por WhatsApp</button>
+                <button class="btn btn-ghost" type="button" data-cart-clear data-analytics="cart-clear" data-analytics-kind="button">Vaciar selección</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -44,26 +144,68 @@ const whatsappNumber = "5491158204344";
 
   <Footer />
 
-  <script define:vars={{ whatsappNumber }}>
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+  <script define:vars={{ whatsappNumber, mercadoPagoPublicKey, checkoutConfig }}>
     const CART_KEY = "fortunato_cart";
+    const CHECKOUT_KEY = "fortunato_checkout";
     const list = document.querySelector("[data-cart-list]");
-    const subtotalEl = document.querySelector("[data-cart-subtotal]");
     const summaryEl = document.querySelector("[data-cart-summary]");
+    const subtotalEl = document.querySelector("[data-cart-subtotal]");
+    const totalEl = document.querySelector("[data-cart-total]");
+    const shippingEl = document.querySelector("[data-cart-shipping]");
+    const shippingCopyEl = document.querySelector("[data-cart-shipping-copy]");
+    const checkoutForm = document.querySelector("[data-cart-checkout-form]");
     const clearBtn = document.querySelector("[data-cart-clear]");
     const payBtn = document.querySelector("[data-cart-pay]");
     const waBtn = document.querySelector("[data-cart-wa]");
+    const openCheckoutBtn = document.querySelector("[data-cart-open-checkout]");
     const statusEl = document.querySelector("[data-cart-status]");
+    const walletShell = document.querySelector("[data-cart-wallet-shell]");
+    const payDefaultLabel = "Pagar ahora con Mercado Pago";
+    const payLoadingLabel = "Preparando pago...";
 
     let state = {
       cart: [],
       quote: null,
-      loading: false
+      loading: false,
+      paymentLoading: false,
+      checkout: null
     };
+    let walletBrickController = null;
+    let quoteTimer = null;
+
+    const defaultCheckout = () => ({
+      customer: {
+        fullName: "",
+        email: "",
+        phone: ""
+      },
+      shippingAddress: {
+        province: "",
+        city: "",
+        postalCode: "",
+        street: "",
+        streetNumber: "",
+        apartment: "",
+        notes: ""
+      }
+    });
 
     const getCart = () => {
       try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
     };
     const setCart = (cart) => localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    const getStoredCheckout = () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(CHECKOUT_KEY) || "null");
+        return parsed && typeof parsed === "object" ? parsed : defaultCheckout();
+      } catch {
+        return defaultCheckout();
+      }
+    };
+    const setStoredCheckout = (checkout) => {
+      localStorage.setItem(CHECKOUT_KEY, JSON.stringify(checkout));
+    };
     const safeImageSrc = (value) => {
       const src = String(value || "").trim();
       if (!src) return "/placeholder.svg";
@@ -76,10 +218,122 @@ const whatsappNumber = "5491158204344";
       if (error instanceof Error && error.message) return error.message;
       return fallback;
     };
+    const cleanValue = (value, max = 120) =>
+      String(value || "")
+        .replace(/\r\n/g, "\n")
+        .replace(/[\u0000-\u001F\u007F]/g, "")
+        .replace(/\s+/g, " ")
+        .trimStart()
+        .slice(0, max);
+    const sanitizeName = (value) =>
+      cleanValue(value, checkoutConfig.limits.customer.fullName).replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]/g, "");
+    const sanitizeEmail = (value) =>
+      cleanValue(value, checkoutConfig.limits.customer.email).replace(/\s+/g, "").toLowerCase();
+    const sanitizePhone = (value) =>
+      String(value || "").replace(/\D+/g, "").slice(0, checkoutConfig.limits.customer.phone);
+    const sanitizeCity = (value) =>
+      cleanValue(value, checkoutConfig.limits.shippingAddress.city).replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9' .-]/g, "");
+    const sanitizePostalCode = (value) =>
+      cleanValue(value, checkoutConfig.limits.shippingAddress.postalCode).replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    const sanitizeStreet = (value) =>
+      cleanValue(value, checkoutConfig.limits.shippingAddress.street).replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9' ./-]/g, "");
+    const sanitizeStreetNumber = (value) =>
+      cleanValue(value, checkoutConfig.limits.shippingAddress.streetNumber).replace(/[^A-Za-z0-9/-]/g, "");
+    const sanitizeApartment = (value) =>
+      cleanValue(value, checkoutConfig.limits.shippingAddress.apartment).replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ./-]/g, "");
+    const sanitizeNotes = (value) =>
+      cleanValue(value, checkoutConfig.limits.shippingAddress.notes);
+    const isValidArgentinaPhone = (value) => {
+      const digits = sanitizePhone(value);
+      if (!digits) return false;
+      if (digits.startsWith("54")) {
+        return digits.length === 12 || digits.length === 13;
+      }
+      return digits.length === 10 || digits.length === 11;
+    };
+    const isValidPostalCode = (value) => /^(?:\d{4}|[A-Z]\d{4}[A-Z]{3})$/.test(String(value || "").trim());
+    const isValidFullName = (value) =>
+      /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:[ '.-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)+$/.test(String(value || "").trim());
     const format = (amount, currency) =>
       typeof amount === "number" && !Number.isNaN(amount)
         ? `${currency} ${amount.toLocaleString("es-AR")}`
         : "Precio a confirmar";
+    const normalizePhone = (value) => sanitizePhone(value);
+    const sanitizeFieldValue = (field) => {
+      if (!field?.name) return;
+      const current = field.value || "";
+      let next = current;
+      switch (field.name) {
+        case "fullName":
+          next = sanitizeName(current);
+          break;
+        case "email":
+          next = sanitizeEmail(current);
+          break;
+        case "phone":
+          next = sanitizePhone(current);
+          break;
+        case "city":
+          next = sanitizeCity(current);
+          break;
+        case "postalCode":
+          next = sanitizePostalCode(current);
+          break;
+        case "street":
+          next = sanitizeStreet(current);
+          break;
+        case "streetNumber":
+          next = sanitizeStreetNumber(current);
+          break;
+        case "apartment":
+          next = sanitizeApartment(current);
+          break;
+        case "notes":
+          next = sanitizeNotes(current);
+          break;
+        default:
+          next = cleanValue(current, 160);
+      }
+      if (next !== current) field.value = next;
+    };
+    const validateField = (field) => {
+      if (!field?.name || typeof field.setCustomValidity !== "function") return true;
+      sanitizeFieldValue(field);
+      const value = String(field.value || "").trim();
+      let message = "";
+      if (field.name === "fullName" && value && !isValidFullName(value)) {
+        message = "Ingresá nombre y apellido reales.";
+      } else if (field.name === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        message = "Ingresá un email válido.";
+      } else if (field.name === "phone" && value && !isValidArgentinaPhone(value)) {
+        message = "Ingresá un teléfono válido de Argentina, solo con números.";
+      } else if (field.name === "postalCode" && value && !isValidPostalCode(value)) {
+        message = "Usá un código postal argentino válido.";
+      }
+      field.setCustomValidity(message);
+      return !message;
+    };
+    const validateCheckoutForm = ({ report = false } = {}) => {
+      if (!checkoutForm) return false;
+      const fields = checkoutForm.querySelectorAll("input, select, textarea");
+      fields.forEach((field) => validateField(field));
+      return report ? checkoutForm.reportValidity() : checkoutForm.checkValidity();
+    };
+    const isCheckoutComplete = (checkout) => {
+      const customer = checkout?.customer || {};
+      const shippingAddress = checkout?.shippingAddress || {};
+      return Boolean(
+        isValidFullName(customer.fullName) &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(customer.email || "").trim()) &&
+        isValidArgentinaPhone(customer.phone) &&
+        String(shippingAddress.province || "").trim() &&
+        String(shippingAddress.city || "").trim().length >= 2 &&
+        isValidPostalCode(shippingAddress.postalCode) &&
+        String(shippingAddress.street || "").trim().length >= 3 &&
+        /^[A-Za-z0-9/-]{1,10}$/.test(String(shippingAddress.streetNumber || "").trim()) &&
+        (!checkoutForm || validateCheckoutForm())
+      );
+    };
 
     const makeKey = (item) => `${item.id}__${item.color || ""}__${item.size || ""}`;
     const syncBadge = (cart) => {
@@ -94,6 +348,55 @@ const whatsappNumber = "5491158204344";
       setCart(state.cart);
       syncBadge(state.cart);
     };
+    const fillCheckoutForm = (checkout) => {
+      if (!checkoutForm) return;
+      checkoutForm.querySelector("[name=fullName]").value = checkout?.customer?.fullName || "";
+      checkoutForm.querySelector("[name=email]").value = checkout?.customer?.email || "";
+      checkoutForm.querySelector("[name=phone]").value = checkout?.customer?.phone || "";
+      checkoutForm.querySelector("[name=province]").value = checkout?.shippingAddress?.province || "";
+      checkoutForm.querySelector("[name=city]").value = checkout?.shippingAddress?.city || "";
+      checkoutForm.querySelector("[name=postalCode]").value = checkout?.shippingAddress?.postalCode || "";
+      checkoutForm.querySelector("[name=street]").value = checkout?.shippingAddress?.street || "";
+      checkoutForm.querySelector("[name=streetNumber]").value = checkout?.shippingAddress?.streetNumber || "";
+      checkoutForm.querySelector("[name=apartment]").value = checkout?.shippingAddress?.apartment || "";
+      checkoutForm.querySelector("[name=notes]").value = checkout?.shippingAddress?.notes || "";
+      validateCheckoutForm();
+    };
+    const readCheckoutForm = () => {
+      if (!checkoutForm) return defaultCheckout();
+      return {
+        customer: {
+          fullName: checkoutForm.querySelector("[name=fullName]")?.value || "",
+          email: checkoutForm.querySelector("[name=email]")?.value || "",
+          phone: checkoutForm.querySelector("[name=phone]")?.value || ""
+        },
+        shippingAddress: {
+          province: checkoutForm.querySelector("[name=province]")?.value || "",
+          city: checkoutForm.querySelector("[name=city]")?.value || "",
+          postalCode: checkoutForm.querySelector("[name=postalCode]")?.value || "",
+          street: checkoutForm.querySelector("[name=street]")?.value || "",
+          streetNumber: checkoutForm.querySelector("[name=streetNumber]")?.value || "",
+          apartment: checkoutForm.querySelector("[name=apartment]")?.value || "",
+          notes: checkoutForm.querySelector("[name=notes]")?.value || ""
+        }
+      };
+    };
+    const persistCheckout = () => {
+      const checkout = readCheckoutForm();
+      setStoredCheckout(checkout);
+      return checkout;
+    };
+    const resetCheckout = () => {
+      state.checkout = null;
+      if (walletBrickController?.unmount) {
+        try { walletBrickController.unmount(); } catch {}
+      }
+      walletBrickController = null;
+      const walletContainer = document.getElementById("cart-wallet-brick");
+      if (walletContainer) walletContainer.replaceChildren();
+      if (walletShell) walletShell.hidden = true;
+      if (payBtn) payBtn.hidden = false;
+    };
 
     const setStatus = (text, type = "") => {
       if (!statusEl) return;
@@ -105,6 +408,21 @@ const whatsappNumber = "5491158204344";
       if (className) node.className = className;
       if (typeof text === "string") node.textContent = text;
       return node;
+    };
+    const renderEmptyState = () => {
+      const card = createNode("div", "cart-empty");
+      card.append(createNode("p", "cart-empty-eyebrow", "Carrito vacío"));
+      card.append(createNode("h3", "cart-empty-title", "Todavía no agregaste prendas."));
+      card.append(createNode("p", "muted", "Explorá la cápsula y armá una selección antes de pagar."));
+
+      const actions = createNode("div", "cart-empty-actions");
+      const shopLink = createNode("a", "btn", "Explorar colección");
+      shopLink.href = "/capsula";
+      const waLink = createNode("a", "btn btn-ghost", "Consultar por WhatsApp");
+      waLink.href = `https://wa.me/${whatsappNumber}`;
+      actions.append(shopLink, waLink);
+      card.append(actions);
+      list.replaceChildren(card);
     };
     const createCartItem = (item) => {
       const article = createNode("article", "cart-item");
@@ -125,14 +443,18 @@ const whatsappNumber = "5491158204344";
       top.append(name, remove);
       main.append(top);
 
+      const meta = createNode("div", "cart-item-meta");
       if (item.color) {
-        main.append(createNode("p", "muted", `Color: ${String(item.color)}`));
+        meta.append(createNode("span", "cart-item-pill", `Color ${String(item.color)}`));
       }
       if (item.size) {
-        main.append(createNode("p", "muted", `Talle: ${String(item.size)}`));
+        meta.append(createNode("span", "cart-item-pill", `Talle ${String(item.size)}`));
+      }
+      if (meta.childNodes.length) {
+        main.append(meta);
       }
       if (item.stockLabel) {
-        main.append(createNode("p", item.isLowStock ? "cart-stock cart-stock-low" : "cart-stock", String(item.stockLabel)));
+        main.append(createNode("span", item.isLowStock ? "cart-stock cart-stock-low" : "cart-stock", String(item.stockLabel)));
       }
 
       const bottom = createNode("div", "cart-item-bottom");
@@ -151,6 +473,7 @@ const whatsappNumber = "5491158204344";
       qtyWrap.append(dec, qtyValue, inc);
 
       const priceBlock = createNode("div", "cart-price-block");
+      priceBlock.append(createNode("span", "cart-price-label", "Total"));
       priceBlock.append(createNode("strong", "cart-line-total", format(Number(item.lineTotal || 0), item.currency || "ARS")));
       if (Number(item.qty || 0) > 1) {
         priceBlock.append(
@@ -163,41 +486,90 @@ const whatsappNumber = "5491158204344";
       article.append(main);
       return article;
     };
+    const renderTotals = (quote) => {
+      const subtotal = Number(quote?.subtotal || 0);
+      const total = Number(quote?.total || subtotal);
+      subtotalEl.textContent = format(subtotal, quote?.currency || "ARS");
+      shippingEl.textContent = "A confirmar";
+      totalEl.textContent = format(total, quote?.currency || "ARS");
+
+      if (!isCheckoutComplete(readCheckoutForm())) {
+        shippingCopyEl.textContent = "Completá tus datos de entrega para registrar el pedido correctamente.";
+        return;
+      }
+      const address = quote?.checkout?.shippingAddress || {};
+      const destination = [address.city, address.province].filter(Boolean).join(", ");
+      shippingCopyEl.textContent = destination
+        ? `Usaremos la dirección de ${destination} para confirmarte el costo de envío después de la compra.`
+        : "Después de la compra te confirmamos el costo de envío según tu dirección.";
+    };
 
     const render = () => {
       const cart = Array.isArray(state.cart) ? state.cart : [];
       if (!cart.length) {
-        list.replaceChildren(createNode("p", "muted", "Tu selección está vacía."));
-        subtotalEl.textContent = "—";
+        resetCheckout();
+        renderEmptyState();
+        subtotalEl.textContent = "ARS 0";
+        shippingEl.textContent = "A confirmar";
+        totalEl.textContent = "ARS 0";
+        shippingCopyEl.textContent = "Completá tus datos de entrega. El costo de envío se confirma después de la compra.";
         if (summaryEl) summaryEl.hidden = true;
-        if (payBtn) payBtn.disabled = true;
+        if (payBtn) {
+          payBtn.disabled = true;
+          payBtn.textContent = payDefaultLabel;
+        }
         if (waBtn) waBtn.disabled = true;
+        if (openCheckoutBtn) openCheckoutBtn.disabled = true;
         setStatus("");
         return;
       }
+
       if (summaryEl) summaryEl.hidden = false;
       if (state.loading) {
-        list.replaceChildren(createNode("p", "muted", "Validando stock y precios..."));
+        list.replaceChildren(createNode("p", "muted", "Actualizando tu carrito..."));
         if (payBtn) payBtn.disabled = true;
         if (waBtn) waBtn.disabled = true;
         return;
       }
+
       const quoteItems = Array.isArray(state.quote?.items) ? state.quote.items : [];
       if (!quoteItems.length) {
+        resetCheckout();
         list.replaceChildren(createNode("p", "muted", "No pudimos validar tu selección. Probá de nuevo en unos segundos."));
-        subtotalEl.textContent = "—";
-        if (payBtn) payBtn.disabled = true;
+        subtotalEl.textContent = "ARS —";
+        shippingEl.textContent = "A confirmar";
+        totalEl.textContent = "ARS —";
+        shippingCopyEl.textContent = "Completá tus datos de entrega. El costo de envío se confirma después de la compra.";
+        if (payBtn) {
+          payBtn.disabled = true;
+          payBtn.textContent = payDefaultLabel;
+        }
         if (waBtn) waBtn.disabled = true;
+        if (openCheckoutBtn) openCheckoutBtn.disabled = true;
         return;
       }
-      if (payBtn) payBtn.disabled = false;
+
+      const readyToPay = Boolean(
+        isCheckoutComplete(readCheckoutForm()) &&
+        (!Array.isArray(state.quote?.issues) || !state.quote.issues.length) &&
+        (!Array.isArray(state.quote?.checkoutIssues) || !state.quote.checkoutIssues.length)
+      );
+
+      if (payBtn) {
+        payBtn.disabled = state.paymentLoading || !readyToPay;
+        payBtn.hidden = Boolean(state.checkout);
+        payBtn.textContent = state.paymentLoading ? payLoadingLabel : payDefaultLabel;
+      }
       if (waBtn) waBtn.disabled = false;
+      if (openCheckoutBtn) openCheckoutBtn.disabled = !state.checkout?.checkoutUrl;
+      if (walletShell) walletShell.hidden = !state.checkout;
+
       const rows = quoteItems.map((item) => createCartItem(item));
       list.replaceChildren(...rows);
-      subtotalEl.textContent = format(Number(state.quote?.subtotal || 0), state.quote?.currency || "ARS");
+      renderTotals(state.quote);
     };
 
-    const buildWhatsappText = (quote, subtotalLabel) => {
+    const buildWhatsappText = (quote, checkout) => {
       const lines = (quote?.items || []).map((item) => {
         const qty = Number(item.qty || 0);
         const parts = [
@@ -209,22 +581,33 @@ const whatsappNumber = "5491158204344";
         return parts.join(" · ");
       });
 
+      const address = checkout?.shippingAddress || {};
+      const addressLine = [
+        address.street ? `${address.street} ${address.streetNumber || ""}`.trim() : "",
+        address.city,
+        address.province,
+        address.postalCode
+      ].filter(Boolean).join(", ");
+
       return [
         "Hola! Quiero confirmar este pedido de Fortunato:",
         "",
         ...lines,
         "",
-        `Subtotal validado por la web: ${subtotalLabel}`,
+        `Productos: ${format(Number(quote?.subtotal || 0), quote?.currency || "ARS")}`,
+        "Envío: A confirmar después de la compra",
+        `Total: ${format(Number(quote?.total || quote?.subtotal || 0), quote?.currency || "ARS")}`,
+        addressLine ? `Entrega: ${addressLine}` : "",
         "",
-        "Necesito validar el pago y coordinar el envio."
+        "Quiero coordinar la entrega y confirmar los datos de la compra."
       ].filter(Boolean).join("\n");
     };
 
-    const requestQuote = async (cart) => {
+    const requestQuote = async (cart, checkout) => {
       const response = await fetch("/api/cart/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cart })
+        body: JSON.stringify({ cart, checkout })
       });
       if (!response.ok) {
         throw new Error("No pudimos validar el carrito.");
@@ -234,7 +617,9 @@ const whatsappNumber = "5491158204344";
 
     const syncQuote = async ({ silent = false } = {}) => {
       const cart = getCart();
+      const checkout = persistCheckout();
       persistCart(cart);
+      resetCheckout();
       if (!cart.length) {
         state.quote = null;
         state.loading = false;
@@ -245,11 +630,12 @@ const whatsappNumber = "5491158204344";
       state.loading = true;
       render();
       try {
-        const quote = await requestQuote(cart);
+        const quote = await requestQuote(cart, checkout);
         state.quote = quote;
         persistCart(Array.isArray(quote?.cart) ? quote.cart : []);
         state.loading = false;
         render();
+
         const issues = Array.isArray(quote?.issues) ? quote.issues : [];
         if (issues.length) {
           setStatus(issues.map((issue) => issue.message).slice(0, 2).join(" "), "error");
@@ -263,6 +649,58 @@ const whatsappNumber = "5491158204344";
         render();
         setStatus(getMessage(error, "No pudimos validar el carrito."), "error");
         return null;
+      }
+    };
+
+    const scheduleQuoteSync = () => {
+      if (quoteTimer) window.clearTimeout(quoteTimer);
+      quoteTimer = window.setTimeout(() => {
+        syncQuote({ silent: true });
+      }, 280);
+    };
+
+    const openCheckoutFallback = (checkoutUrl) => {
+      if (!checkoutUrl) return;
+      setStatus("Abriendo Mercado Pago...", "pending");
+      window.location.assign(checkoutUrl);
+    };
+
+    const mountWalletBrick = async ({ preferenceId, checkoutUrl }) => {
+      const MercadoPagoCtor = window.MercadoPago;
+      const walletContainer = document.getElementById("cart-wallet-brick");
+      if (!walletContainer || !mercadoPagoPublicKey || typeof MercadoPagoCtor !== "function") {
+        openCheckoutFallback(checkoutUrl);
+        return;
+      }
+
+      resetCheckout();
+      state.checkout = { preferenceId, checkoutUrl };
+      if (payBtn) payBtn.hidden = true;
+      if (walletShell) walletShell.hidden = false;
+
+      try {
+        const mercadoPago = new MercadoPagoCtor(mercadoPagoPublicKey, { locale: "es" });
+        const bricksBuilder = mercadoPago.bricks();
+        walletBrickController = await bricksBuilder.create("wallet", "cart-wallet-brick", {
+          initialization: {
+            preferenceId,
+            redirectMode: "blank"
+          },
+          callbacks: {
+            onReady: () => {
+              setStatus("Mercado Pago listo para continuar.", "pending");
+            },
+            onError: () => {
+              setStatus("No pudimos cargar el botón. Abrimos Mercado Pago directamente.", "error");
+              resetCheckout();
+              openCheckoutFallback(checkoutUrl);
+            }
+          }
+        });
+      } catch (error) {
+        resetCheckout();
+        openCheckoutFallback(checkoutUrl);
+        throw error;
       }
     };
 
@@ -297,58 +735,98 @@ const whatsappNumber = "5491158204344";
       }
     });
 
+    checkoutForm?.addEventListener("input", (event) => {
+      const field = event.target;
+      if (field && checkoutForm.contains(field)) validateField(field);
+      persistCheckout();
+      if (statusEl?.dataset.type === "error") setStatus("");
+      scheduleQuoteSync();
+    });
+    checkoutForm?.addEventListener("change", (event) => {
+      const field = event.target;
+      if (field && checkoutForm.contains(field)) validateField(field);
+      persistCheckout();
+      scheduleQuoteSync();
+    });
+
     clearBtn?.addEventListener("click", () => {
       const cart = getCart();
       if (!cart.length) return;
       if (!confirm("¿Vaciar selección?")) return;
       persistCart([]);
       state.quote = null;
+      resetCheckout();
       render();
     });
 
     payBtn?.addEventListener("click", async () => {
+      const checkout = persistCheckout();
+      if (!validateCheckoutForm({ report: true })) {
+        setStatus("Completá tus datos de contacto y envío para continuar.", "error");
+        return;
+      }
+
       const quote = await syncQuote({ silent: true });
       if (!quote || !Array.isArray(quote.items) || !quote.items.length) return;
       if (Array.isArray(quote.issues) && quote.issues.length) {
         setStatus("Actualizamos el carrito según el stock disponible. Revisalo antes de pagar.", "error");
         return;
       }
+      if (Array.isArray(quote.checkoutIssues) && quote.checkoutIssues.length) {
+        setStatus(quote.checkoutIssues[0] || "Revisá los datos de contacto y envío.", "error");
+        return;
+      }
+      if (!isCheckoutComplete(checkout)) {
+        setStatus("Completá tus datos antes de continuar con el pago.", "error");
+        return;
+      }
 
-      setStatus("Generando checkout seguro con Mercado Pago...", "pending");
+      state.paymentLoading = true;
+      render();
+      setStatus("Preparando Mercado Pago...", "pending");
       try {
         const response = await fetch("/api/mercadopago/preference", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cart: state.cart })
+          body: JSON.stringify({ cart: state.cart, checkout })
         });
         const payload = await response.json().catch(() => null);
         if (response.status === 409 && payload?.quote) {
           state.quote = payload.quote;
           persistCart(Array.isArray(payload.quote.cart) ? payload.quote.cart : []);
           render();
-          setStatus("El stock cambió mientras preparábamos el pago. Ya actualizamos tu carrito.", "error");
+          setStatus(payload?.error === "Checkout requires review"
+            ? (payload.quote?.checkoutIssues?.[0] || "Revisá los datos de entrega antes de continuar.")
+            : "El stock cambió mientras preparábamos el pago. Ya actualizamos tu carrito.", "error");
           return;
         }
-        if (!response.ok || !payload?.checkoutUrl) {
+        if (!response.ok || !payload?.checkoutUrl || !payload?.preferenceId) {
           throw new Error(payload?.error || "No pudimos abrir Mercado Pago.");
         }
-        const next = window.open(payload.checkoutUrl, "_blank", "noopener,noreferrer");
-        if (!next) window.location.href = payload.checkoutUrl;
-        setStatus("Mercado Pago abierto. Tenés unos minutos de reserva sobre este stock.", "pending");
+        await mountWalletBrick(payload);
       } catch (error) {
         setStatus(getMessage(error, "No pudimos abrir Mercado Pago."), "error");
+      } finally {
+        state.paymentLoading = false;
+        render();
       }
     });
 
     waBtn?.addEventListener("click", () => {
       if (!state.quote?.items?.length) return;
-      const subtotalLabel = format(Number(state.quote.subtotal || 0), state.quote.currency || "ARS");
-      const text = buildWhatsappText(state.quote, subtotalLabel);
+      const text = buildWhatsappText(state.quote, persistCheckout());
       setStatus("Abriendo WhatsApp...", "pending");
       window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
     });
 
+    openCheckoutBtn?.addEventListener("click", () => {
+      if (!state.checkout?.checkoutUrl) return;
+      setStatus("Abriendo Mercado Pago...", "pending");
+      openCheckoutFallback(state.checkout.checkoutUrl);
+    });
+
     persistCart(getCart());
+    fillCheckoutForm(getStoredCheckout());
     syncQuote();
   </script>
 </Base>

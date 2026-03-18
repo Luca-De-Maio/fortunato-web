@@ -8,12 +8,12 @@ import FAQ from "../components/FAQ.astro";
 import HeroCarousel from "../components/HeroCarousel.astro";
 import MarqueeBand from "../components/MarqueeBand.astro";
 import { quoteCart } from "../lib/commerce";
-import { getAllProducts } from "../lib/products";
+import { getAllProducts, isPublicProduct } from "../lib/products";
 import { getAllCombinations } from "../lib/combinations";
 
 export const prerender = false;
 
-const products = await getAllProducts();
+const products = (await getAllProducts()).filter(isPublicProduct);
 const getVariantCount = (category) =>
   products
     .filter((product) => String(product.category || "").toLowerCase() === category)
