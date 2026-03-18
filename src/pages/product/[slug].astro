@@ -39,10 +39,18 @@ const images = (() => {
 })();
 const slugKey = String(product.slug || "").trim().toLowerCase();
 const preferredThumbOrderBySlug = {
-  "camisa-riviera": ["camisa-riviera-hero", "look-negro", "look-tabaco"]
+  "camisa-riviera": ["editorial-01", "editorial-02", "editorial-03", "editorial-04", "editorial-05", "editorial-06", "editorial-07"]
 };
 const preferredMainImageBySlug = {
-  "camisa-riviera": "look-tabaco"
+  "camisa-riviera": "editorial-01"
+};
+const editorialVideoBySlug = {
+  "camisa-riviera": {
+    src: "/videos/products/camisa-riviera/camisa-riviera-motion.mp4",
+    poster: "/images/products/camisa-riviera/camisa-riviera-motion-poster.webp",
+    eyebrow: "Riviera en movimiento",
+    note: "Una toma corta para ver la caída del lino y el cuello suave en uso."
+  }
 };
 const reorderImages = (list = [], preferredPatterns = []) => {
   const pending = [...list];
@@ -56,6 +64,7 @@ const reorderImages = (list = [], preferredPatterns = []) => {
   return [...ordered, ...pending];
 };
 const galleryImages = reorderImages(images, preferredThumbOrderBySlug[slugKey] || []);
+const editorialVideo = editorialVideoBySlug[slugKey] || null;
 const initialMainImage = (() => {
   const preferredPattern = preferredMainImageBySlug[slugKey];
   if (!preferredPattern) return galleryImages[0] || "/placeholder.svg";
@@ -175,6 +184,27 @@ const swatchFor = (label = "") => {
           </ul>
         ) : null}
       </div>
+      {editorialVideo ? (
+        <aside class="pdp-motion" aria-label={editorialVideo.eyebrow}>
+          <div class="pdp-motion-copy">
+            <p class="pdp-motion-eyebrow">{editorialVideo.eyebrow}</p>
+            <p class="pdp-motion-note">{editorialVideo.note}</p>
+          </div>
+          <div class="pdp-motion-frame">
+            <video
+              class="pdp-motion-video"
+              muted
+              loop
+              playsinline
+              preload="metadata"
+              poster={editorialVideo.poster}
+              data-pdp-motion-video
+            >
+              <source src={editorialVideo.src} type="video/mp4" />
+            </video>
+          </div>
+        </aside>
+      ) : null}
     </section>
 
     {/* 2) Resumen: SOLO título + detalles */}
@@ -321,6 +351,7 @@ const swatchFor = (label = "") => {
     if (root) {
       const mainImage = root.querySelector("[data-pdp-main-image]");
       const thumbs = Array.from(root.querySelectorAll("[data-pdp-thumb]"));
+      const motionVideo = root.querySelector("[data-pdp-motion-video]");
 
       const setMainImage = (src) => {
         if (!mainImage || !src) return;
@@ -506,6 +537,29 @@ const swatchFor = (label = "") => {
       sizeButtons.forEach((btn) => {
         btn.addEventListener("click", () => setSize(btn.dataset.sizeOption || ""));
       });
+
+      if (motionVideo instanceof HTMLVideoElement) {
+        const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+        const syncMotionPlayback = (shouldPlay) => {
+          if (!shouldPlay) {
+            motionVideo.pause();
+            return;
+          }
+          motionVideo.play().catch(() => {});
+        };
+
+        if (!prefersReducedMotion && "IntersectionObserver" in window) {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => syncMotionPlayback(entry.isIntersecting));
+            },
+            { threshold: 0.45 }
+          );
+          observer.observe(motionVideo);
+        } else if (!prefersReducedMotion) {
+          syncMotionPlayback(true);
+        }
+      }
 
       updateOptionAvailability();
       updateCta();
