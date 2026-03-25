@@ -6,9 +6,15 @@
     "bundlePrice": 149900,
     "currency": "ARS",
     "image": "/images/products/chomba-sprezzata/img-8775-hero.webp",
-    "productIds": [
-      "chomba-sprezzata",
-      "bermuda-rilassata"
+    "items": [
+      {
+        "productId": "chomba-sprezzata",
+        "color": "Mostaza"
+      },
+      {
+        "productId": "bermuda-rilassata",
+        "color": "Negro"
+      }
     ],
     "notes": "Chomba mostaza con bermuda negra."
   },
@@ -19,9 +25,15 @@
     "bundlePrice": 139900,
     "currency": "ARS",
     "image": "/images/products/remera-doppio-collo/mesa-de-trabajo-205-copia-11-hero.webp",
-    "productIds": [
-      "remera-doppio-collo",
-      "pantalon-sastrero"
+    "items": [
+      {
+        "productId": "remera-doppio-collo",
+        "color": "Negro"
+      },
+      {
+        "productId": "pantalon-sastrero",
+        "color": "Beige"
+      }
     ],
     "notes": "Remera negra con pantalon sastrero beige."
   },
@@ -32,10 +44,19 @@
     "bundlePrice": 179900,
     "currency": "ARS",
     "image": "/images/products/bermuda-rilassata/img-9031-hero.webp",
-    "productIds": [
-      "remera-doppio-collo",
-      "bermuda-rilassata",
-      "sandalias-crudem"
+    "items": [
+      {
+        "productId": "remera-doppio-collo",
+        "color": "Negro"
+      },
+      {
+        "productId": "bermuda-rilassata",
+        "color": "Camel"
+      },
+      {
+        "productId": "sandalias-crudem",
+        "color": "Terracota"
+      }
     ],
     "notes": "Remera negra, bermuda camel y sandalias terracota."
   },
@@ -46,10 +67,19 @@
     "bundlePrice": 219900,
     "currency": "ARS",
     "image": "/images/products/bermuda-sastrera/DRG2378_wrinkle_fixed_2048.webp",
-    "productIds": [
-      "chomba-sprezzata",
-      "bermuda-sastrera",
-      "sandalias-crudem"
+    "items": [
+      {
+        "productId": "chomba-sprezzata",
+        "color": "Blanco"
+      },
+      {
+        "productId": "bermuda-sastrera",
+        "color": "Beige"
+      },
+      {
+        "productId": "sandalias-crudem",
+        "color": "Terracota"
+      }
     ],
     "notes": "Chomba blanca, bermuda beige y sandalias terracota."
   }

@@ -21,8 +21,6 @@ const normalizeQty = (value: unknown) => {
   if (!Number.isFinite(next)) return 1;
   return clamp(Math.trunc(next), 1, CART_QTY_LIMIT);
 };
-const makeLineKey = (id: string, color = "", size = "") =>
-  `${normalizeId(id)}__${normalizeVariantValue(color, 40).toLowerCase()}__${normalizeVariantValue(size, 20).toLowerCase()}`;
 const variantKey = (color = "", size = "") =>
   `${normalizeVariantValue(color, 40).toLowerCase()}__${normalizeVariantValue(size, 20).toLowerCase()}`;
 const parseJson = <T>(value: unknown, fallback: T): T => {
@@ -39,6 +37,13 @@ const equalsText = (left: unknown, right: unknown) =>
 type NormalizedCartItem = {
   id: string;
   qty: number;
+  color: string;
+  size: string;
+  components: NormalizedComboComponent[];
+};
+
+type NormalizedComboComponent = {
+  productId: string;
   color: string;
   size: string;
 };
@@ -77,6 +82,35 @@ type OrderRecord = {
   updatedAt: number;
 };
 
+const normalizeComboComponents = (value: unknown): NormalizedComboComponent[] => {
+  if (!Array.isArray(value)) return [];
+  const out: NormalizedComboComponent[] = [];
+  for (const entry of value.slice(0, CART_ITEM_LIMIT)) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const productId = normalizeId((entry as { productId?: unknown; id?: unknown }).productId ?? (entry as { id?: unknown }).id);
+    if (!productId) continue;
+    out.push({
+      productId,
+      color: normalizeVariantValue((entry as { color?: unknown }).color, 40),
+      size: normalizeVariantValue((entry as { size?: unknown }).size, 20)
+    });
+  }
+  return out;
+};
+
+const makeComponentsKey = (components: NormalizedComboComponent[] = []) =>
+  components
+    .map((entry) =>
+      `${normalizeId(entry.productId)}:${normalizeVariantValue(entry.color, 40).toLowerCase()}:${normalizeVariantValue(entry.size, 20).toLowerCase()}`
+    )
+    .join("|");
+
+const makeLineKey = (id: string, color = "", size = "", components: NormalizedComboComponent[] = []) => {
+  const base = `${normalizeId(id)}__${normalizeVariantValue(color, 40).toLowerCase()}__${normalizeVariantValue(size, 20).toLowerCase()}`;
+  const componentsKey = makeComponentsKey(components);
+  return componentsKey ? `${base}__${componentsKey}` : base;
+};
+
 const normalizeIncomingCart = (value: unknown): NormalizedCartItem[] => {
   if (!Array.isArray(value)) return [];
   const merged = new Map<string, NormalizedCartItem>();
@@ -86,14 +120,15 @@ const normalizeIncomingCart = (value: unknown): NormalizedCartItem[] => {
     if (!id) continue;
     const color = normalizeVariantValue((entry as { color?: unknown }).color, 40);
     const size = normalizeVariantValue((entry as { size?: unknown }).size, 20);
+    const components = normalizeComboComponents((entry as { components?: unknown }).components);
     const qty = normalizeQty((entry as { qty?: unknown }).qty);
-    const key = makeLineKey(id, color, size);
+    const key = makeLineKey(id, color, size, components);
     const current = merged.get(key);
     if (current) {
       current.qty = clamp(current.qty + qty, 1, CART_QTY_LIMIT);
       continue;
     }
-    merged.set(key, { id, qty, color, size });
+    merged.set(key, { id, qty, color, size, components });
   }
   return Array.from(merged.values());
 };
@@ -135,6 +170,18 @@ const getAvailableForSelection = (product: any, color: string, size: string, loc
 const getTotalAvailableForProduct = (product: any, locks: StockLock[]) => {
   const base = getProductStockEntries(product).reduce((sum, entry) => sum + Number(entry.quantity || 0), 0);
   return Math.max(0, base - getHeldQuantityForProduct(product.id, locks));
+};
+const getTotalAvailableForProductColor = (product: any, color: string, locks: StockLock[]) =>
+  getProductStockEntries(product)
+    .filter((entry) => !color || equalsText(entry.color, color))
+    .reduce((sum, entry) => sum + getAvailableForSelection(product, entry.color, entry.size, locks), 0);
+const getComboComponentSelection = (components: NormalizedComboComponent[], productId: string) =>
+  components.find((entry) => equalsText(entry.productId, productId)) || null;
+const formatComboComponentLabel = (component: { name: string; color: string; size: string }) => {
+  const parts = [String(component.name || "Prenda Fortunato")];
+  if (component.color) parts.push(component.color);
+  if (component.size) parts.push(`Talle ${component.size}`);
+  return parts.join(" · ");
 };
 
 const toReservationRecord = (row: Record<string, unknown>): ReservationRecord => ({
@@ -242,6 +289,50 @@ export const getProductAvailabilitySnapshot = async (product: any) => {
   };
 };
 
+export const getCombinationAvailabilitySnapshot = async (combo: any) => {
+  const [products, locks] = await Promise.all([
+    getAllProducts(),
+    getActiveLocks()
+  ]);
+  const productById = new Map(products.map((product: any) => [String(product.id || ""), product]));
+
+  const items = Array.isArray(combo?.items)
+    ? combo.items
+      .map((item: any) => {
+        const product = productById.get(String(item?.id || item?.productId || ""));
+        if (!product) return null;
+        const color = normalizeVariantValue(item?.color, 40);
+        const stock = getProductStockEntries(product)
+          .filter((entry) => !color || equalsText(entry.color, color))
+          .map((entry) => ({
+            color: entry.color,
+            size: entry.size,
+            quantity: Number(entry.quantity || 0),
+            available: getAvailableForSelection(product, entry.color, entry.size, locks)
+          }));
+        const totalAvailable = stock.reduce((sum, entry) => sum + Number(entry.available || 0), 0);
+        return {
+          id: product.id,
+          color,
+          stock,
+          totalAvailable,
+          inStock: totalAvailable > 0
+        };
+      })
+      .filter(Boolean)
+    : [];
+
+  const availableQty = items.length
+    ? Math.min(...items.map((item: any) => Number(item.totalAvailable || 0)))
+    : 0;
+
+  return {
+    items,
+    availableQty,
+    inStock: availableQty > 0
+  };
+};
+
 export const quoteCart = async (value: unknown) => {
   const cart = normalizeIncomingCart(value);
   const [products, combinations, locks] = await Promise.all([
@@ -271,7 +362,7 @@ export const quoteCart = async (value: unknown) => {
   const draftLocks = [...locks];
 
   for (const entry of cart) {
-    const key = makeLineKey(entry.id, entry.color, entry.size);
+    const key = makeLineKey(entry.id, entry.color, entry.size, entry.components);
     const product = productById.get(entry.id);
     if (product) {
       if (getProductRequiresColor(product) && !entry.color) {
@@ -340,7 +431,8 @@ export const quoteCart = async (value: unknown) => {
         id: product.id,
         qty: acceptedQty,
         color: entry.color,
-        size: entry.size
+        size: entry.size,
+        components: []
       });
       reservationLocks.push({
         productId: product.id,
@@ -388,10 +480,84 @@ export const quoteCart = async (value: unknown) => {
       continue;
     }
 
-    const componentAvailability = combo.items
-      .map((item: any) => productById.get(String(item.id || "")))
-      .filter(Boolean)
-      .map((product: any) => getTotalAvailableForProduct(product, draftLocks));
+    const requestedComponents = Array.isArray(entry.components) ? entry.components : [];
+    const resolvedComponents: Array<{
+      productId: string;
+      name: string;
+      color: string;
+      size: string;
+    }> = [];
+    let comboIssue: {
+      code: string;
+      message: string;
+      availableQty: number;
+    } | null = null;
+
+    for (const item of Array.isArray(combo.items) ? combo.items : []) {
+      const product = productById.get(String(item?.id || item?.productId || ""));
+      if (!product) {
+        comboIssue = {
+          code: "missing_item",
+          message: `${combo.title}: una de las prendas del conjunto ya no existe en el catálogo.`,
+          availableQty: 0
+        };
+        break;
+      }
+
+      const selection = getComboComponentSelection(requestedComponents, product.id);
+      const color = normalizeVariantValue(item?.color ?? selection?.color, 40);
+      const size = normalizeVariantValue(selection?.size, 20);
+
+      if (getProductRequiresColor(product) && !color) {
+        comboIssue = {
+          code: "missing_color",
+          message: `${combo.title}: falta definir el color de ${product.name}.`,
+          availableQty: 0
+        };
+        break;
+      }
+      if (getProductRequiresSize(product) && !size) {
+        comboIssue = {
+          code: "missing_size",
+          message: `${combo.title}: elegí el talle de ${product.name}.`,
+          availableQty: 0
+        };
+        break;
+      }
+      if (!isValidOption(product.colors, color) || !isValidOption(product.sizes, size)) {
+        comboIssue = {
+          code: "invalid_variant",
+          message: `${combo.title}: una de las variantes elegidas ya no está disponible.`,
+          availableQty: 0
+        };
+        break;
+      }
+
+      resolvedComponents.push({
+        productId: product.id,
+        name: String(product.name || "Producto Fortunato"),
+        color,
+        size
+      });
+    }
+
+    if (comboIssue) {
+      issues.push({
+        key,
+        id: entry.id,
+        code: comboIssue.code,
+        message: comboIssue.message,
+        requestedQty: entry.qty,
+        availableQty: comboIssue.availableQty
+      });
+      continue;
+    }
+
+    const componentAvailability = resolvedComponents.map((component) => {
+      const product = productById.get(component.productId);
+      if (!product) return 0;
+      return getAvailableForSelection(product, component.color, component.size, draftLocks);
+    });
     const availableQty = componentAvailability.length ? Math.min(...componentAvailability) : 0;
     const acceptedQty = Math.min(entry.qty, availableQty);
 
@@ -421,19 +587,24 @@ export const quoteCart = async (value: unknown) => {
       id: `combo-${combo.id}`,
       qty: acceptedQty,
       color: "",
-      size: ""
+      size: "",
+      components: resolvedComponents.map((component) => ({
+        productId: component.productId,
+        color: component.color,
+        size: component.size
+      }))
     });
-    for (const item of combo.items) {
+    for (const component of resolvedComponents) {
       reservationLocks.push({
-        productId: String(item.id || ""),
-        color: "",
-        size: "",
+        productId: component.productId,
+        color: component.color,
+        size: component.size,
         qty: acceptedQty
       });
       draftLocks.push({
-        productId: String(item.id || ""),
-        color: "",
-        size: "",
+        productId: component.productId,
+        color: component.color,
+        size: component.size,
         qty: acceptedQty
       });
     }
@@ -447,6 +618,13 @@ export const quoteCart = async (value: unknown) => {
       image: combo.image || "/placeholder.svg",
       color: "",
       size: "",
+      components: resolvedComponents.map((component) => ({
+        productId: component.productId,
+        name: component.name,
+        color: component.color,
+        size: component.size
+      })),
+      selectionSummary: resolvedComponents.map((component) => formatComboComponentLabel(component)).join(" / "),
       currency: combo.currency || "ARS",
       unitPrice: Number(combo.bundlePrice || 0),
       qty: acceptedQty,

@@ -6,6 +6,7 @@ const combinationsPath = join(process.cwd(), "data", "combinations.json");
 
 const toArray = (value) => (Array.isArray(value) ? value : []);
 const isPresent = (value) => value !== null && value !== undefined;
+const cleanText = (value) => String(value ?? "").trim();
 
 const readCombinationSeed = () => {
   try {
@@ -17,6 +18,27 @@ const readCombinationSeed = () => {
   }
 };
 
+const getSeedItems = (combo) => {
+  if (Array.isArray(combo?.items) && combo.items.length) {
+    return combo.items
+      .map((entry) => {
+        if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+        const productId = cleanText(entry.productId ?? entry.id);
+        if (!productId) return null;
+        return {
+          productId,
+          color: cleanText(entry.color)
+        };
+      })
+      .filter(isPresent);
+  }
+
+  return toArray(combo?.productIds)
+    .map((value) => cleanText(value))
+    .filter(Boolean)
+    .map((productId) => ({ productId, color: "" }));
+};
+
 const resolveCombinations = async () => {
   const products = await getAllProducts();
   const productById = new Map(products.map((product) => [product.id, product]));
@@ -24,20 +46,26 @@ const resolveCombinations = async () => {
 
   return seed
     .map((combo) => {
-      const productIds = toArray(combo?.productIds).map((value) => String(value));
-      const items = productIds
-        .map((id) => productById.get(id))
-        .filter(isPresent)
-        .map((product) => ({
-          id: product.id,
-          slug: product.slug,
-          name: product.name,
-          price: Number(product.price || 0),
-          currency: product.currency || "ARS",
-          image: product.gridImage || product.images?.[0] || "/placeholder.svg",
-          microcopy: String(product.microcopy || ""),
-          materials: toArray(product.materials).map((value) => String(value))
-        }));
+      const seedItems = getSeedItems(combo);
+      const items = seedItems
+        .map((entry) => {
+          const product = productById.get(entry.productId);
+          if (!product) return null;
+          return {
+            id: product.id,
+            productId: product.id,
+            slug: product.slug,
+            name: product.name,
+            price: Number(product.price || 0),
+            currency: product.currency || "ARS",
+            image: product.gridImage || product.images?.[0] || "/placeholder.svg",
+            microcopy: String(product.microcopy || ""),
+            materials: toArray(product.materials).map((value) => String(value)),
+            color: entry.color,
+            sizes: toArray(product.sizes).map((value) => String(value))
+          };
+        })
+        .filter(isPresent);
 
       if (!items.length) return null;
 

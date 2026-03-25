@@ -341,7 +341,27 @@ const checkoutConfig = {
       );
     };
 
-    const makeKey = (item) => `${item.id}__${item.color || ""}__${item.size || ""}`;
+    const normalizeComponents = (value) =>
+      Array.isArray(value)
+        ? value
+            .map((entry) => {
+              if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+              const productId = String(entry.productId || entry.id || "").trim();
+              if (!productId) return null;
+              return {
+                productId,
+                name: String(entry.name || "").trim(),
+                color: String(entry.color || "").trim(),
+                size: String(entry.size || "").trim()
+              };
+            })
+            .filter(Boolean)
+        : [];
+    const makeComponentsKey = (components = []) =>
+      normalizeComponents(components)
+        .map((entry) => `${entry.productId.toLowerCase()}:${entry.color.toLowerCase()}:${entry.size.toLowerCase()}`)
+        .join("|");
+    const makeKey = (item) => `${item.id}__${item.color || ""}__${item.size || ""}__${makeComponentsKey(item.components)}`;
     const syncBadge = (cart) => {
       const badge = document.querySelector("[data-cart-count]");
       if (!badge) return;
@@ -456,6 +476,12 @@ const checkoutConfig = {
       if (item.size) {
         meta.append(createNode("span", "cart-item-pill", `Talle ${String(item.size)}`));
       }
+      normalizeComponents(item.components).forEach((component) => {
+        const parts = [component.name || component.productId];
+        if (component.color) parts.push(`Color ${component.color}`);
+        if (component.size) parts.push(`Talle ${component.size}`);
+        meta.append(createNode("span", "cart-item-pill", parts.filter(Boolean).join(" · ")));
+      });
       if (meta.childNodes.length) {
         main.append(meta);
       }
@@ -599,8 +625,17 @@ const checkoutConfig = {
     const buildWhatsappText = (quote, checkout) => {
       const lines = (quote?.items || []).map((item) => {
         const qty = Number(item.qty || 0);
+        const comboSelection = normalizeComponents(item.components)
+          .map((component) => {
+            const parts = [component.name || component.productId];
+            if (component.color) parts.push(`Color: ${component.color}`);
+            if (component.size) parts.push(`Talle: ${component.size}`);
+            return parts.join(", ");
+          })
+          .join(" / ");
         const parts = [
           `- ${item.name} x${qty}`,
+          comboSelection,
           item.color ? `Color: ${item.color}` : "",
           item.size ? `Talle: ${item.size}` : "",
           `— ${format(Number(item.lineTotal || 0), item.currency || "ARS")}`

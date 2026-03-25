@@ -87,18 +87,14 @@ const getBundleStockMessage = (combo: Combo) =>
                   ))}
                 </ul>
 
-                <button
+                <a
                   class="btn btn-full"
-                  data-add-to-cart
-                  data-analytics="combo-carousel-add"
-                  data-analytics-kind="button"
-                  data-id={`combo-${combo.id}`}
-                  data-name={combo.title}
-                  data-image={combo.image || "/placeholder.svg"}
-                  disabled={!combo.inStock}
+                  href={`/conjunto/${combo.slug}`}
+                  data-analytics="combo-carousel-choose-sizes"
+                  data-analytics-kind="link"
                 >
-                  {combo.inStock ? "Agregar conjunto" : "Sin stock"}
-                </button>
+                  {combo.inStock ? "Elegir talles del conjunto" : "Ver conjunto"}
+                </a>
                 <p
                   class:list={[
                     "bundle-stock",

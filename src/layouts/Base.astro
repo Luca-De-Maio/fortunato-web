@@ -46,10 +46,55 @@ const { title = "Fortunato", description = "Moda masculina premium", analytics =
     </a>
     <script>
       const CART_KEY = "fortunato_cart";
+      const normalizeComponents = (value) =>
+        Array.isArray(value)
+          ? value
+              .map((entry) => {
+                if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+                const productId = String(entry.productId || entry.id || "").trim();
+                if (!productId) return null;
+                return {
+                  productId,
+                  color: String(entry.color || "").trim(),
+                  size: String(entry.size || "").trim()
+                };
+              })
+              .filter(Boolean)
+          : [];
+      const makeComponentsKey = (components = []) =>
+        normalizeComponents(components)
+          .map((entry) => `${entry.productId.toLowerCase()}:${entry.color.toLowerCase()}:${entry.size.toLowerCase()}`)
+          .join("|");
+      const makeCartKey = (item) =>
+        [
+          String(item?.id || "").trim(),
+          String(item?.color || "").trim().toLowerCase(),
+          String(item?.size || "").trim().toLowerCase(),
+          makeComponentsKey(item?.components)
+        ].join("__");
+      const normalizeCartItem = (item) => ({
+        id: String(item?.id || "").trim(),
+        name: String(item?.name || "").trim(),
+        image: String(item?.image || "/placeholder.svg").trim() || "/placeholder.svg",
+        size: String(item?.size || "").trim(),
+        color: String(item?.color || "").trim(),
+        components: normalizeComponents(item?.components),
+        qty: Math.max(1, Number(item?.qty || 1) || 1)
+      });
       const getCart = () => {
-        try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
+        try {
+          const parsed = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed.map(normalizeCartItem).filter((item) => item.id) : [];
+        } catch {
+          return [];
+        }
       };
-      const setCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
+      const setCart = (items) => {
+        const normalized = Array.isArray(items)
+          ? items.map(normalizeCartItem).filter((item) => item.id)
+          : [];
+        localStorage.setItem(CART_KEY, JSON.stringify(normalized));
+      };
 
       const updateBadge = () => {
         const badge = document.querySelector("[data-cart-count]");
@@ -60,16 +105,23 @@ const { title = "Fortunato", description = "Moda masculina premium", analytics =
       };
 
       const addToCart = (payload) => {
+        const nextItem = normalizeCartItem(payload);
+        if (!nextItem.id) return;
         const cart = getCart();
-        const existing = cart.find((i) =>
-          i.id === payload.id &&
-          (i.size || "") === (payload.size || "") &&
-          (i.color || "") === (payload.color || "")
-        );
+        const key = makeCartKey(nextItem);
+        const existing = cart.find((item) => makeCartKey(item) === key);
         if (existing) existing.qty += 1;
-        else cart.push({ ...payload, qty: 1 });
+        else cart.push({ ...nextItem, qty: 1 });
         setCart(cart);
         updateBadge();
+      };
+
+      window.FortunatoCart = {
+        getCart,
+        setCart,
+        updateBadge,
+        addItem: addToCart,
+        makeKey: makeCartKey
       };
 
       const setupHeaderScroll = () => {
@@ -95,12 +147,19 @@ const { title = "Fortunato", description = "Moda masculina premium", analytics =
         const addButton = event.target.closest("[data-add-to-cart]");
         if (addButton) {
           const previousLabel = addButton.textContent;
+          let components = [];
+          if (addButton.dataset.components) {
+            try {
+              components = normalizeComponents(JSON.parse(addButton.dataset.components));
+            } catch {}
+          }
           const payload = {
             id: addButton.dataset.id,
             name: addButton.dataset.name,
             image: addButton.dataset.image || "/placeholder.svg",
             size: addButton.dataset.size || "",
-            color: addButton.dataset.color || ""
+            color: addButton.dataset.color || "",
+            components
           };
           addToCart(payload);
           addButton.textContent = "Agregado";
@@ -111,12 +170,19 @@ const { title = "Fortunato", description = "Moda masculina premium", analytics =
         const buyButton = event.target.closest("[data-buy-now]");
         if (!buyButton) return;
 
+        let components = [];
+        if (buyButton.dataset.components) {
+          try {
+            components = normalizeComponents(JSON.parse(buyButton.dataset.components));
+          } catch {}
+        }
         const payload = {
           id: buyButton.dataset.id,
           name: buyButton.dataset.name,
           image: buyButton.dataset.image || "/placeholder.svg",
           size: buyButton.dataset.size || "",
-          color: buyButton.dataset.color || ""
+          color: buyButton.dataset.color || "",
+          components
         };
         addToCart(payload);
         window.location.href = "/cart";

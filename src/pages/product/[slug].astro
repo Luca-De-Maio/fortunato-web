@@ -50,6 +50,12 @@ const editorialVideoBySlug = {
     poster: "/images/products/camisa-riviera/camisa-riviera-motion-poster.webp",
     eyebrow: "Riviera en movimiento",
     note: "Una toma corta para ver la caída del lino y el cuello suave en uso."
+  },
+  "chomba-sprezzata": {
+    src: "/videos/products/chomba-sprezzata/chomba-sprezzata-motion.mp4",
+    poster: "/images/products/chomba-sprezzata/chomba-sprezzata-motion-poster.webp",
+    eyebrow: "Sprezzata en movimiento",
+    note: "Un reel corto para ver mejor la textura ottoman, la caída y el look puesto."
   }
 };
 const reorderImages = (list = [], preferredPatterns = []) => {
@@ -177,7 +183,7 @@ const swatchFor = (label = "") => {
                   aria-label={`Ver foto de ${product.name}`}
                   aria-pressed={src === initialMainImage ? "true" : "false"}
                 >
-                  <Image src={src} alt="" loading="eager" width={160} height={200} decoding="async" />
+                  <Image src={src} alt="" loading="lazy" width={160} height={200} decoding="async" />
                 </button>
               </li>
             ))}
@@ -229,7 +235,6 @@ const swatchFor = (label = "") => {
               {compareAt ? <p class="pdp-price__compare">{formatPrice(compareAt)}</p> : null}
               {discount ? <span class="pdp-discount">{discount}% OFF</span> : null}
             </div>
-          <p class="pdp-installments muted">Pagás dentro de Mercado Pago con total validado desde backend.</p>
           <p class:list={{ "pdp-stock-note": true, "is-low": totalAvailable > 0 && totalAvailable <= 3, "is-out": isOutOfStock }}>{stockMessage}</p>
         </div>
 
