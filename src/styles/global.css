@@ -554,12 +554,19 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.7rem
 .product-actions { display: grid; gap: 0.35rem; }
 .product-highlights { margin-top: 1.6rem; display: grid; gap: 0.5rem; color: var(--slate); }
 
-.benefits-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.benefits-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
 .benefit-card {
   padding: 1.8rem;
   background: var(--beige);
   border-radius: var(--radius);
   border: 1px solid rgba(24, 74, 69, 0.08);
+}
+
+@media (min-width: 640px) {
+  .benefits-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+}
+@media (min-width: 1024px) {
+  .benefits-grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
 }
 
 .faq-grid { display: grid; gap: 1rem; }

@@ -1,0 +1,457 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Base
+  title="Fortunato | Nuestra Historia"
+  description="La herencia del old money guiada por el pulso de lo eterno. Conocé el origen de Fortunato."
+>
+  <Header current="historia" />
+
+  <main class="historia">
+
+    <!-- 1. HERO -->
+    <section class="historia-hero">
+      <img
+        src="/images/hero/_DRG2484.JPG"
+        alt="Fortunato — indumentaria masculina"
+        class="historia-hero__img"
+        loading="eager"
+        decoding="async"
+      />
+      <div class="historia-hero__overlay"></div>
+      <div class="historia-hero__copy container">
+        <p class="eyebrow">Nuestra historia</p>
+        <h1>La herencia<br/>del old money.</h1>
+      </div>
+    </section>
+
+    <!-- 2. ORIGEN -->
+    <section class="historia-section historia-origen">
+      <div class="container historia-origen__grid">
+        <div class="historia-origen__copy">
+          <p class="eyebrow">El origen</p>
+          <h2>Una abuela modista.<br/>Un nieto que escuchó.</h2>
+          <p>
+            Fortunato nace de un recuerdo íntimo: una abuela modista que vestía a su nieto con dedicación y temple. En cada prenda que cosía había un principio silencioso —que la elegancia no se improvisa, se hereda.
+          </p>
+          <p>
+            De ese gesto familiar, invisible y profundo, surge una marca que entiende la elegancia como un legado. No como una tendencia. No como un precio. Como una forma de honrar lo que te formó.
+          </p>
+        </div>
+        <div class="historia-origen__media">
+          <img
+            src="/images/hero/IMG_9250.JPG"
+            alt="Detalle editorial Fortunato"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. DIVIDER -->
+    <div class="historia-divider" aria-hidden="true">
+      <span>F</span>
+    </div>
+
+    <!-- 4. MANIFESTO -->
+    <section class="historia-section historia-manifesto">
+      <div class="container historia-manifesto__inner">
+        <p class="eyebrow">Manifiesto</p>
+        <blockquote class="historia-quote">
+          <p>Es la herencia del old money<br class="br-md"/> guiada por el pulso de lo eterno.</p>
+          <p>Nace del recuerdo de una abuela modista<br class="br-md"/> y de un nieto que entendió la elegancia<br class="br-md"/> como un legado.</p>
+          <p>Cada prenda es un símbolo<br class="br-md"/> de carácter, estructura y visión.</p>
+          <p><em>No sigue modas: establece principios.</em></p>
+          <p>Fortunato honra lo sobrio,<br class="br-md"/> lo bien hecho, lo que perdura.</p>
+          <p>Viste al hombre que entiende<br class="br-md"/> que su destino también se elige.</p>
+          <p>Y lo acompaña, con temple,<br class="br-md"/> hacia lo que trasciende.</p>
+        </blockquote>
+        <p class="historia-quote-firma">— Fortunato, desde 2025</p>
+      </div>
+    </section>
+
+    <!-- 5. VALORES -->
+    <section class="historia-section historia-valores">
+      <div class="container">
+        <p class="eyebrow" style="text-align:center;">Lo que nos define</p>
+        <div class="historia-valores__grid">
+          <div class="historia-valor">
+            <span class="historia-valor__num">01</span>
+            <h3>Carácter</h3>
+            <p>Cada prenda tiene una razón de existir. No hay relleno. No hay tendencia por tendencia. Lo que llevás comunica quién sos sin que tengas que decirlo.</p>
+          </div>
+          <div class="historia-valor historia-valor--mid">
+            <span class="historia-valor__num">02</span>
+            <h3>Estructura</h3>
+            <p>El corte, los materiales, el detalle de la costura. Fortunato no vende ropa: vende criterio hecho prenda. La calidad se siente antes de que te lo cuenten.</p>
+          </div>
+          <div class="historia-valor">
+            <span class="historia-valor__num">03</span>
+            <h3>Visión</h3>
+            <p>No seguimos modas porque las modas pasan. Construimos un guardarropa que dura. Prendas que dentro de diez años siguen siendo tuyas, no del momento.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. EL NOMBRE -->
+    <section class="historia-section historia-nombre">
+      <div class="container historia-nombre__grid">
+        <div class="historia-nombre__media">
+          <img
+            src="/images/products/camisa-riviera/camisa-riviera-editorial-03.webp"
+            alt="Camisa Riviera — Fortunato"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <div class="historia-nombre__copy">
+          <p class="eyebrow">El nombre</p>
+          <h2>La diosa Fortuna.</h2>
+          <p>
+            Fortunato lleva en su nombre a la diosa Fortuna: aquella que reparte elegancia a quien sepa llevarla con temple. No a quien más grite, sino a quien más escuche.
+          </p>
+          <p>
+            El nombre es también un homenaje a la herencia italo-argentina —a los que cruzaron el océano con poco equipaje y mucho carácter, y construyeron algo que duró.
+          </p>
+          <p class="historia-tagline">
+            <em>Tradizione italiana, passione argentina.</em>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. EDITORIAL ROW -->
+    <section class="historia-editorial" aria-hidden="true">
+      <div class="historia-editorial__track">
+        <img src="/images/products/camisa-riviera/camisa-riviera-editorial-01.webp" alt="" loading="lazy" decoding="async" />
+        <img src="/images/hero/posible-hero-chomba-eze.JPG" alt="" loading="lazy" decoding="async" />
+        <img src="/images/products/camisa-riviera/camisa-riviera-editorial-05.webp" alt="" loading="lazy" decoding="async" />
+        <img src="/images/hero/_DRG2417.JPG" alt="" loading="lazy" decoding="async" />
+        <img src="/images/products/camisa-riviera/camisa-riviera-editorial-07.webp" alt="" loading="lazy" decoding="async" />
+      </div>
+    </section>
+
+    <!-- 8. CTA -->
+    <section class="historia-section historia-cta">
+      <div class="container historia-cta__inner">
+        <p class="eyebrow">Siguiente paso</p>
+        <h2>Conocé la cápsula.</h2>
+        <p class="muted">Pocas prendas, pensadas para combinarse entre sí. Cada una con su historia.</p>
+        <div class="historia-cta__actions">
+          <a href="/capsula" class="btn">Ver la cápsula</a>
+          <a href="https://wa.me/5491158204344" class="btn btn-ghost" target="_blank" rel="noreferrer">Escribinos por WhatsApp</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  /* ─── HERO ─────────────────────────────── */
+  .historia-hero {
+    position: relative;
+    width: 100%;
+    height: clamp(28rem, 80svh, 52rem);
+    overflow: hidden;
+  }
+  .historia-hero__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+    border-radius: 0;
+    filter: saturate(0.9) contrast(1.02);
+  }
+  .historia-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(8,14,14,0.1) 0%, rgba(8,14,14,0.08) 40%, rgba(8,14,14,0.62) 100%),
+      linear-gradient(92deg, rgba(8,14,14,0.55) 0%, rgba(8,14,14,0.2) 60%);
+  }
+  .historia-hero__copy {
+    position: absolute;
+    bottom: clamp(1.5rem, 5vw, 3.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(100% - 2rem, var(--max));
+    color: rgba(255,248,240,0.98);
+  }
+  .historia-hero__copy .eyebrow {
+    color: rgba(255,248,240,0.72);
+    margin-bottom: 0.75rem;
+  }
+  .historia-hero__copy h1 {
+    font-family: "Cinzel","Cormorant Garamond",serif;
+    font-size: clamp(2.6rem, 7vw, 5rem);
+    line-height: 0.96;
+    color: #fff8f0;
+    text-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    margin: 0;
+  }
+
+  /* ─── SHARED SECTION ───────────────────── */
+  .historia-section {
+    padding: 4rem 0;
+  }
+  @media (min-width: 760px) {
+    .historia-section { padding: 6rem 0; }
+  }
+
+  /* ─── ORIGEN ───────────────────────────── */
+  .historia-origen__grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 760px) {
+    .historia-origen__grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+  }
+  .historia-origen__copy {
+    display: grid;
+    gap: 1.1rem;
+  }
+  .historia-origen__copy h2 {
+    margin-top: 0.5rem;
+  }
+  .historia-origen__copy p {
+    color: rgba(64,67,66,0.9);
+    font-size: 1.04rem;
+    line-height: 1.7;
+  }
+  .historia-origen__media img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: 28px;
+    box-shadow: 0 24px 70px rgba(24,74,69,0.12);
+  }
+
+  /* ─── DIVIDER ──────────────────────────── */
+  .historia-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0;
+    gap: 1.5rem;
+  }
+  .historia-divider::before,
+  .historia-divider::after {
+    content: "";
+    flex: 1;
+    max-width: 120px;
+    height: 1px;
+    background: rgba(24,74,69,0.18);
+  }
+  .historia-divider span {
+    font-family: "Cinzel","Cormorant Garamond",serif;
+    font-size: 1.2rem;
+    color: rgba(24,74,69,0.35);
+    letter-spacing: 0.2em;
+  }
+
+  /* ─── MANIFESTO ────────────────────────── */
+  .historia-manifesto {
+    background:
+      radial-gradient(circle at top right, rgba(24,74,69,0.06) 0%, rgba(24,74,69,0) 40%),
+      linear-gradient(180deg, rgba(245,232,215,0.4) 0%, rgba(239,226,210,0.7) 100%);
+    border-top: 1px solid rgba(24,74,69,0.08);
+    border-bottom: 1px solid rgba(24,74,69,0.08);
+  }
+  .historia-manifesto__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .historia-quote {
+    margin: 1.5rem 0 0;
+    border: none;
+    padding: 0;
+    display: grid;
+    gap: 1.2rem;
+  }
+  .historia-quote p {
+    font-family: "Cinzel","Cormorant Garamond",serif;
+    font-size: clamp(1.15rem, 3vw, 1.55rem);
+    line-height: 1.5;
+    color: var(--green);
+    margin: 0;
+  }
+  .historia-quote p em {
+    font-style: italic;
+    color: rgba(24,74,69,0.75);
+  }
+  .br-md { display: none; }
+  @media (min-width: 600px) {
+    .br-md { display: inline; }
+  }
+  .historia-quote-firma {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(24,74,69,0.45);
+  }
+
+  /* ─── VALORES ──────────────────────────── */
+  .historia-valores__grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  @media (min-width: 760px) {
+    .historia-valores__grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+  }
+  .historia-valor {
+    background: rgba(255,255,255,0.82);
+    border: 1px solid rgba(24,74,69,0.08);
+    border-radius: 24px;
+    padding: 2rem 1.75rem;
+    box-shadow: 0 12px 40px rgba(24,74,69,0.06);
+  }
+  .historia-valor--mid {
+    background:
+      linear-gradient(155deg, #184a45 0%, #123f3b 100%);
+    border-color: transparent;
+    color: rgba(255,248,240,0.95);
+  }
+  .historia-valor__num {
+    font-family: "Cinzel","Cormorant Garamond",serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.28em;
+    color: rgba(24,74,69,0.4);
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+  .historia-valor--mid .historia-valor__num {
+    color: rgba(245,232,215,0.45);
+  }
+  .historia-valor h3 {
+    font-family: "Cinzel","Cormorant Garamond",serif;
+    font-size: 1.3rem;
+    color: var(--green);
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+  }
+  .historia-valor--mid h3 {
+    color: rgba(255,248,240,0.97);
+  }
+  .historia-valor p {
+    font-size: 0.96rem;
+    line-height: 1.68;
+    color: rgba(64,67,66,0.88);
+    margin: 0;
+  }
+  .historia-valor--mid p {
+    color: rgba(255,248,240,0.8);
+  }
+
+  /* ─── EL NOMBRE ────────────────────────── */
+  .historia-nombre {
+    background:
+      linear-gradient(180deg, rgba(255,252,247,0.9) 0%, rgba(245,232,215,0.3) 100%);
+    border-top: 1px solid rgba(24,74,69,0.08);
+  }
+  .historia-nombre__grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 760px) {
+    .historia-nombre__grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .historia-nombre__media { order: -1; }
+  }
+  .historia-nombre__media img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: 28px;
+    box-shadow: 0 24px 70px rgba(24,74,69,0.12);
+  }
+  .historia-nombre__copy {
+    display: grid;
+    gap: 1.1rem;
+  }
+  .historia-nombre__copy p {
+    color: rgba(64,67,66,0.9);
+    font-size: 1.02rem;
+    line-height: 1.7;
+  }
+  .historia-tagline {
+    font-family: "Cinzel","Cormorant Garamond",serif !important;
+    font-size: 1.1rem !important;
+    color: var(--green) !important;
+    letter-spacing: 0.04em;
+    padding-top: 0.5rem;
+  }
+
+  /* ─── EDITORIAL ROW ────────────────────── */
+  .historia-editorial {
+    padding: 2rem 0 0;
+    overflow: hidden;
+  }
+  .historia-editorial__track {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0 max(1rem, calc((100vw - var(--max)) / 2));
+    padding-bottom: 1rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .historia-editorial__track::-webkit-scrollbar { display: none; }
+  .historia-editorial__track img {
+    flex: 0 0 auto;
+    width: clamp(200px, 40vw, 320px);
+    height: clamp(260px, 52vw, 420px);
+    object-fit: cover;
+    border-radius: 20px;
+    scroll-snap-align: start;
+    box-shadow: 0 12px 36px rgba(24,74,69,0.1);
+  }
+
+  /* ─── CTA ──────────────────────────────── */
+  .historia-cta {
+    border-top: 1px solid rgba(24,74,69,0.08);
+  }
+  .historia-cta__inner {
+    max-width: 600px;
+    display: grid;
+    gap: 1rem;
+  }
+  .historia-cta__inner h2 { margin-top: 0.25rem; }
+  .historia-cta__inner .muted { font-size: 1.02rem; }
+  .historia-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  @media (max-width: 480px) {
+    .historia-cta__actions {
+      flex-direction: column;
+    }
+    .historia-cta__actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

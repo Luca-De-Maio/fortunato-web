@@ -1,23 +1,102 @@
-<section id="categorias" class="section benefits">
+<section id="beneficios" class="section benefits" data-analytics-section="beneficios">
   <div class="container">
-    <div class="section-head">
-      <p class="eyebrow">Fortunato</p>
-      <h2>Categorías esenciales para combinar con elegancia.</h2>
-      <p class="muted">Pensadas para armar conjuntos completos con un criterio claro: arriba, abajo y calzado.</p>
-    </div>
     <div class="benefits-grid">
+
       <div class="benefit-card">
-        <h3>Top</h3>
-        <p>Camisas, remeras y chombas para construir la base del look.</p>
+        <div class="benefit-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+        <div class="benefit-body">
+          <strong>Envío gratis desde $129.000</strong>
+          <p>A todo el país con seguimiento. Entrega estimada 48–96 hs según zona.</p>
+        </div>
       </div>
+
       <div class="benefit-card">
-        <h3>Bottom</h3>
-        <p>Pantalones y bermudas con cortes limpios y materiales nobles.</p>
+        <div class="benefit-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <path d="M2 10h20"/>
+          </svg>
+        </div>
+        <div class="benefit-body">
+          <strong>3 cuotas sin interés</strong>
+          <p>Pagá con Mercado Pago. Stock y precio validados antes del cobro.</p>
+        </div>
       </div>
+
       <div class="benefit-card">
-        <h3>Calzado</h3>
-        <p>Sandalias o zapatos para cerrar el conjunto con presencia.</p>
+        <div class="benefit-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div class="benefit-body">
+          <strong>Atención directa por WhatsApp</strong>
+          <p>Respondemos dudas de talle, colores y stock antes de que compres.</p>
+        </div>
       </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </div>
+        <div class="benefit-body">
+          <strong>Cambios dentro de los 10 días</strong>
+          <p>Prenda en perfecto estado. Coordinamos el cambio por WhatsApp.</p>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
+
+<style>
+  .benefits {
+    background: var(--color-surface-alt, #f5f1eb);
+    padding-block: var(--space-12, 3rem);
+  }
+  .benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6, 1.5rem);
+  }
+  @media (max-width: 640px) {
+    .benefits-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (min-width: 1024px) {
+    .benefits-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .benefit-card {
+    display: flex;
+    gap: var(--space-4, 1rem);
+    align-items: flex-start;
+  }
+  .benefit-icon {
+    flex-shrink: 0;
+    color: var(--color-text, #1a1a1a);
+    margin-top: 2px;
+  }
+  .benefit-body strong {
+    display: block;
+    font-size: var(--text-sm, 0.875rem);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--color-text, #1a1a1a);
+  }
+  .benefit-body p {
+    font-size: var(--text-xs, 0.75rem);
+    color: var(--color-muted, #6b6b6b);
+    line-height: 1.5;
+    margin: 0;
+  }
+</style>

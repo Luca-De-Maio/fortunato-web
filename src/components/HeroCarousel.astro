@@ -317,7 +317,7 @@ const { slides = [] } = Astro.props as { slides?: HeroSlide[] };
     }
 
     .home-hero-stage {
-      min-height: 35rem;
+      min-height: clamp(30rem, 85svh, 38rem);
       border-radius: 26px;
     }
 
@@ -343,18 +343,22 @@ const { slides = [] } = Astro.props as { slides?: HeroSlide[] };
     }
 
     .home-hero-copy h1 {
-      font-size: clamp(1.74rem, 7.2vw, 2.24rem);
+      font-size: clamp(2.4rem, 9vw, 2.8rem);
       max-width: 9.2ch;
-      line-height: 0.99;
+      line-height: 0.97;
     }
 
     .home-hero-actions {
       gap: 0.45rem;
+      flex-direction: column;
     }
 
     .home-hero-actions .btn {
-      padding: 0.8rem 1.08rem;
-      font-size: 0.96rem;
+      width: 100%;
+      justify-content: center;
+      padding: 0.95rem 1.2rem;
+      font-size: 1rem;
+      text-align: center;
     }
 
     .home-hero-dots {

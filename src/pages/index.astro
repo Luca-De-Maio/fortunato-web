@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ComboCarousel from "../components/ComboCarousel.astro";
 import EditorialShowcase from "../components/EditorialShowcase.astro";
+import Benefits from "../components/Benefits.astro";
 import FAQ from "../components/FAQ.astro";
 import HeroCarousel from "../components/HeroCarousel.astro";
 import MarqueeBand from "../components/MarqueeBand.astro";
@@ -74,6 +75,7 @@ const slides = [
   <Header />
   <main>
     <HeroCarousel slides={slides} />
+    <Benefits />
     <MarqueeBand items={promoBandItems} analyticsSection="promo-band" />
 
     <section id="direccion" class="section home-overview" data-analytics-section="direccion">
