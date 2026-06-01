@@ -28,13 +28,17 @@ const orderedProducts = [...products].sort((a, b) => {
 
 const newInProducts = orderedProducts
   .filter((p) => p.badge === "Nuevo")
-  .map((p) => ({ ...p, cardVariant: "standard" })); // fuerza standard dentro de NEW IN
+  .map((p) => ({ ...p, cardVariant: "standard" }));
+
+// Excluir productos de NEW IN del grid principal para no mostrarlos dos veces
+const newInIds = new Set(newInProducts.map((p) => p.id));
+const gridProducts = orderedProducts.filter((p) => !newInIds.has(p.id));
 
 const filters = [
-  { id: "todo",    label: "Todo",    count: orderedProducts.length },
-  { id: "top",     label: "Tops",    count: orderedProducts.filter((p) => p.category === "top").length },
-  { id: "bottom",  label: "Bottoms", count: orderedProducts.filter((p) => p.category === "bottom").length },
-  { id: "calzado", label: "Calzado", count: orderedProducts.filter((p) => p.category === "calzado").length },
+  { id: "todo",    label: "Todo",    count: gridProducts.length },
+  { id: "top",     label: "Tops",    count: gridProducts.filter((p) => p.category === "top").length },
+  { id: "bottom",  label: "Bottoms", count: gridProducts.filter((p) => p.category === "bottom").length },
+  { id: "calzado", label: "Calzado", count: gridProducts.filter((p) => p.category === "calzado").length },
 ];
 ---
 
@@ -91,7 +95,7 @@ const filters = [
         </p>
 
         <div class="capsule-grid" id="capsule-grid">
-          {orderedProducts.map((product) => (
+          {gridProducts.map((product) => (
             <ProductCard product={product} />
           ))}
         </div>
@@ -173,21 +177,36 @@ const filters = [
     gap: 1rem;
     flex-wrap: wrap;
   }
+  /* Mobile: full-width. Desktop: ancho fijo tipo spotlight */
   .new-in__grid :global(.product-card) {
-    flex: 0 0 calc(50% - 0.5rem);
+    flex: 0 0 100%;
     grid-column: unset;
   }
-  @media (min-width: 760px) {
+  @media (min-width: 540px) {
     .new-in__grid :global(.product-card) {
       flex: 0 0 260px;
     }
   }
+  /* Fuerza layout single-column dentro de NEW IN (cancela el double layout) */
   .new-in__grid :global(.product-card.is-double) {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
   .new-in__grid :global(.product-card.is-double .product-media) {
     aspect-ratio: 4 / 5;
     height: auto;
+  }
+
+  /* Double card en grid principal → layout estándar en mobile */
+  @media (max-width: 759px) {
+    #capsule-grid :global(.product-card.is-double) {
+      grid-column: 1 / -1;
+      grid-template-columns: 1fr;
+    }
+    #capsule-grid :global(.product-card.is-double .product-media) {
+      aspect-ratio: 4 / 5;
+      height: auto;
+    }
   }
 
   /* ── FILTROS ────────────────────────────── */
