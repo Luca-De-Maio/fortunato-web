@@ -135,9 +135,10 @@
     "gridImage": "/images/products/chomba-sprezzata/img-8775-grid.webp",
     "images": [
       "/images/products/chomba-sprezzata/IMG_8881.jpg",
+      "/images/products/chomba-sprezzata/IMG_8841.jpg",
+      "/images/products/chomba-sprezzata/IMG_8899.jpg",
       "/images/products/chomba-sprezzata/IMG_8782.jpg",
       "/images/products/chomba-sprezzata/IMG_8825.jpg",
-      "/images/products/chomba-sprezzata/chomba-sprezzata-caminata.webp",
       "/images/products/chomba-sprezzata/chomba-sprezzata-cuello.webp",
       "/images/products/chomba-sprezzata/chomba-sprezzata-textura-close.webp",
       "/images/products/chomba-sprezzata/IMG_9939.webp"
@@ -241,10 +242,12 @@
       "S/M",
       "L/XL"
     ],
-    "gridImage": "/images/products/pantalon-sastrero/IMG_9329-grid.webp",
+    "gridImage": "/images/products/pantalon-sastrero/IMG_9064.jpg",
     "images": [
-      "/images/products/pantalon-sastrero/_DRG2486_2048.webp",
-      "/images/products/pantalon-sastrero/_DRG2494_2048.webp",
+      "/images/products/pantalon-sastrero/IMG_9064.jpg",
+      "/images/products/pantalon-sastrero/IMG_9067.jpg",
+      "/images/products/pantalon-sastrero/IMG_9072.jpg",
+      "/images/products/pantalon-sastrero/IMG_9084.jpg",
       "/images/products/pantalon-sastrero/IMG_9329.webp",
       "/images/products/pantalon-sastrero/pantalonlargo_2048.webp"
     ],
