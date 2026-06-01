@@ -19,7 +19,7 @@ const attributeLine = product.microcopy?.trim()
 const gridImage = product.gridImage || product.images?.[0] || "/placeholder.svg";
 const cardVariant = product.cardVariant === "double" ? "double" : "standard";
 ---
-<article class:list={{ "product-card": true, "is-double": cardVariant === "double" }}>
+<article class:list={{ "product-card": true, "is-double": cardVariant === "double" }} data-category={product.category ?? ""}>
   <a href={`/product/${product.slug}`} class="product-media">
     <Image
       src={gridImage}

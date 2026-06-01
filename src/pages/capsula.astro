@@ -8,6 +8,7 @@ import { getAllProducts, isPublicProduct } from "../lib/products";
 export const prerender = false;
 
 const products = (await getAllProducts()).filter(isPublicProduct);
+
 const homeOrder = [
   "camisa-riviera",
   "chomba-sprezzata",
@@ -24,6 +25,15 @@ const orderedProducts = [...products].sort((a, b) => {
   if (aIndex !== bIndex) return aIndex - bIndex;
   return String(a.name || "").localeCompare(String(b.name || ""), "es");
 });
+
+const newInProducts = orderedProducts.filter((p) => p.badge === "Nuevo");
+
+const filters = [
+  { id: "todo",    label: "Todo",      count: orderedProducts.length },
+  { id: "top",     label: "Tops",      count: orderedProducts.filter((p) => p.category === "top").length },
+  { id: "bottom",  label: "Bottoms",   count: orderedProducts.filter((p) => p.category === "bottom").length },
+  { id: "calzado", label: "Calzado",   count: orderedProducts.filter((p) => p.category === "calzado").length },
+];
 ---
 
 <Base title="Fortunato | Cápsula" description="Explorá la cápsula completa de Fortunato con stock y precios validados desde backend.">
@@ -32,20 +42,232 @@ const orderedProducts = [...products].sort((a, b) => {
   <main>
     <section id="capsula" class="section section-capsule">
       <div class="container">
+
+        {/* ── HEAD ─────────────────────────────── */}
         <div class="section-head">
           <p class="eyebrow">Cápsula</p>
-          <h2>Piezas pensadas para combinar entre sí, sin ruido y con stock validado.</h2>
+          <h2>Piezas pensadas para combinar entre sí.</h2>
           <p class="muted">Entrá a cada prenda para elegir color y talle. El carrito revalida precios y disponibilidad antes del pago.</p>
         </div>
 
-        <div class="capsule-grid">
+        {/* ── NEW IN ────────────────────────────── */}
+        {newInProducts.length > 0 && (
+          <div class="new-in" id="new-in">
+            <div class="new-in__head">
+              <span class="new-in__label">New in</span>
+            </div>
+            <div class="new-in__track">
+              {newInProducts.map((product) => (
+                <div class="new-in__item">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── FILTROS ──────────────────────────── */}
+        <div class="capsule-filters" role="group" aria-label="Filtrar por categoría">
+          {filters.map((f) => (
+            <button
+              type="button"
+              class:list={["capsule-filter", f.id === "todo" && "is-active"]}
+              data-filter={f.id}
+              aria-pressed={f.id === "todo" ? "true" : "false"}
+            >
+              {f.label}
+              <span class="capsule-filter__count">{f.count}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* ── GRILLA ───────────────────────────── */}
+        <p class="capsule-empty" hidden aria-live="polite">
+          No hay prendas en esta categoría.
+        </p>
+
+        <div class="capsule-grid" id="capsule-grid">
           {orderedProducts.map((product) => (
             <ProductCard product={product} />
           ))}
         </div>
+
       </div>
     </section>
   </main>
 
   <Footer />
 </Base>
+
+<script>
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter]"));
+  const cards   = Array.from(document.querySelectorAll<HTMLElement>("#capsule-grid [data-category]"));
+  const empty   = document.querySelector<HTMLElement>(".capsule-empty");
+
+  const applyFilter = (filterId: string) => {
+    let visible = 0;
+
+    cards.forEach((card) => {
+      const cat = card.dataset.category ?? "";
+      const show = filterId === "todo" || cat === filterId;
+      card.style.display = show ? "" : "none";
+      if (show) visible++;
+    });
+
+    buttons.forEach((btn) => {
+      const active = btn.dataset.filter === filterId;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+
+    if (empty) empty.hidden = visible > 0;
+  };
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => applyFilter(btn.dataset.filter ?? "todo"));
+  });
+</script>
+
+<style>
+  /* ── NEW IN ─────────────────────────────── */
+  .new-in {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background:
+      linear-gradient(155deg, #184a45 0%, #123f3b 100%);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 16px 48px rgba(24,74,69,0.14);
+  }
+
+  .new-in__head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .new-in__label {
+    font-family: "Cinzel","Cormorant Garamond",serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(245,232,215,0.72);
+  }
+
+  .new-in__head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .new-in__track {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+  .new-in__track::-webkit-scrollbar { display: none; }
+
+  .new-in__item {
+    flex: 0 0 auto;
+    width: clamp(200px, 48vw, 280px);
+    scroll-snap-align: start;
+  }
+
+  /* Override dark background card styles */
+  .new-in .product-card {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .new-in .product-card h3,
+  .new-in .product-card .product-price {
+    color: rgba(245,232,215,0.96);
+  }
+  .new-in .product-card .product-attr {
+    color: rgba(245,232,215,0.55);
+  }
+  .new-in .product-card .compare-price {
+    color: rgba(245,232,215,0.45);
+  }
+  .new-in .product-card .discount-pill {
+    background: rgba(245,232,215,0.15);
+    color: rgba(245,232,215,0.9);
+  }
+  .new-in .product-card .btn {
+    background: rgba(245,232,215,0.12);
+    color: rgba(245,232,215,0.96);
+    border: 1px solid rgba(245,232,215,0.18);
+    box-shadow: none;
+  }
+
+  @media (min-width: 760px) {
+    .new-in__item {
+      width: clamp(240px, 28vw, 320px);
+    }
+  }
+
+  /* ── FILTROS ────────────────────────────── */
+  .capsule-filters {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .capsule-filters::-webkit-scrollbar { display: none; }
+
+  .capsule-filter {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(24,74,69,0.14);
+    background: rgba(255,255,255,0.72);
+    color: var(--slate);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    min-height: 44px;
+  }
+
+  .capsule-filter.is-active {
+    background: var(--green);
+    color: var(--beige);
+    border-color: var(--green);
+  }
+
+  .capsule-filter__count {
+    font-size: 0.75rem;
+    opacity: 0.62;
+    font-weight: 400;
+  }
+  .capsule-filter.is-active .capsule-filter__count {
+    opacity: 0.72;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .capsule-filter:not(.is-active):hover {
+      background: rgba(24,74,69,0.06);
+      border-color: rgba(24,74,69,0.22);
+    }
+  }
+
+  /* ── EMPTY STATE ────────────────────────── */
+  .capsule-empty {
+    padding: 3rem 0;
+    text-align: center;
+    color: var(--warm);
+    font-size: 1rem;
+  }
+</style>
