@@ -96,14 +96,16 @@ const initialCtaLabel =
         ? "Elegí talle"
         : "Agregar al carrito";
 const nameLower = product.name?.toLowerCase?.() ?? "";
+// Normalize accents for reliable substring matching (e.g. "pantalón" → "pantalon")
+const nameNorm = nameLower.normalize("NFD").replace(/[̀-ͯ]/g, "");
 const categoryLower = (product.category ?? "").toString().toLowerCase();
 const typeLabel =
-  nameLower.includes("bermuda") ? "Bermuda" :
-  nameLower.includes("pantalon") ? "Pantalón" :
-  nameLower.includes("camisa") ? "Camisa" :
-  nameLower.includes("chomba") ? "Chomba" :
-  nameLower.includes("remera") ? "Remera" :
-  nameLower.includes("sandalia") ? "Sandalia" :
+  nameNorm.includes("bermuda") ? "Bermuda" :
+  nameNorm.includes("pantalon") ? "Pantalón" :
+  nameNorm.includes("camisa") ? "Camisa" :
+  nameNorm.includes("chomba") ? "Chomba" :
+  nameNorm.includes("remera") ? "Remera" :
+  nameNorm.includes("sandalia") ? "Sandalia" :
   categoryLower === "top" ? "Top" :
   categoryLower === "bottom" ? "Bottom" :
   categoryLower === "calzado" ? "Calzado" :
@@ -120,7 +122,8 @@ const summaryBullets = (() => {
   pushUnique(micro);
   const fit = product.fit?.trim?.();
   pushUnique(fit);
-  if (product.materials?.length) pushUnique(product.materials.slice(0, 2).join(" · "));
+  // Only show materials if microcopy isn't already covering that info
+  if (product.materials?.length && !micro) pushUnique(product.materials.slice(0, 2).join(" · "));
   if (bullets.length < 3 && product.colors?.length) pushUnique(`Colores: ${product.colors.slice(0, 3).join(" · ")}`);
   return bullets.slice(0, 3);
 })();
