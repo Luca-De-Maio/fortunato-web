@@ -1,0 +1,335 @@
+---
+import { getAllProducts, isPublicProduct } from "../lib/products";
+
+const products = (await getAllProducts()).filter(isPublicProduct);
+const searchIndex = products.map((p) => ({
+  slug: p.slug,
+  name: p.name,
+  category: p.category,
+  price: p.price,
+  currency: p.currency,
+  gridImage: p.gridImage || (p.images?.[0] ?? "/placeholder.svg"),
+  microcopy: p.microcopy || "",
+  colors: Array.isArray(p.colors) ? p.colors : [],
+  materials: Array.isArray(p.materials) ? p.materials : [],
+}));
+
+const formatPrice = (p: { price: number | null; currency: string }) =>
+  p.price ? `${p.currency} ${p.price.toLocaleString("es-AR")}` : "";
+---
+
+<div class="search-overlay" id="search-overlay" role="dialog" aria-modal="true" aria-label="Buscar productos" hidden>
+  <div class="search-backdrop" id="search-backdrop"></div>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <svg class="search-icon-input" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M11.5 11.5L16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input
+        type="search"
+        id="search-input"
+        class="search-input"
+        placeholder="Buscar prendas, materiales, colores…"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        aria-label="Buscar"
+        aria-controls="search-results"
+        aria-autocomplete="list"
+      />
+      <button type="button" class="search-close" id="search-close" aria-label="Cerrar búsqueda">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <kbd>esc</kbd>
+      </button>
+    </div>
+
+    <div id="search-results" class="search-results" role="listbox" aria-label="Resultados de búsqueda"></div>
+
+    <p class="search-hint" id="search-hint">
+      Escribí para buscar — o presioná <kbd>Esc</kbd> para cerrar
+    </p>
+  </div>
+</div>
+
+<script define:vars={{ searchIndex }}>
+  const overlay   = document.getElementById("search-overlay");
+  const backdrop  = document.getElementById("search-backdrop");
+  const input     = document.getElementById("search-input");
+  const resultsEl = document.getElementById("search-results");
+  const closeBtn  = document.getElementById("search-close");
+  const hintEl    = document.getElementById("search-hint");
+
+  const fmtPrice = (p) =>
+    p.price ? `${p.currency} ${p.price.toLocaleString("es-AR")}` : "";
+
+  const normalize = (s = "") => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+  const search = (q) => {
+    const nq = normalize(q);
+    if (!nq) return [];
+    return searchIndex.filter((p) => {
+      const haystack = normalize(
+        [p.name, p.category, p.microcopy, ...p.colors, ...p.materials].join(" ")
+      );
+      return nq.split(" ").every((token) => haystack.includes(token));
+    });
+  };
+
+  const renderResults = (results, query) => {
+    if (!resultsEl) return;
+    if (!query.trim()) {
+      resultsEl.innerHTML = "";
+      if (hintEl) hintEl.hidden = false;
+      return;
+    }
+    if (hintEl) hintEl.hidden = true;
+    if (!results.length) {
+      resultsEl.innerHTML = `<p class="search-empty">No encontramos resultados para "<strong>${query}</strong>".</p>`;
+      return;
+    }
+    resultsEl.innerHTML = results
+      .map(
+        (p, i) => `
+        <a href="/product/${p.slug}" class="search-result-item" role="option" tabindex="0" data-index="${i}">
+          <div class="search-result-img">
+            <img src="${p.gridImage}" alt="${p.name}" loading="lazy" width="60" height="75" />
+          </div>
+          <div class="search-result-body">
+            <p class="search-result-name">${p.name}</p>
+            <p class="search-result-meta">${p.microcopy || p.category}</p>
+          </div>
+          <p class="search-result-price">${fmtPrice(p)}</p>
+        </a>`
+      )
+      .join("");
+  };
+
+  let debounceTimer;
+  input?.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const q = input.value;
+      renderResults(search(q), q);
+    }, 120);
+  });
+
+  const openSearch = () => {
+    if (!overlay) return;
+    overlay.hidden = false;
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => {
+      overlay.classList.add("is-open");
+      input?.focus();
+    });
+  };
+
+  const closeSearch = () => {
+    if (!overlay) return;
+    overlay.classList.remove("is-open");
+    overlay.addEventListener("transitionend", () => {
+      overlay.hidden = true;
+      document.body.style.overflow = "";
+      if (input) { input.value = ""; }
+      if (resultsEl) resultsEl.innerHTML = "";
+      if (hintEl) hintEl.hidden = false;
+    }, { once: true });
+  };
+
+  // Triggers: search-open buttons, Cmd/Ctrl+K
+  document.addEventListener("click", (e) => {
+    if (e.target && /** @type {Element} */ (e.target).closest("[data-search-open]")) openSearch();
+  });
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); openSearch(); }
+    if (e.key === "Escape" && overlay && !overlay.hidden) closeSearch();
+  });
+
+  // Keyboard nav inside results
+  resultsEl?.addEventListener("keydown", (e) => {
+    const items = Array.from(resultsEl.querySelectorAll(".search-result-item"));
+    const focused = document.activeElement;
+    const idx = items.indexOf(focused);
+    if (e.key === "ArrowDown") { e.preventDefault(); const next = items[Math.min(idx + 1, items.length - 1)]; if (next) next.focus(); }
+    if (e.key === "ArrowUp")   { e.preventDefault(); if (idx <= 0) { if (input) input.focus(); } else { const prev = items[idx - 1]; if (prev) prev.focus(); } }
+    if (e.key === "Enter" && focused && focused.dataset && focused.dataset.index !== undefined) {
+      focused.click();
+    }
+  });
+  input?.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const first = resultsEl?.querySelector(".search-result-item");
+      if (first) first.focus();
+    }
+  });
+
+  closeBtn?.addEventListener("click", closeSearch);
+  backdrop?.addEventListener("click", closeSearch);
+</script>
+
+<style>
+  .search-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: clamp(3rem, 10vh, 7rem);
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+  .search-overlay[hidden] { display: none !important; }
+  .search-overlay.is-open { opacity: 1; }
+
+  .search-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 18, 15, 0.55);
+    backdrop-filter: blur(4px);
+  }
+
+  .search-panel {
+    position: relative;
+    z-index: 1;
+    width: min(92vw, 580px);
+    background: var(--beige);
+    border-radius: 14px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10);
+    overflow: hidden;
+    transform: translateY(-8px);
+    transition: transform 0.18s ease;
+  }
+  .search-overlay.is-open .search-panel { transform: translateY(0); }
+
+  /* Input row */
+  .search-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(24, 74, 69, 0.1);
+  }
+  .search-icon-input { color: rgba(24, 74, 69, 0.45); flex-shrink: 0; }
+  .search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 1.05rem;
+    color: var(--green);
+    outline: none;
+  }
+  .search-input::placeholder { color: rgba(24, 74, 69, 0.35); }
+  .search-input::-webkit-search-cancel-button { display: none; }
+
+  .search-close {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: rgba(24, 74, 69, 0.45);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    flex-shrink: 0;
+    transition: color 0.12s;
+  }
+  .search-close:hover { color: var(--green); }
+  .search-close kbd {
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    background: rgba(24, 74, 69, 0.08);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-family: inherit;
+  }
+
+  /* Results */
+  .search-results {
+    max-height: 360px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid rgba(24, 74, 69, 0.06);
+    transition: background 0.1s;
+    outline: none;
+  }
+  .search-result-item:last-child { border-bottom: none; }
+  .search-result-item:hover,
+  .search-result-item:focus { background: rgba(24, 74, 69, 0.04); }
+
+  .search-result-img {
+    width: 48px;
+    height: 60px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: rgba(24, 74, 69, 0.06);
+  }
+  .search-result-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .search-result-body { flex: 1; min-width: 0; }
+  .search-result-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--green);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .search-result-meta {
+    font-size: 0.78rem;
+    color: rgba(24, 74, 69, 0.5);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .search-result-price {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--green);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .search-empty {
+    padding: 1.5rem 1.25rem;
+    font-size: 0.92rem;
+    color: rgba(24, 74, 69, 0.5);
+  }
+
+  /* Hint */
+  .search-hint {
+    padding: 0.85rem 1.25rem;
+    font-size: 0.78rem;
+    color: rgba(24, 74, 69, 0.35);
+    border-top: 1px solid rgba(24, 74, 69, 0.06);
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  .search-hint kbd {
+    font-size: 0.65rem;
+    background: rgba(24, 74, 69, 0.07);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: inherit;
+  }
+</style>

@@ -2,6 +2,7 @@
 import { Image } from "astro:assets";
 import logoMark from "../assets/logo-mark.png";
 import logoWordmark from "../assets/logo-wordmark.png";
+import SearchOverlay from "./SearchOverlay.astro";
 const { current = "" } = Astro.props;
 ---
 <header class="site-header">
@@ -31,6 +32,20 @@ const { current = "" } = Astro.props;
       </span>
       <span class="brand-text">Fortunato</span>
     </a>
+    <!-- Search button: always visible, positioned independently from the nav -->
+    <button
+      type="button"
+      class="header-search-btn"
+      data-search-open
+      aria-label="Buscar productos"
+      title="Buscar (⌘K)"
+    >
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true">
+        <circle cx="7" cy="7" r="5.2" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M11 11L15.5 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+
     <nav class="nav">
       <a href="/capsula" class:list={["nav-link", "nav-link-primary", current === "capsula" && "is-active"]}>Cápsula</a>
       <a href="/#conjuntos" class:list={["nav-link", "nav-link-primary", current === "conjuntos" && "is-active"]}>Conjuntos</a>
@@ -43,3 +58,5 @@ const { current = "" } = Astro.props;
     </nav>
   </div>
 </header>
+
+<SearchOverlay />

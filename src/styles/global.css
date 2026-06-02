@@ -253,6 +253,24 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.7rem
   content: ""; position: absolute; left: 0; bottom: -4px; width: 100%; height: 2px; background: var(--green);
 }
 
+/* Search button — always visible, independent of nav scroll state */
+.header-search-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  opacity: 0.65;
+  transition: opacity 0.15s;
+  position: relative;
+  z-index: 3;
+  /* Desktop: inline in flex row */
+  order: 1;
+}
+.header-search-btn:hover { opacity: 1; }
+
 .cart-link { display: flex; align-items: center; gap: 0.4rem; }
 .cart-badge {
   min-width: 20px; height: 20px; border-radius: 999px; background: var(--green); color: var(--beige);
@@ -1985,6 +2003,15 @@ h2 { font-family: "Cinzel", "Cormorant Garamond", serif; font-size: clamp(1.7rem
     transform-origin: center;
     transition: width 0.28s ease, opacity 0.22s ease, transform 0.28s ease;
   }
+  .header-search-btn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    opacity: 0.7;
+  }
+
   .nav {
     display: flex;
     justify-content: center;
