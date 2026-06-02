@@ -143,6 +143,14 @@ export const getDb = async () => {
     if (!hasCardVariant) {
       db.run("ALTER TABLE products ADD COLUMN cardVariant TEXT;");
     }
+    const hasSpecs = columns.some((row) => row[1] === "specs");
+    if (!hasSpecs) {
+      db.run("ALTER TABLE products ADD COLUMN specs TEXT;");
+    }
+    const hasSizeChart = columns.some((row) => row[1] === "sizeChart");
+    if (!hasSizeChart) {
+      db.run("ALTER TABLE products ADD COLUMN sizeChart TEXT;");
+    }
 
     const reservationColumns = db.exec("PRAGMA table_info(stock_reservations);")?.[0]?.values ?? [];
     const hasCheckoutSnapshot = reservationColumns.some((row) => row[1] === "checkoutSnapshot");

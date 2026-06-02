@@ -197,7 +197,9 @@ const toSeedProduct = (payload) => {
     combinations: normalizeCombinations(payload.combinations),
     badge: cleanText(payload.badge, 32),
     microcopy: cleanText(payload.microcopy, 120),
-    cardVariant: normalizeCardVariant(payload.cardVariant)
+    cardVariant: normalizeCardVariant(payload.cardVariant),
+    specs: payload.specs && typeof payload.specs === "object" ? payload.specs : null,
+    sizeChart: payload.sizeChart && typeof payload.sizeChart === "object" ? payload.sizeChart : null
   };
 };
 const normalizedImagesEqual = (left, right) => {
@@ -239,7 +241,9 @@ const mapRow = (row) => ({
   combinations: parseJson(row.combinations, []),
   badge: row.badge || "",
   microcopy: row.microcopy || "",
-  cardVariant: normalizeCardVariant(row.cardVariant)
+  cardVariant: normalizeCardVariant(row.cardVariant),
+  specs: parseJson(row.specs, null),
+  sizeChart: parseJson(row.sizeChart, null)
 });
 
 const normalizeSizes = (category, raw) => {
@@ -286,9 +290,10 @@ const ensureSeeded = async () => {
     const shippingStmt = db.prepare("UPDATE products SET shippingProfile = ? WHERE id = ?;");
     const insertStmt = db.prepare(`
       INSERT INTO products
-      (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, stock, shippingProfile, highlights, combinations, badge, microcopy, cardVariant)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      (id, slug, name, category, price, compareAt, currency, description, materials, fit, colors, sizes, gridImage, images, stock, shippingProfile, highlights, combinations, badge, microcopy, cardVariant, specs, sizeChart)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
+    const specsStmt = db.prepare("UPDATE products SET specs = ?, sizeChart = ? WHERE id = ?;");
 
     const resAll = db.exec("SELECT id, slug, category, colors, sizes, gridImage, images, stock, shippingProfile, badge, microcopy, cardVariant FROM products;");
     const rows = resAll?.[0]?.values ?? [];
@@ -332,7 +337,9 @@ const ensureSeeded = async () => {
           serialize(product.combinations),
           product.badge ?? "",
           product.microcopy ?? "",
-          product.cardVariant ?? "standard"
+          product.cardVariant ?? "standard",
+          product.specs ? serialize(product.specs) : null,
+          product.sizeChart ? serialize(product.sizeChart) : null
         ]);
       }
 
@@ -370,6 +377,11 @@ const ensureSeeded = async () => {
         if (currentBadge !== nextBadge || currentMicrocopy !== nextMicrocopy || currentCardVariant !== nextCardVariant) {
           metaStmt.run([nextBadge, nextMicrocopy, nextCardVariant, id]);
         }
+        specsStmt.run([
+          seedProduct.specs ? serialize(seedProduct.specs) : null,
+          seedProduct.sizeChart ? serialize(seedProduct.sizeChart) : null,
+          id
+        ]);
 
         const category = seedProduct.category ?? row[categoryIndex] ?? "";
         const current = parseJson(row[sizesIndex], []);

@@ -322,30 +322,69 @@ const swatchFor = (label = "") => {
 
     {/* 4) Detalles extendidos */}
     <section id="pdp-detalles" class="pdp-details" aria-label="Detalles" data-analytics-section="pdp-detalles">
+
       <h2>Descripción</h2>
       <p class="muted pdp-description">{product.description}</p>
 
-      {product.materials?.length ? (
-        <>
-          <h2>Materiales</h2>
-          <div class="pill-list">
-            {product.materials.map((item) => (
-              <span class="pill">{item}</span>
-            ))}
-          </div>
-        </>
+      {(product as any).specs ? (
+        <div class="pdp-specs">
+          <h2>Composición y cuidado</h2>
+          <dl class="specs-list">
+            <div class="specs-row">
+              <dt>Composición</dt>
+              <dd>{(product as any).specs.composition}</dd>
+            </div>
+            {(product as any).specs.origin ? (
+              <div class="specs-row">
+                <dt>Origen</dt>
+                <dd>{(product as any).specs.origin}</dd>
+              </div>
+            ) : null}
+            {(product as any).specs.care?.length ? (
+              <div class="specs-row">
+                <dt>Cuidado</dt>
+                <dd>
+                  <ul class="care-list">
+                    {(product as any).specs.care.map((item: string) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </div>
       ) : null}
 
-      {product.highlights?.length ? (
-        <>
-          <h2>Detalles</h2>
-          <ul class="product-highlights">
-            {product.highlights.map((item) => (
-              <li>• {item}</li>
-            ))}
-          </ul>
-        </>
+      {(product as any).sizeChart ? (
+        <div class="pdp-size-chart">
+          <h2>Guía de talle</h2>
+          {(product as any).sizeChart.note ? (
+            <p class="size-chart-note muted">{(product as any).sizeChart.note}</p>
+          ) : null}
+          <div class="size-chart-scroll">
+            <table class="size-chart-table">
+              <thead>
+                <tr>
+                  {(product as any).sizeChart.headers.map((h: string) => (
+                    <th>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(product as any).sizeChart.rows.map((row: string[]) => (
+                  <tr>
+                    {row.map((cell) => (
+                      <td>{cell}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : null}
+
     </section>
   </main>
 
