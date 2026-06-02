@@ -6,6 +6,7 @@ import ComboCarousel from "../components/ComboCarousel.astro";
 import EditorialShowcase from "../components/EditorialShowcase.astro";
 import Benefits from "../components/Benefits.astro";
 import FAQ from "../components/FAQ.astro";
+import NewsletterCapture from "../components/NewsletterCapture.astro";
 import HeroCarousel from "../components/HeroCarousel.astro";
 import MarqueeBand from "../components/MarqueeBand.astro";
 import { getCombinationAvailabilitySnapshot } from "../lib/commerce";
@@ -120,6 +121,7 @@ const slides = [
     <MarqueeBand items={serviceBandItems} analyticsSection="service-band" />
 
     <FAQ />
+    <NewsletterCapture />
   </main>
 
   <Footer />
