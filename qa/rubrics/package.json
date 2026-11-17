@@ -1,0 +1,27 @@
+{
+  "name": "ai-qa-rubrics-framework",
+  "version": "1.0.0",
+  "description": "Rubric-based QA for e-commerce catalogs and AI shopping assistants: deterministic checks + LLM-as-judge",
+  "type": "module",
+  "scripts": {
+    "test": "tsx index.ts",
+    "test:rubric": "tsx index.ts --rubric",
+    "selftest": "tsx selftest.ts",
+    "typecheck": "tsc --noEmit",
+    "test:playwright": "playwright test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.9.0",
+    "@playwright/test": "^1.65.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

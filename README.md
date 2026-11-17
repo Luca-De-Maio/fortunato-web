@@ -7,6 +7,9 @@ Standalone storefront for Fortunato. Built with Astro and a performance‑first,
 - Vanilla CSS
 - JSON seed + local SQLite (`sql.js`) para catálogo y reservas
 
+## QA rubrics
+Rubric-based QA for the catalog, admin security, brand alignment and an AI shopping assistant (deterministic checks + LLM-as-judge) lives in [`qa/rubrics/`](qa/rubrics/).
+
 ## Scripts
 ```bash
 npm install

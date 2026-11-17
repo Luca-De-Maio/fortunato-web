@@ -1,0 +1,329 @@
+[
+  {
+    "id": "skillet-26",
+    "slug": "skillet-26",
+    "name": "Cast Iron Skillet 26 cm",
+    "category": "cookware",
+    "price": 64,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Cast iron that holds heat evenly, pre-seasoned with flaxseed oil and ready to use on gas, induction or in the oven.",
+    "images": [
+      "/img/skillet-26/01.webp",
+      "/img/skillet-26/02.webp"
+    ],
+    "sizes": [
+      "26 cm"
+    ],
+    "colors": [
+      "Black"
+    ],
+    "materials": [
+      "Cast iron"
+    ]
+  },
+  {
+    "id": "skillet-30",
+    "slug": "skillet-30",
+    "name": "Cast Iron Skillet 30 cm",
+    "category": "cookware",
+    "price": 79,
+    "compareAt": 95,
+    "currency": "USD",
+    "description": "Cast iron that holds heat evenly, pre-seasoned with flaxseed oil and ready to use on gas, induction or in the oven.",
+    "images": [
+      "/img/skillet-30/01.webp",
+      "/img/skillet-30/02.webp"
+    ],
+    "sizes": [
+      "30 cm"
+    ],
+    "colors": [
+      "Black"
+    ],
+    "materials": [
+      "Cast iron"
+    ]
+  },
+  {
+    "id": "dutch-oven-5l",
+    "slug": "dutch-oven-5l",
+    "name": "Enameled Dutch Oven 5 L",
+    "category": "cookware",
+    "price": 149,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Enameled cast iron pot with a tight lid for braises and bread; the light interior makes it easy to watch browning.",
+    "images": [
+      "/img/dutch-oven-5l/01.webp",
+      "/img/dutch-oven-5l/02.webp"
+    ],
+    "sizes": [
+      "5 L"
+    ],
+    "colors": [
+      "Sage",
+      "Cream",
+      "Red"
+    ],
+    "materials": [
+      "Enameled cast iron"
+    ]
+  },
+  {
+    "id": "saucepan-2l",
+    "slug": "saucepan-2l",
+    "name": "Stainless Saucepan 2 L",
+    "category": "cookware",
+    "price": 58,
+    "compareAt": 49,
+    "currency": "USD",
+    "description": "Tri-ply stainless steel saucepan with a pouring lip and a stay-cool handle, dishwasher safe.",
+    "images": [
+      "/img/saucepan-2l/01.webp",
+      "/img/saucepan-2l/02.webp"
+    ],
+    "sizes": [
+      "2 L"
+    ],
+    "colors": [
+      "Steel"
+    ],
+    "materials": [
+      "Stainless steel"
+    ]
+  },
+  {
+    "id": "stoneware-plate-set",
+    "slug": "stoneware-plate-set",
+    "name": "Stoneware Dinner Plates, set of 4",
+    "category": "tableware",
+    "price": 9,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Reactive-glaze stoneware plates, 27 cm across, microwave and dishwasher safe; each glaze varies slightly.",
+    "images": [
+      "/img/stoneware-plate-set/01.webp",
+      "/img/stoneware-plate-set/02.webp"
+    ],
+    "sizes": [
+      "Set of 4"
+    ],
+    "colors": [
+      "Oat",
+      "Slate"
+    ],
+    "materials": [
+      "Stoneware"
+    ]
+  },
+  {
+    "id": "pasta-bowls",
+    "slug": "pasta-bowls",
+    "name": "Wide Pasta Bowls, set of 4",
+    "category": "tableware",
+    "price": 72,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Shallow stoneware bowls, 22 cm, with a flat base that sits steady and a rim that keeps sauce in.",
+    "images": [
+      "/img/pasta-bowls/01.webp",
+      "/img/pasta-bowls/02.webp"
+    ],
+    "sizes": [
+      "Set of 4"
+    ],
+    "colors": [
+      "Oat",
+      "Slate"
+    ],
+    "materials": [
+      "Stoneware"
+    ]
+  },
+  {
+    "id": "glass-tumblers",
+    "slug": "glass-tumblers",
+    "name": "Recycled Glass Tumblers, set of 6",
+    "category": "tableware",
+    "price": 38,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Mouth-blown tumblers made from recycled glass, 350 ml, with small bubbles typical of the process.",
+    "images": [
+      "/img/glass-tumblers/01.webp",
+      "/img/glass-tumblers/02.webp"
+    ],
+    "sizes": [
+      "Set of 6"
+    ],
+    "colors": [
+      "Clear",
+      "Green"
+    ],
+    "materials": [
+      "Recycled glass"
+    ]
+  },
+  {
+    "id": "linen-napkins",
+    "slug": "linen-napkins",
+    "name": "Linen Napkins, set of 4",
+    "category": "textiles",
+    "price": 34,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Stonewashed European linen napkins, 45 x 45 cm, soft from the first use and better with every wash.",
+    "images": [
+      "/img/linen-napkins/01.webp",
+      "/img/linen-napkins/02.webp"
+    ],
+    "sizes": [
+      "45 x 45 cm"
+    ],
+    "colors": [
+      "Natural",
+      "Rust",
+      "Navy"
+    ],
+    "materials": [
+      "100% linen"
+    ]
+  },
+  {
+    "id": "linen-napkins-xl",
+    "slug": "linen-napkins",
+    "name": "Linen Napkins XL, set of 4",
+    "category": "textiles",
+    "price": 44,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Stonewashed European linen napkins, 50 x 50 cm, for generous laps and messy dinners.",
+    "images": [
+      "/img/linen-napkins-xl/01.webp",
+      "/img/linen-napkins-xl/02.webp"
+    ],
+    "sizes": [
+      "50 x 50 cm"
+    ],
+    "colors": [
+      "Natural",
+      "Navy"
+    ],
+    "materials": [
+      "100% linen"
+    ]
+  },
+  {
+    "id": "apron",
+    "slug": "apron",
+    "name": "Canvas Apron",
+    "category": "kitchen-wear",
+    "price": 42,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Heavy apron.",
+    "images": [
+      "/img/apron/01.webp",
+      "/img/apron/02.webp"
+    ],
+    "sizes": [
+      "One size"
+    ],
+    "colors": [
+      "Charcoal"
+    ],
+    "materials": [
+      "Cotton canvas"
+    ]
+  },
+  {
+    "id": "tea-towels",
+    "slug": "tea-towels",
+    "name": "Waffle Tea Towels, set of 2",
+    "category": "textiles",
+    "price": 24,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Cotton waffle-weave towels, 50 x 70 cm, that dry fast and do not leave lint on glasses.",
+    "images": [
+      "/img/tea-towels/01.webp",
+      "/img/tea-towels/02.webp"
+    ],
+    "sizes": [],
+    "colors": [
+      "White",
+      "White",
+      "Sand"
+    ],
+    "materials": [
+      "100% cotton"
+    ]
+  },
+  {
+    "id": "test-sku-storage",
+    "slug": "test-sku-storage",
+    "name": "TEST SKU do not ship",
+    "category": "storage",
+    "price": 1,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "",
+    "images": [
+      "http://cdn.example.com/test.jpg"
+    ],
+    "sizes": [
+      "-"
+    ],
+    "colors": [
+      "-"
+    ]
+  },
+  {
+    "id": "pantry-jars",
+    "slug": "pantry-jars",
+    "name": "Glass Pantry Jars, set of 3",
+    "category": "storage",
+    "price": 46,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Borosilicate jars with bamboo lids and silicone seals, 0.5 L, 1 L and 1.5 L, for dry goods.",
+    "images": [
+      "/img/pantry-jars/01.webp",
+      "/img/pantry-jars/02.webp"
+    ],
+    "sizes": [
+      "0.5/1/1.5 L"
+    ],
+    "colors": [
+      "Clear"
+    ],
+    "materials": [
+      "Borosilicate glass",
+      "Bamboo"
+    ]
+  },
+  {
+    "id": "bread-box",
+    "slug": "bread-box",
+    "name": "Bamboo Bread Box",
+    "category": "storage",
+    "price": 68,
+    "compareAt": null,
+    "currency": "USD",
+    "description": "Two-level bamboo bread box with a roll-top front; keeps a loaf soft for three days.",
+    "images": [
+      "/img/bread-box/01.webp",
+      "/img/bread-box/02.webp"
+    ],
+    "sizes": [
+      "One size"
+    ],
+    "colors": [
+      "Natural"
+    ],
+    "materials": [
+      "Bamboo"
+    ]
+  }
+]
