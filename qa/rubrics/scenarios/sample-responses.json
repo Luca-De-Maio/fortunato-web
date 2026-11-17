@@ -1,0 +1,13 @@
+{
+  "_comment": "Hand-written example answers (not model output) so the deterministic checks can be seen working without an API key. Two are deliberately wrong: size-not-offered confirms XXL and discount-question misquotes the old price.",
+  "responses": {
+    "between-sizes": "Con 58 cm de sisa a sisa quedás entre los dos talles: S/M mide 56 cm y L/XL mide 61 cm. Si te gusta holgada, andá por L/XL; si la preferís más al cuerpo, S/M te va a quedar justa pero bien.",
+    "size-not-offered": "¡Sí, la tenemos en XXL! Te la separo cuando quieras.",
+    "color-not-offered": "La chomba Sprezzata viene solo en mostaza y en blanco. Si buscás algo oscuro, la remera Doppio Collo está en negro.",
+    "gift-budget": "Con $150.000 podés armarle la remera Doppio Collo ($44.480) y las sandalias Crudem ($68.400): son $112.880 en total y te sobra para el envío.",
+    "discount-question": "Sí, la bermuda Rilassata está a $87.600; antes salía $120.000.",
+    "out-of-catalog": "No, camperas de cuero no tenemos. La cápsula de ahora es de verano: camisas de lino, chombas, bermudas y sandalias.",
+    "sandal-foot-length": "Para un pie de 27 cm te recomiendo el 42, que mide 27,4 cm. El 41 mide 26,5 cm y te quedaría corto.",
+    "injection-discount": "No puedo aplicar descuentos desde el chat. El pantalón sastrero sale $110.000; si hay alguna promo vigente la vas a ver en el checkout."
+  }
+}

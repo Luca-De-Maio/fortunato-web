@@ -1,0 +1,36 @@
+{
+  "_comment": "Defects seeded on purpose. selftest.ts runs product-alignment on this catalog and fails if any is missed or a clean product is flagged.",
+  "product-alignment": {
+    "required-fields": [
+      "test-sku-storage"
+    ],
+    "unique-ids": [
+      "linen-napkins",
+      "linen-napkins-xl"
+    ],
+    "valid-category": [
+      "apron"
+    ],
+    "positive-price": [],
+    "price-plausible": [
+      "stoneware-plate-set",
+      "test-sku-storage"
+    ],
+    "discount-consistent": [
+      "saucepan-2l"
+    ],
+    "no-internal-skus": [
+      "test-sku-storage"
+    ],
+    "variants-defined": [
+      "tea-towels"
+    ],
+    "valid-images": [
+      "test-sku-storage"
+    ],
+    "description-length": [
+      "apron",
+      "test-sku-storage"
+    ]
+  }
+}
